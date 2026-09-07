@@ -8,6 +8,18 @@
 #include <components/debug/debuglog.hpp>
 #include <components/misc/stringops.hpp>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include <components/openmw-mp/TimedLog.hpp>
+#include "../mwmp/Main.hpp"
+#include "../mwmp/GUIController.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include "../mwbase/environment.hpp"
 #include "../mwbase/soundmanager.hpp"
 #include "../mwbase/inputmanager.hpp"
@@ -83,6 +95,18 @@ namespace MWGui
 
         if(mInterMessageBoxe != nullptr && mInterMessageBoxe->mMarkedToDelete) {
             mLastButtonPressed = mInterMessageBoxe->readPressedButton();
+
+            /*
+                Start of tes3mp addition
+
+                If this message box was created by the server, send the input back to it
+            */
+            if (mInterMessageBoxe->mHasServerOrigin)
+                mwmp::Main::get().getGUIController()->processCustomMessageBoxInput(mLastButtonPressed);
+            /*
+                End of tes3mp addition
+            */
+
             mInterMessageBoxe->setVisible(false);
             delete mInterMessageBoxe;
             mInterMessageBoxe = nullptr;
@@ -122,7 +146,16 @@ namespace MWGui
         mStaticMessageBox = nullptr;
     }
 
-    bool MessageBoxManager::createInteractiveMessageBox (const std::string& message, const std::vector<std::string>& buttons)
+    /*
+        Start of tes3mp change (major)
+
+        Add a hasServerOrigin boolean to the list of arguments so those messageboxes
+        can be differentiated from client-only ones
+    */
+    bool MessageBoxManager::createInteractiveMessageBox (const std::string& message, const std::vector<std::string>& buttons, bool hasServerOrigin)
+    /*
+        End of tes3mp change (major)
+    */
     {
         if (mInterMessageBoxe != nullptr)
         {
@@ -133,6 +166,15 @@ namespace MWGui
         }
 
         mInterMessageBoxe = new InteractiveMessageBox(*this, message, buttons);
+        /*
+            Start of tes3mp addition
+
+            Track whether the message box has a server origin
+        */
+        mInterMessageBoxe->mHasServerOrigin = hasServerOrigin;
+        /*
+            End of tes3mp addition
+        */
         mLastButtonPressed = -1;
 
         return true;

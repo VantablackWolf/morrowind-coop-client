@@ -236,4 +236,14 @@ void ESM::CellRef::blank()
         mPos.pos[i] = 0;
         mPos.rot[i] = 0;
     }
+
+    /*
+        Start of tes3mp addition
+
+        Set the mMpNum (unique multiplayer reference number) to 0 by default
+    */
+    mMpNum = 0;
+    /*
+        End of tes3mp addition
+    */
 }

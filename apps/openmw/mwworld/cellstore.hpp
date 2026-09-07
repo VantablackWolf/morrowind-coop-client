@@ -194,6 +194,17 @@ namespace MWWorld
             /// @return updated MWWorld::Ptr with the new CellStore pointer set.
             MWWorld::Ptr moveTo(const MWWorld::Ptr& object, MWWorld::CellStore* cellToMoveTo);
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to clear the moves to other cells tracked for objects, allowing for
+                on-the-fly cell resets that don't cause crashes
+            */
+            void clearMovesToCells();
+            /*
+                End of tes3mp addition
+            */
+
             void rest(double hours);
             void recharge(float duration);
 
@@ -247,6 +258,67 @@ namespace MWWorld
             ///< Will return an empty Ptr if cell is not loaded. Does not check references in
             /// containers.
             /// @note Triggers CellStore hasState flag.
+
+            /*
+                Start of tes3mp addition
+
+                Allow the searching of objects by their reference numbers and, optionally,
+                their refIds
+            */
+            Ptr searchExact (unsigned int refNum, unsigned int mpNum, std::string refId = "", bool actorsOnly = false);
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to get the mMergedRefs in the CellStore from elsewhere in the code
+            */
+            std::vector<LiveCellRefBase*> &getMergedRefs();
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to get the mNPCs in the CellStore from elsewhere in the code
+            */
+            CellRefList<ESM::NPC> *getNpcs();
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to get the mCreatures in the CellStore from elsewhere in the code
+            */
+            CellRefList<ESM::Creature> *getCreatures();
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to get the mCreatureLists in the CellStore from elsewhere in the code
+            */
+            CellRefList<ESM::CreatureLevList> *getCreatureLists();
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to get the mContainers in the CellStore from elsewhere in the code
+            */
+            CellRefList<ESM::Container> *getContainers();
+            /*
+                End of tes3mp addition
+            */
 
             float getWaterLevel() const;
 

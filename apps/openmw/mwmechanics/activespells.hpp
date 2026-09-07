@@ -51,6 +51,16 @@ namespace MWMechanics
             mutable MagicEffects mEffects;
             mutable bool mSpellsChanged;
 
+            /*
+                Start of tes3mp addition
+
+                Track the actorId corresponding to these ActiveSpells
+            */
+            int mActorId;
+            /*
+                End of tes3mp addition
+            */
+
             void rebuildEffects() const;
 
             /// Add any effects that are in "from" and not in "addTo" to "addTo"
@@ -77,8 +87,30 @@ namespace MWMechanics
             void addSpell (const std::string& id, bool stack, std::vector<ActiveEffect> effects,
                            const std::string& displayName, int casterActorId);
 
+            /*
+                Start of tes3mp addition
+
+                Add a separate addSpell() with a timestamp argument
+            */
+            void addSpell (const std::string& id, bool stack, std::vector<ActiveEffect> effects,
+                           const std::string& displayName, int casterActorId, MWWorld::TimeStamp timestamp, bool sendPacket = true);
+            /*
+                End of tes3mp addition
+            */
+
             /// Removes the active effects from this spell/potion/.. with \a id
             void removeEffects (const std::string& id);
+
+            /*
+                Start of tes3mp addition
+
+                Remove the spell with a certain ID and a certain timestamp, useful
+                when there are stacked spells with the same ID
+            */
+            bool removeSpellByTimestamp(const std::string& id, MWWorld::TimeStamp timestamp);
+            /*
+                End of tes3mp addition
+            */
 
             /// Remove all active effects with this effect id
             void purgeEffect (short effectId);
@@ -92,6 +124,26 @@ namespace MWMechanics
             /// Remove all effects with CASTER_LINKED flag that were cast by \a casterActorId
             void purge (int casterActorId);
 
+            /*
+                Start of tes3mp addition
+
+                Allow the purging of an effect for a specific arg (attribute or skill)
+            */
+            void purgeEffectByArg(short effectId, int effectArg);
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Make it easy to get an effect's duration
+            */
+            float getEffectDuration(short effectId, std::string sourceId);
+            /*
+                End of tes3mp addition
+            */
+
             /// Remove all spells
             void clear();
 
@@ -103,6 +155,17 @@ namespace MWMechanics
             const MagicEffects& getMagicEffects() const;
 
             void visitEffectSources (MWMechanics::EffectSourceVisitor& visitor) const;
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to set and get the actorId for these ActiveSpells
+            */
+            int getActorId() const;
+            void setActorId(int actorId);
+            /*
+                End of tes3mp addition
+            */
 
     };
 }

@@ -322,6 +322,16 @@ namespace MWWorld
 
         void listIdentifier(std::vector<std::string> &list) const override;
 
+        /*
+            Start of tes3mp addition
+
+            Make it possible to override a Cell record similarly to how
+            other types of records can be overridden
+        */
+        ESM::Cell *override(const ESM::Cell &cell);
+        /*
+            End of tes3mp addition
+        */
         ESM::Cell *insert(const ESM::Cell &cell);
 
         bool erase(const ESM::Cell &cell);
@@ -351,6 +361,17 @@ namespace MWWorld
         size_t getSize() const override;
 
         void setUp() override;
+
+        /*
+            Start of tes3mp addition
+
+            Make it possible to override a Pathgrid record similarly to how
+            other types of records can be overridden
+        */
+        ESM::Pathgrid* override(const ESM::Pathgrid& pathgrid);
+        /*
+            End of tes3mp addition
+        */
 
         const ESM::Pathgrid *search(int x, int y) const;
         const ESM::Pathgrid *search(const std::string& name) const;

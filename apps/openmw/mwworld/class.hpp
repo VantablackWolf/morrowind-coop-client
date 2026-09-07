@@ -155,10 +155,32 @@ namespace MWWorld
             ///< Return inventory store or throw an exception, if class does not have a
             /// inventory store (default implementation: throw an exception)
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to check whether a class has a container store
+            */
+            virtual bool hasContainerStore(const Ptr& ptr) const;
+            ///< Does this object have a container store? (default implementation: false)
+            /*
+                End of tes3mp addition
+            */
+
             virtual bool hasInventoryStore (const Ptr& ptr) const;
             ///< Does this object have an inventory store, i.e. equipment slots? (default implementation: false)
 
             virtual bool canLock (const ConstPtr& ptr) const;
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to check whether a class can be harvested
+            */
+            virtual bool canBeHarvested(const ConstPtr& ptr) const;
+            ///< Can this object be harvested? (default implementation: false)
+            /*
+                End of tes3mp addition
+            */
 
             virtual void setRemainingUsageTime (const Ptr& ptr, float duration) const;
             ///< Sets the remaining duration of the object, such as an equippable light

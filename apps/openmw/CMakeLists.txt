@@ -3,8 +3,8 @@ set(GAME
     main.cpp
     engine.cpp
 
-    ${CMAKE_SOURCE_DIR}/files/windows/openmw.rc
-    ${CMAKE_SOURCE_DIR}/files/windows/openmw.exe.manifest
+    ${CMAKE_SOURCE_DIR}/files/tes3mp/tes3mp.rc
+    ${CMAKE_SOURCE_DIR}/files/tes3mp/tes3mp.exe.manifest
 )
 
 if (ANDROID)
@@ -99,16 +99,65 @@ add_openmw_dir (mwbase
     inputmanager windowmanager statemanager
     )
 
+add_openmw_dir (mwmp Main Networking LocalSystem LocalPlayer DedicatedPlayer PlayerList LocalActor DedicatedActor ActorList
+    ObjectList Worldstate Cell CellController GUIController MechanicsHelper RecordHelper ScriptController
+    )
+
+add_openmw_dir (mwmp/GUI GUIChat GUILogin PlayerMarkerCollection GUIDialogList TextInputDialog
+    )
+
+add_openmw_dir(mwmp/processors BaseClientPacketProcessor SystemProcessor PlayerProcessor ObjectProcessor ActorProcessor
+    WorldstateProcessor ProcessorInitializer
+    )
+
+add_openmw_dir (mwmp/processors/system ProcessorSystemHandshake
+    )
+
+add_openmw_dir (mwmp/processors/actor ProcessorActorAI ProcessorActorAnimFlags ProcessorActorAnimPlay ProcessorActorAttack
+    ProcessorActorAuthority ProcessorActorCast ProcessorActorCellChange ProcessorActorDeath ProcessorActorEquipment
+    ProcessorActorList ProcessorActorPosition ProcessorActorSpeech ProcessorActorSpellsActive ProcessorActorStatsDynamic
+    ProcessorActorTest
+    )
+
+add_openmw_dir (mwmp/processors/player ProcessorChatMessage ProcessorGUIMessageBox ProcessorUserDisconnected
+    ProcessorUserMyID ProcessorGameSettings ProcessorPlayerAlly ProcessorPlayerAnimFlags ProcessorPlayerAnimPlay
+    ProcessorPlayerAttack ProcessorPlayerAttribute ProcessorPlayerBaseInfo ProcessorPlayerBehavior ProcessorPlayerBook
+    ProcessorPlayerBounty ProcessorPlayerCast ProcessorPlayerCellChange ProcessorPlayerCellState ProcessorPlayerCharClass
+    ProcessorPlayerCharGen ProcessorPlayerCooldowns ProcessorPlayerDeath ProcessorPlayerDisposition ProcessorPlayerEquipment
+    ProcessorPlayerFaction ProcessorPlayerInput ProcessorPlayerInventory ProcessorPlayerItemUse ProcessorPlayerJail
+    ProcessorPlayerJournal ProcessorPlayerLevel ProcessorPlayerMiscellaneous ProcessorPlayerMomentum ProcessorPlayerPosition 
+    ProcessorPlayerQuickKeys ProcessorPlayerReputation ProcessorPlayerResurrect ProcessorPlayerShapeshift
+    ProcessorPlayerSkill ProcessorPlayerSpeech ProcessorPlayerSpellbook ProcessorPlayerSpellsActive
+    ProcessorPlayerStatsDynamic ProcessorPlayerTopic
+    )
+
+add_openmw_dir (mwmp/processors/object BaseObjectProcessor
+
+    ProcessorConsoleCommand ProcessorContainer ProcessorDoorDestination ProcessorDoorState ProcessorMusicPlay
+    ProcessorVideoPlay
+
+    ProcessorObjectActivate ProcessorObjectAnimPlay ProcessorObjectAttach ProcessorObjectDelete
+    ProcessorObjectDialogueChoice ProcessorObjectHit ProcessorObjectLock ProcessorObjectMove ProcessorObjectPlace
+    ProcessorObjectRestock ProcessorObjectRotate ProcessorObjectScale ProcessorObjectSound ProcessorObjectSpawn
+    ProcessorObjectState ProcessorObjectTrap ProcessorClientScriptLocal ProcessorScriptMemberShort
+    ProcessorObjectMiscellaneous
+    )
+
+add_openmw_dir (mwmp/processors/worldstate ProcessorCellReset ProcessorClientScriptGlobal ProcessorClientScriptSettings
+    ProcessorRecordDynamic ProcessorWorldCollisionOverride ProcessorWorldDestinationOverride ProcessorWorldKillCount
+    ProcessorWorldMap ProcessorWorldRegionAuthority ProcessorWorldTime ProcessorWorldWeather
+    )
+
 # Main executable
 
 if (NOT ANDROID)
-    openmw_add_executable(openmw
+    openmw_add_executable(tes3mp
         ${OPENMW_FILES}
         ${GAME} ${GAME_HEADER}
         ${APPLE_BUNDLE_RESOURCES}
     )
 else ()
-    add_library(openmw
+    add_library(tes3mp
         SHARED
         ${OPENMW_FILES}
         ${GAME} ${GAME_HEADER}
@@ -121,7 +170,7 @@ include_directories(
     ${FFmpeg_INCLUDE_DIRS}
 )
 
-target_link_libraries(openmw
+target_link_libraries(tes3mp
     # CMake's built-in OSG finder does not use pkgconfig, so we have to
     # manually ensure the order is correct for inter-library dependencies.
     # This only makes a difference with `-DOPENMW_USE_SYSTEM_OSG=ON -DOSG_STATIC=ON`.
@@ -146,6 +195,7 @@ target_link_libraries(openmw
     "osg-ffmpeg-videoplayer"
     "oics"
     components
+    ${RakNet_LIBRARY}
 )
 
 if(OSG_STATIC)
@@ -164,30 +214,30 @@ if(OSG_STATIC)
     # We use --whole-archive because OSG plugins use registration.
     get_whole_archive_options(_opts ${_osg_plugins_static_files})
     target_link_options(openmw_osg_plugins INTERFACE ${_opts})
-    target_link_libraries(openmw openmw_osg_plugins)
+    target_link_libraries(tes3mp openmw_osg_plugins)
 
     if(OPENMW_USE_SYSTEM_OSG)
         # OSG plugin pkgconfig files are missing these dependencies.
         # https://github.com/openscenegraph/OpenSceneGraph/issues/1052
-        target_link_libraries(openmw freetype jpeg png)
+        target_link_libraries(tes3mp freetype jpeg png)
     endif()
 endif(OSG_STATIC)
 
 if (ANDROID)
-    target_link_libraries(openmw EGL android log z)
+    target_link_libraries(tes3mp EGL android log z)
 endif (ANDROID)
 
 if (USE_SYSTEM_TINYXML)
-    target_link_libraries(openmw ${TinyXML_LIBRARIES})
+    target_link_libraries(tes3mp ${TinyXML_LIBRARIES})
 endif()
 
 if (NOT UNIX)
-target_link_libraries(openmw ${SDL2MAIN_LIBRARY})
+target_link_libraries(tes3mp ${SDL2MAIN_LIBRARY})
 endif()
 
 # Fix for not visible pthreads functions for linker with glibc 2.15
 if (UNIX AND NOT APPLE)
-target_link_libraries(openmw ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(tes3mp ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 if(APPLE)
@@ -202,24 +252,24 @@ if(APPLE)
     configure_file("${OpenMW_BINARY_DIR}/openmw.cfg" ${BUNDLE_RESOURCES_DIR} COPYONLY)
     configure_file("${OpenMW_BINARY_DIR}/gamecontrollerdb.txt" ${BUNDLE_RESOURCES_DIR} COPYONLY)
 
-    add_custom_command(TARGET openmw
+    add_custom_command(TARGET tes3mp
         POST_BUILD
         COMMAND cp "${OpenMW_BINARY_DIR}/resources/version" "${BUNDLE_RESOURCES_DIR}/resources")
 
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(IOKIT_FRAMEWORK IOKit)
-    target_link_libraries(openmw ${COCOA_FRAMEWORK} ${IOKIT_FRAMEWORK})
+    target_link_libraries(tes3mp ${COCOA_FRAMEWORK} ${IOKIT_FRAMEWORK})
 
     if (FFmpeg_FOUND)
         find_library(COREVIDEO_FRAMEWORK CoreVideo)
         find_library(VDA_FRAMEWORK VideoDecodeAcceleration)
-        target_link_libraries(openmw z ${COREVIDEO_FRAMEWORK} ${VDA_FRAMEWORK})
+        target_link_libraries(tes3mp z ${COREVIDEO_FRAMEWORK} ${VDA_FRAMEWORK})
     endif()
 endif(APPLE)
 
 if (BUILD_WITH_CODE_COVERAGE)
   add_definitions (--coverage)
-  target_link_libraries(openmw gcov)
+  target_link_libraries(tes3mp gcov)
 endif()
 
 if (MSVC)
@@ -230,5 +280,5 @@ if (MSVC)
 endif (MSVC)
 
 if (WIN32)
-    INSTALL(TARGETS openmw RUNTIME DESTINATION ".")
+    INSTALL(TARGETS tes3mp RUNTIME DESTINATION ".")
 endif (WIN32)

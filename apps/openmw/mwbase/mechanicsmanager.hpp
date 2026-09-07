@@ -106,6 +106,16 @@ namespace MWBase
             virtual int countDeaths (const std::string& id) const = 0;
             ///< Return the number of deaths for actors with the given ID.
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to set the number of deaths for an actor with the given refId
+            */
+            virtual void setDeaths(const std::string& refId, int number) = 0;
+            /*
+                End of tes3mp addition
+            */
+
             /// Check if \a observer is potentially aware of \a ptr. Does not do a line of sight check!
             virtual bool awarenessCheck (const MWWorld::Ptr& ptr, const MWWorld::Ptr& observer) = 0;
 
@@ -230,6 +240,16 @@ namespace MWBase
             virtual bool isReadyToBlock (const MWWorld::Ptr& ptr) const = 0;
             virtual bool isAttackingOrSpell(const MWWorld::Ptr &ptr) const = 0;
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to set the attackingOrSpell state from elsewhere in the code
+            */
+            virtual void setAttackingOrSpell(const MWWorld::Ptr &ptr, bool state) const = 0;
+            /*
+                End of tes3mp addition
+            */
+
             virtual void castSpell(const MWWorld::Ptr& ptr, const std::string spellId, bool manualSpell) = 0;
 
             virtual void processChangedSettings (const std::set< std::pair<std::string, std::string> >& settings) = 0;
@@ -255,6 +275,17 @@ namespace MWBase
             virtual bool isItemStolenFrom(const std::string& itemid, const MWWorld::Ptr& ptr) = 0;
 
             virtual bool isBoundItem(const MWWorld::Ptr& item) = 0;
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to check if an itemId corresponds to a bound item
+            */
+            virtual bool isBoundItem(std::string itemId) = 0;
+            /*
+                End of tes3mp addition
+            */
+
             virtual bool isAllowedToUse (const MWWorld::Ptr& ptr, const MWWorld::Ptr& target, MWWorld::Ptr& victim) = 0;
 
             /// Turn actor into werewolf or normal form.

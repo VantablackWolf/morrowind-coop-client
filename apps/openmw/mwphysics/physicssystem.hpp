@@ -236,6 +236,16 @@ namespace MWPhysics
 
             bool isOnSolidGround (const MWWorld::Ptr& actor) const;
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to set the physics framerate from elsewhere
+            */
+            void setPhysicsFramerate(float physFramerate);
+            /*
+                End of tes3mp addition
+            */
+
             void updateAnimatedCollisionShape(const MWWorld::Ptr& object);
 
             template <class Function>

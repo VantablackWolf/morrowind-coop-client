@@ -23,6 +23,18 @@
 #include <SDL_keyboard.h>
 #include <SDL_clipboard.h>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include <components/openmw-mp/TimedLog.hpp>
+#include "../mwmp/Main.hpp"
+#include "../mwmp/GUIController.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include <components/debug/debuglog.hpp>
 
 #include <components/sdlutil/sdlcursormanager.hpp>
@@ -353,10 +365,19 @@ namespace MWGui
         mGuiModeStates[GM_Dialogue] = GuiModeState(mDialogueWindow);
         mTradeWindow->eventTradeDone += MyGUI::newDelegate(mDialogueWindow, &DialogueWindow::onTradeComplete);
 
-        ContainerWindow* containerWindow = new ContainerWindow(mDragAndDrop);
-        mWindows.push_back(containerWindow);
-        trackWindow(containerWindow, "container");
-        mGuiModeStates[GM_Container] = GuiModeState({containerWindow, mInventoryWindow});
+        /*
+            Start of tes3mp change (major)
+
+            Use a member variable (mContainerWIndow) instead of a local one so
+            we can access it from elsewhere
+        */
+        mContainerWindow = new ContainerWindow(mDragAndDrop);
+        mWindows.push_back(mContainerWindow);
+        trackWindow(mContainerWindow, "container");
+        mGuiModeStates[GM_Container] = GuiModeState({mContainerWindow, mInventoryWindow});
+        /*
+            End of tes3mp change (major)
+        */
 
         mHud = new HUD(mCustomMarkers, mDragAndDrop, mLocalMapRender);
         mWindows.push_back(mHud);
@@ -665,6 +686,15 @@ namespace MWGui
             mCharGen->spawnDialog(mode);
             break;
         default:
+            /*
+                Start of tes3mp addition
+
+                Pass the GuiMode further on to the multiplayer-specific GUI controller
+            */
+            mwmp::Main::get().getGUIController()->WM_UpdateVisible(mode);
+            /*
+                End of tes3mp addition
+            */
             break;
         }
     }
@@ -705,9 +735,20 @@ namespace MWGui
         popGuiMode();
     }
 
-    void WindowManager::interactiveMessageBox(const std::string &message, const std::vector<std::string> &buttons, bool block)
+    /*
+        Start of tes3mp change (major)
+
+        Add a hasServerOrigin boolean to the list of arguments so those messageboxes
+        can be differentiated from client-only ones
+
+        Use the hasServerOrigin argument when creating an interactive message box
+    */
+    void WindowManager::interactiveMessageBox(const std::string &message, const std::vector<std::string> &buttons, bool block, bool hasServerOrigin)
     {
-        mMessageBoxManager->createInteractiveMessageBox(message, buttons);
+        mMessageBoxManager->createInteractiveMessageBox(message, buttons, hasServerOrigin);
+    /*
+        End of tes3mp change (major)
+    */
         updateVisible();
 
         if (block)
@@ -823,6 +864,26 @@ namespace MWGui
                     window->onFrame(frameDuration);
         }
 
+        /*
+            Start of tes3mp addition
+
+            Fix crashes caused by messageboxes that never have their modals erased elsewhere, working around
+            one of the main GUI-related problems that arise in an unpaused environment
+        */
+        for (auto modalIterator = mCurrentModals.begin(); modalIterator != mCurrentModals.end();) {
+            if ((*modalIterator)->mMainWidget == 0)
+            {
+                mCurrentModals.erase(modalIterator);
+            }
+            else
+            {
+                ++modalIterator;
+            }
+        }
+        /*
+            End of tes3mp addition
+        */
+
         // Make sure message boxes are always in front
         // This is an awful workaround for a series of awfully interwoven issues that couldn't be worked around
         // in a better way because of an impressive number of even more awfully interwoven issues.
@@ -917,6 +978,20 @@ namespace MWGui
         }
     }
 
+    /*
+        Start of tes3mp addition
+
+        Allow the setting of the image data for a global map tile from elsewhere
+        in the code
+    */
+    void WindowManager::setGlobalMapImage(int cellX, int cellY, const std::vector<char>& imageData)
+    {
+        mMap->setGlobalMapImage(cellX, cellY, imageData);
+    }
+    /*
+        End of tes3mp addition
+    */
+
     void WindowManager::setActiveMap(int x, int y, bool interior)
     {
         mMap->setActiveCell(x,y, interior);
@@ -991,6 +1066,20 @@ namespace MWGui
         mToolTips->setEnabled(!dragDrop);
         MWBase::Environment::get().getInputManager()->setDragDrop(dragDrop);
     }
+
+    /*
+        Start of tes3mp addition
+
+        Allow the completion of a drag and drop from elsewhere in the code
+    */
+    void WindowManager::finishDragDrop()
+    {
+        if (mDragAndDrop->mIsOnDragAndDrop)
+            mDragAndDrop->finish();
+    }
+    /*
+        End of tes3mp addition
+    */
 
     void WindowManager::setCursorVisible(bool visible)
     {
@@ -1336,10 +1425,44 @@ namespace MWGui
         mConsole->executeFile (path);
     }
 
+    /*
+        Start of tes3mp addition
+
+        Allow the execution of console commands from elsewhere in the code
+    */
+    void WindowManager::executeCommandInConsole(const std::string& command)
+    {
+        mConsole->execute(command);
+    }
+    /*
+        End of tes3mp addition
+    */
+
     MWGui::InventoryWindow* WindowManager::getInventoryWindow() { return mInventoryWindow; }
     MWGui::CountDialog* WindowManager::getCountDialog() { return mCountDialog; }
     MWGui::ConfirmationDialog* WindowManager::getConfirmationDialog() { return mConfirmationDialog; }
     MWGui::TradeWindow* WindowManager::getTradeWindow() { return mTradeWindow; }
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to get the ContainerWindow from elsewhere
+        in the code
+    */
+    MWGui::ContainerWindow* WindowManager::getContainerWindow() { return mContainerWindow; }
+    /*
+        End of tes3mp addition
+    */
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to get the DialogueWindow from elsewhere
+    */
+    MWGui::DialogueWindow* WindowManager::getDialogueWindow() { return mDialogueWindow; }
+    /*
+        End of tes3mp addition
+    */
 
     void WindowManager::useItem(const MWWorld::Ptr &item, bool bypassBeastRestrictions)
     {
@@ -1482,6 +1605,40 @@ namespace MWGui
     {
         mQuickKeysMenu->activateQuickKey(index);
     }
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to add quickKeys from elsewhere in the code
+    */
+    void WindowManager::setQuickKey(int slot, int quickKeyType, MWWorld::Ptr item, const std::string& spellId)
+    {
+        if (slot > 0)
+        {
+            // The actual indexes recorded for quick keys are always 1 higher than their
+            // indexes in the mKey vector, so adjust for the latter
+            mQuickKeysMenu->setSelectedIndex(slot - 1);
+
+            switch (quickKeyType)
+            {
+            case QuickKeysMenu::Type_Unassigned:
+                mQuickKeysMenu->unassignIndex(slot - 1);
+                break;
+            case QuickKeysMenu::Type_Item:
+                mQuickKeysMenu->onAssignItem(item);
+                break;
+            case QuickKeysMenu::Type_MagicItem:
+                mQuickKeysMenu->onAssignMagicItem(item);
+                break;
+            case QuickKeysMenu::Type_Magic:
+                mQuickKeysMenu->onAssignMagic(spellId);
+                break;
+            }
+        }
+    }
+    /*
+        End of tes3mp addition
+    */
 
     bool WindowManager::getSubtitlesEnabled ()
     {
@@ -2023,6 +2180,35 @@ namespace MWGui
     {
         mConsole->setSelectedObject(object);
     }
+
+    /*
+        Start of tes3mp addition
+
+        Allow the direct setting of a console's Ptr, without the assumption that an object
+        was clicked and that key focus should be restored to the console window, for console
+        commands executed via server scripts
+    */
+    void WindowManager::setConsolePtr(const MWWorld::Ptr &object)
+    {
+        mConsole->setPtr(object);
+    }
+    /*
+        End of tes3mp addition
+    */
+
+    /*
+        Start of tes3mp addition
+
+        Allow the clearing of the console's Ptr from elsewhere in the code, so that
+        Ptrs used in console commands run from server scripts do not stay selected
+    */
+    void WindowManager::clearConsolePtr()
+    {
+        mConsole->resetReference();
+    }
+    /*
+        End of tes3mp addition
+    */
 
     std::string WindowManager::correctIconPath(const std::string& path)
     {

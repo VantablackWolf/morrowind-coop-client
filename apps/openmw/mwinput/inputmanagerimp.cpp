@@ -3,6 +3,7 @@
 #include <osgViewer/ViewerEventHandlers>
 
 #include <components/sdlutil/sdlinputwrapper.hpp>
+
 #include <components/esm/esmwriter.hpp>
 #include <components/esm/esmreader.hpp>
 

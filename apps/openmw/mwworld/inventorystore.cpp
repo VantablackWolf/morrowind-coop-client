@@ -8,6 +8,19 @@
 #include <components/esm/inventorystate.hpp>
 #include <components/misc/rng.hpp>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include <components/openmw-mp/TimedLog.hpp>
+#include "../mwmp/Main.hpp"
+#include "../mwmp/CellController.hpp"
+#include "../mwmp/PlayerList.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -148,8 +161,16 @@ MWWorld::ContainerStoreIterator MWWorld::InventoryStore::add(const Ptr& itemPtr,
             autoEquip(actorPtr);
     }
 
-    if (mListener)
+    /*
+        Start of tes3mp change (major)
+
+        Only fire inventory events for actors in loaded cells to avoid crashes
+    */
+    if (mListener && MWBase::Environment::get().getWorld()->isCellActive(*actorPtr.getCell()->getCell()))
         mListener->itemAdded(*retVal, count);
+    /*
+        End of tes3mp change (major)
+    */
 
     return retVal;
 }
@@ -224,7 +245,19 @@ MWWorld::ContainerStoreIterator MWWorld::InventoryStore::findSlot (int slot) con
     {
         // Object has been deleted
         // This should no longer happen, since the new remove function will unequip first
-        throw std::runtime_error("Invalid slot, make sure you are not calling RefData::setCount for a container object");
+
+        /*
+            Start of tes3mp change (major)
+
+            Instead of throwing an error, display an error log message with information about
+            the item
+        */
+        //throw std::runtime_error("Invalid slot, make sure you are not calling RefData::setCount for a container object");
+        LOG_MESSAGE_SIMPLE(TimedLog::LOG_ERROR, "Invalid slot, make sure you are not calling RefData::setCount for a container object\n- item was %s",
+            mSlots[slot]->getCellRef().getRefId().c_str());
+        /*
+            End of tes3mp change (major)
+        */
     }
 
     return mSlots[slot];
@@ -525,6 +558,18 @@ void MWWorld::InventoryStore::autoEquipShield(const MWWorld::Ptr& actor, TSlots&
 
 void MWWorld::InventoryStore::autoEquip (const MWWorld::Ptr& actor)
 {
+    /*
+        Start of tes3mp addition
+
+        We need DedicatedPlayers and DedicatedActors to wear exactly what they're wearing on their
+        authority client, so don't auto-equip for them
+    */
+    if (mwmp::PlayerList::isDedicatedPlayer(actor) || mwmp::Main::get().getCellController()->isDedicatedActor(actor))
+        return;
+    /*
+        End of tes3mp addition
+    */
+
     TSlots slots_;
     initSlots (slots_);
 
@@ -759,8 +804,16 @@ int MWWorld::InventoryStore::remove(const Ptr& item, int count, const Ptr& actor
         mSelectedEnchantItem = end();
     }
 
-    if (mListener)
+    /*
+        Start of tes3mp change (major)
+
+        Only fire inventory events for actors in loaded cells to avoid crashes
+    */
+    if (mListener && MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
         mListener->itemRemoved(item, retCount);
+    /*
+        End of tes3mp change (major)
+    */
 
     return retCount;
 }
@@ -863,8 +916,21 @@ void MWWorld::InventoryStore::fireEquipmentChangedEvent(const Ptr& actor)
 {
     if (!mUpdatesEnabled)
         return;
+    /*
+        Start of tes3mp change (major)
+
+        Only fire inventory events for local players or for other actors in loaded cells to avoid crashes
+    */
     if (mInventoryListener)
-        mInventoryListener->equipmentChanged();
+    {
+        if (actor == MWMechanics::getPlayer() || MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
+        {
+            mInventoryListener->equipmentChanged();
+        }
+    }
+    /*
+        End of tes3mp change (major)
+    */
 
     // if player, update inventory window
     /*

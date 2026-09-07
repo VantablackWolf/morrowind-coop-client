@@ -2,6 +2,17 @@
 
 #include <algorithm>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include <components/openmw-mp/TimedLog.hpp>
+#include "summoning.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include <components/esm/creaturestats.hpp>
 #include <components/esm/esmreader.hpp>
 #include <components/esm/esmwriter.hpp>
@@ -117,6 +128,15 @@ namespace MWMechanics
 
     ActiveSpells &CreatureStats::getActiveSpells()
     {
+        /*
+            Start of tes3mp addition
+
+            Set the actorId associated with these ActiveSpells so it can be used inside them
+        */
+        mActiveSpells.setActorId(getActorId());
+        /*
+            End of tes3mp addition
+        */
         return mActiveSpells;
     }
 
@@ -303,6 +323,19 @@ namespace MWMechanics
     {
         return mFriendlyHits;
     }
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to set the number of friendly hits from elsewhere
+    */
+    void CreatureStats::setFriendlyHits(int hits)
+    {
+        mFriendlyHits = hits;
+    }
+    /*
+        End of tes3mp addition
+    */
 
     void CreatureStats::friendlyHit()
     {
@@ -713,6 +746,29 @@ namespace MWMechanics
     {
         return mSummonGraveyard;
     }
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to set a new actorId for summoned creatures, necessary for properly
+        initializing them after syncing them across players
+    */
+    void CreatureStats::setSummonedCreatureActorId(std::string refId, int actorId)
+    {
+        for (std::map<ESM::SummonKey, int>::iterator it = mSummonedCreatures.begin(); it != mSummonedCreatures.end(); )
+        {
+            if (Misc::StringUtils::ciEqual(getSummonedCreature(it->first.mEffectId), refId) && it->second == -1)
+            {
+                it->second = actorId;
+                break;
+            }
+            else
+                ++it;
+        }
+    }
+    /*
+        End of tes3mp addition
+    */
 
     std::map<std::string, CorprusStats> &CreatureStats::getCorprusSpells()
     {

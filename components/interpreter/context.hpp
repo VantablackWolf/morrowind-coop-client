@@ -10,6 +10,22 @@ namespace Interpreter
     {
         public:
 
+            /*
+                Start of tes3mp addition
+
+                Keep an enumeration of the possible context types
+            */
+            enum CONTEXT_TYPE
+            {
+                CONSOLE = 0,
+                DIALOGUE = 1,
+                SCRIPT_LOCAL = 2,
+                SCRIPT_GLOBAL = 3
+            };
+            /*
+                End of tes3mp addition
+            */
+
             virtual ~Context() {}
 
             virtual int getLocalShort (int index) const = 0;
@@ -89,6 +105,20 @@ namespace Interpreter
 
             virtual void setMemberFloat (const std::string& id, const std::string& name, float value, bool global)
                 = 0;
+
+            /*
+                Start of tes3mp addition
+
+                Used for tracking and checking the type of this Context, as well as
+                its current script
+            */
+            virtual unsigned short getContextType() const = 0;
+            virtual std::string getCurrentScriptName() const = 0;
+            virtual void trackContextType(unsigned short interpreterType) = 0;
+            virtual void trackCurrentScriptName(const std::string& name) = 0;
+            /*
+                End of tes3mp addition
+            */
     };
 }
 

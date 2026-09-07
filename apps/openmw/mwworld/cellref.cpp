@@ -20,6 +20,47 @@ namespace MWWorld
         mCellRef.mRefNum.unset();
     }
 
+    /*
+        Start of tes3mp addition
+
+        Set the unique reference number index of a CellRef, needed to
+        make objects retain their uniqueIndex when they are updated
+        after their records are modified on the fly by the server
+    */
+    void CellRef::setRefNum(unsigned int index)
+    {
+        mCellRef.mRefNum.mIndex = index;
+    }
+    /*
+        End of tes3mp addition
+    */
+
+    /*
+        Start of tes3mp addition
+
+        Get the mMpNum (unique multiplayer number) of a CellRef
+    */
+    unsigned int CellRef::getMpNum() const
+    {
+        return mCellRef.mMpNum;
+    }
+    /*
+        End of tes3mp addition
+    */
+
+    /*
+        Start of tes3mp addition
+
+        Set the mMpNum (unique multiplayer reference number) of a CellRef
+    */
+    void CellRef::setMpNum(unsigned int index)
+    {
+        mCellRef.mMpNum = index;
+    }
+    /*
+        End of tes3mp addition
+    */
+
     std::string CellRef::getRefId() const
     {
         return mCellRef.mRefID;
@@ -35,15 +76,54 @@ namespace MWWorld
         return mCellRef.mTeleport;
     }
 
+    /*
+        Start of tes3mp addition
+
+        Make it possible to change the teleport state from elsewhere
+    */
+    void CellRef::setTeleport(bool teleportState)
+    {
+        mCellRef.mTeleport = teleportState;
+    }
+    /*
+        End of tes3mp addition
+    */
+
     ESM::Position CellRef::getDoorDest() const
     {
         return mCellRef.mDoorDest;
     }
 
+    /*
+        Start of tes3mp addition
+
+        Make it possible to change the destination position from elsewhere
+    */
+    void CellRef::setDoorDest(const ESM::Position& position)
+    {
+        mCellRef.mDoorDest = position;
+    }
+    /*
+        End of tes3mp addition
+    */
+
     std::string CellRef::getDestCell() const
     {
         return mCellRef.mDestCell;
     }
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to change the destination cell from elsewhere
+    */
+    void CellRef::setDestCell(const std::string& cellDescription)
+    {
+        mCellRef.mDestCell = cellDescription;
+    }
+    /*
+        End of tes3mp addition
+    */
 
     float CellRef::getScale() const
     {

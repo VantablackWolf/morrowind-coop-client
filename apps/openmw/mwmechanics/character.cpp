@@ -28,6 +28,23 @@
 
 #include <components/sceneutil/positionattitudetransform.hpp>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include <components/openmw-mp/TimedLog.hpp>
+#include "../mwmp/Main.hpp"
+#include "../mwmp/LocalPlayer.hpp"
+#include "../mwmp/LocalActor.hpp"
+#include "../mwmp/PlayerList.hpp"
+#include "../mwmp/DedicatedPlayer.hpp"
+#include "../mwmp/CellController.hpp"
+#include "../mwmp/MechanicsHelper.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include "../mwrender/animation.hpp"
 
 #include "../mwbase/environment.hpp"
@@ -779,6 +796,21 @@ CharacterState CharacterController::chooseRandomDeathState() const
 
 void CharacterController::playRandomDeath(float startpoint)
 {
+    /*
+        Start of tes3mp addition
+
+        If this is a LocalActor or DedicatedActor whose death animation is supposed to be finished,
+        set the startpoint to the animation's end
+    */
+    if (mPtr.getClass().getCreatureStats(mPtr).isDeathAnimationFinished() &&
+        (mwmp::Main::get().getCellController()->isLocalActor(mPtr) || mwmp::Main::get().getCellController()->isDedicatedActor(mPtr)))
+    {
+        startpoint = 1.F;
+    }
+    /*
+        End of tes3mp addition
+    */
+
     if (mPtr == getPlayer())
     {
         // The first-person animations do not include death, so we need to
@@ -786,7 +818,26 @@ void CharacterController::playRandomDeath(float startpoint)
         MWBase::Environment::get().getWorld()->useDeathCamera();
     }
 
-    if(mHitState == CharState_SwimKnockDown && mAnimation->hasAnimation("swimdeathknockdown"))
+    /*
+        Start tes3mp change (major)
+
+        If this is a DedicatedPlayer, use the deathState received from their PlayerDeath packet
+
+        If this is a DedicatedActor, use the deathState from their ActorDeath packet
+    */
+    if (mwmp::PlayerList::isDedicatedPlayer(mPtr))
+    {
+        mDeathState = static_cast<CharacterState>(mwmp::PlayerList::getPlayer(mPtr)->deathState);
+    }
+    else if (mwmp::Main::get().getCellController()->hasQueuedDeathState(mPtr))
+    {
+        mDeathState = static_cast<CharacterState>(mwmp::Main::get().getCellController()->getQueuedDeathState(mPtr));
+        mwmp::Main::get().getCellController()->clearQueuedDeathState(mPtr);
+    }
+    else if(mHitState == CharState_SwimKnockDown && mAnimation->hasAnimation("swimdeathknockdown"))
+    /*
+        End of tes3mp change (major)
+    */
     {
         mDeathState = CharState_SwimDeathKnockDown;
     }
@@ -810,6 +861,26 @@ void CharacterController::playRandomDeath(float startpoint)
     {
         mDeathState = chooseRandomDeathState();
     }
+
+    /*
+        Start of tes3mp addition
+
+        If this is the local player, send a PlayerDeath packet with the decided-upon
+        death animation
+
+        If this is a local actor, send an ActorDeath packet with the animation
+    */
+    if (mPtr == getPlayer())
+    {
+        mwmp::Main::get().getLocalPlayer()->sendDeath(mDeathState);
+    }
+    else if (!mPtr.getClass().getCreatureStats(mPtr).isDeathAnimationFinished() && mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+    {
+        mwmp::Main::get().getCellController()->getLocalActor(mPtr)->sendDeath(mDeathState);
+    }
+    /*
+        End of tes3mp addition
+    */
 
     // Do not interrupt scripted animation by death
     if (isPersistentAnimPlaying())
@@ -1078,8 +1149,21 @@ void CharacterController::handleTextKey(const std::string &groupname, SceneUtil:
              // the same animation for all range types, so there are 3 "release" keys on the same time, one for each range type.
              && evt.compare(off, len, mAttackType + " release") == 0)
     {
-        MWBase::Environment::get().getWorld()->castSpell(mPtr, mCastingManualSpell);
-        mCastingManualSpell = false;
+        /*
+            Start of tes3mp change (major)
+
+            Make the completion of the spellcast animation actually cast spells only for the
+            local player and local actors, relying on Cast packets to cause spells to be cast
+            for dedicated players and actors
+        */
+        if (mPtr == getPlayer() || mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+        {
+            MWBase::Environment::get().getWorld()->castSpell(mPtr, mCastingManualSpell);
+            mCastingManualSpell = false;
+        }
+        /*
+            End of tes3mp change (major)
+        */
     }
 
     else if (groupname == "shield" && evt.compare(off, len, "block hit") == 0)
@@ -1161,6 +1245,30 @@ bool CharacterController::updateCreatureState()
 
                 if (!spellid.empty() && canCast)
                 {
+                    /*
+                        Start of tes3mp addition
+
+                        If this mPtr belongs to a LocalPlayer or LocalActor, get their Attack and prepare
+                        it for sending
+                    */
+                    mwmp::Cast *localCast = MechanicsHelper::getLocalCast(mPtr);
+
+                    if (localCast)
+                    {
+                        MechanicsHelper::resetCast(localCast);
+                        localCast->type = mwmp::Cast::REGULAR;
+                        localCast->spellId = spellid;
+                        localCast->pressed = true;
+                        localCast->shouldSend = true;
+
+                        // Mark the attack as instant if there is no spellcast animation
+                        if (!mAnimation->hasAnimation("spellcast"))
+                            localCast->instant = true;
+                    }
+                    /*
+                        End of tes3mp addition
+                    */
+
                     MWMechanics::CastSpell cast(mPtr, nullptr, false, mCastingManualSpell);
                     cast.playSpellCastingEffects(spellid, false);
 
@@ -1524,6 +1632,26 @@ bool CharacterController::updateWeaponState(CharacterState& idle)
                 }
                 else if(!spellid.empty() && canCast)
                 {
+                    /*
+                        Start of tes3mp addition
+
+                        If this mPtr belongs to a LocalPlayer or LocalActor, get their Cast and prepare
+                        it for sending
+                    */
+                    mwmp::Cast *localCast = MechanicsHelper::getLocalCast(mPtr);
+
+                    if (localCast)
+                    {
+                        MechanicsHelper::resetCast(localCast);
+                        localCast->type = mwmp::Cast::REGULAR;
+                        localCast->spellId = spellid;
+                        localCast->pressed = true;
+                        localCast->shouldSend = true;
+                    }
+                    /*
+                        End of tes3mp addition
+                    */
+
                     MWMechanics::CastSpell cast(mPtr, nullptr, false, mCastingManualSpell);
                     cast.playSpellCastingEffects(spellid, isMagicItem);
 
@@ -1651,7 +1779,37 @@ bool CharacterController::updateWeaponState(CharacterState& idle)
                         {
                             setAttackTypeBasedOnMovement();
                         }
+
+                        /*
+                            Start of tes3mp addition
+
+                            Record the attack animation chosen so we can send it in the next PlayerAttack packet
+                        */
+                        mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(mPtr);
+
+                        if (localAttack)
+                            localAttack->attackAnimation = mAttackType;
+                        /*
+                            End of tes3mp addition
+                        */
                     }
+                    /*
+                        Start of tes3mp addition
+
+                        If this is a DedicatedPlayer or DedicatedActor, use the attack animation received
+                        in the latest Attack packet about them
+                    */
+                    else
+                    {
+                        mwmp::Attack *dedicatedAttack = MechanicsHelper::getDedicatedAttack(mPtr);
+
+                        if (dedicatedAttack)
+                            mAttackType = dedicatedAttack->attackAnimation;
+                    }
+                    /*
+                        End of tes3mp addition
+                    */
+
                     // else if (mPtr != getPlayer()) use mAttackType set by AiCombat
                     startKey = mAttackType+" start";
                     stopKey = mAttackType+" min attack";
@@ -1969,8 +2127,41 @@ void CharacterController::update(float duration)
                 movementSettings.mPosition[2] = onground ? 1 : 0;
         }
 
+        /*
+            Start of tes3mp addition
+
+            Character movement setting rotations get reset here, so we have to assign movement
+            settings to the LocalPlayer or a LocalActor now
+        */
+        if (world->getPlayerPtr() == mPtr)
+        {
+            mwmp::LocalPlayer *localPlayer = mwmp::Main::get().getLocalPlayer();
+            MWMechanics::Movement &movementSettings = cls.getMovementSettings(mPtr);
+            localPlayer->direction.pos[0] = movementSettings.mPosition[0];
+            localPlayer->direction.pos[1] = movementSettings.mPosition[1];
+            localPlayer->direction.pos[2] = movementSettings.mPosition[2];
+            localPlayer->direction.rot[0] = movementSettings.mRotation[0];
+            localPlayer->direction.rot[1] = movementSettings.mRotation[1];
+            localPlayer->direction.rot[2] = movementSettings.mRotation[2];
+        }
+        else if (mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+        {
+            mwmp::LocalActor *localActor = mwmp::Main::get().getCellController()->getLocalActor(mPtr);
+            MWMechanics::Movement &movementSettings = cls.getMovementSettings(mPtr);
+            localActor->direction.pos[0] = movementSettings.mPosition[0];
+            localActor->direction.pos[1] = movementSettings.mPosition[1];
+            localActor->direction.pos[2] = movementSettings.mPosition[2];
+            localActor->direction.rot[0] = movementSettings.mRotation[0];
+            localActor->direction.rot[1] = movementSettings.mRotation[1];
+            localActor->direction.rot[2] = movementSettings.mRotation[2];
+        }
+        /*
+            End of tes3mp addition
+        */
+
         osg::Vec3f rot = cls.getRotationVector(mPtr);
         osg::Vec3f vec(movementSettings.asVec3());
+
         movementSettings.mSpeedFactor = std::min(vec.length(), 1.f);
         vec.normalize();
 
@@ -2364,6 +2555,7 @@ void CharacterController::update(float duration)
                 forcestateupdate = updateCreatureState() || forcestateupdate;
 
             refreshCurrentAnims(idlestate, movestate, jumpstate, forcestateupdate);
+
             updateIdleStormState(inwater);
         }
 
@@ -2589,6 +2781,24 @@ bool CharacterController::playGroup(const std::string &groupname, int mode, int 
         mAnimation->play(groupname, persist && groupname != "idle" ? Priority_Persistent : Priority_Default,
                             MWRender::Animation::BlendMask_All, false, 1.0f,
                             ((mode==2) ? "loop start" : "start"), "stop", 0.0f, count-1, loopfallback);
+
+        /*
+            Start of tes3mp addition
+
+            If we are the cell authority over this actor, we need to record this new
+            animation for it
+        */
+        if (mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+        {
+            mwmp::LocalActor *actor = mwmp::Main::get().getCellController()->getLocalActor(mPtr);
+            actor->animation.groupname = groupname;
+            actor->animation.mode = mode;
+            actor->animation.count = count;
+            actor->animation.persist = persist;
+        }
+        /*
+            End of tes3mp addition
+        */
     }
     else
     {
@@ -2683,6 +2893,17 @@ CharacterController::KillResult CharacterController::kill()
         return Result_DeathAnimPlaying;
     if (!cStats.isDeathAnimationFinished())
     {
+        /*
+            Start of tes3mp addition
+        */
+        if (mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+        {
+            mwmp::Main::get().getCellController()->getLocalActor(mPtr)->creatureStats.mDeathAnimationFinished = true;
+        }
+        /*
+            End of tes3mp addition
+        */
+
         cStats.setDeathAnimationFinished(true);
         return Result_DeathAnimJustFinished;
     }
@@ -2897,6 +3118,19 @@ float CharacterController::getAttackStrength() const
 {
     return mAttackStrength;
 }
+
+/*
+    Start of tes3mp addition
+
+    Make it possible to get the current attack type from elsewhere in the code
+*/
+std::string CharacterController::getAttackType() const
+{
+    return mAttackType;
+}
+/*
+    End of tes3mp addition
+*/
 
 void CharacterController::setActive(int active)
 {

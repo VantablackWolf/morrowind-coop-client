@@ -20,6 +20,17 @@
 #include <components/detournavigator/debug.hpp>
 #include <components/misc/convert.hpp>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include "../mwmp/Main.hpp"
+#include "../mwmp/LocalPlayer.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include "../mwbase/environment.hpp"
 #include "../mwbase/world.hpp"
 #include "../mwbase/soundmanager.hpp"
@@ -309,6 +320,17 @@ namespace MWWorld
         const auto navigator = MWBase::Environment::get().getWorld()->getNavigator();
         ListAndResetObjectsVisitor visitor;
 
+        /*
+            Start of tes3mp addition
+
+            Set a const pointer to the iterator's ESM::Cell here, because
+            (*iter)->getCell() can become invalid later down
+        */
+        const ESM::Cell* cell = (*iter)->getCell();
+        /*
+            End of tes3mp addition
+        */
+
         (*iter)->forEach(visitor);
         const auto world = MWBase::Environment::get().getWorld();
         for (const auto& ptr : visitor.mObjects)
@@ -351,6 +373,16 @@ namespace MWWorld
 
         MWBase::Environment::get().getSoundManager()->stopSound (*iter);
         mActiveCells.erase(*iter);
+
+        /*
+            Start of tes3mp addition
+
+            Store a cell unload for the LocalPlayer
+        */
+        mwmp::Main::get().getLocalPlayer()->storeCellState(*cell, mwmp::CellState::UNLOAD);
+        /*
+            End of tes3mp addition
+        */
     }
 
     void Scene::loadCell (CellStore *cell, Loading::Listener* loadingListener, bool respawn, bool test)
@@ -442,6 +474,16 @@ namespace MWWorld
                 {
                     mRendering.configureAmbient(cell->getCell());
                 }
+
+                /*
+                    Start of tes3mp addition
+
+                    Store a cell load for the LocalPlayer
+                */
+                mwmp::Main::get().getLocalPlayer()->storeCellState(*cell->getCell(), mwmp::CellState::LOAD);
+                /*
+                    End of tes3mp addition
+                */
             }
         }
 
@@ -595,6 +637,21 @@ namespace MWWorld
                 loadCell (cell, loadingListener, changeEvent);
             }
         }
+
+        /*
+            Start of tes3mp addition
+
+            Send an ID_PLAYER_CELL_STATE packet with all cell states stored in LocalPlayer
+            and then clear them, but only if the player is logged in on the server
+        */
+        if (mwmp::Main::get().getLocalPlayer()->isLoggedIn())
+        {
+            mwmp::Main::get().getLocalPlayer()->sendCellStates();
+            mwmp::Main::get().getLocalPlayer()->clearCellStates();
+        }
+        /*
+            End of tes3mp addition
+        */
 
         CellStore* current = MWBase::Environment::get().getWorld()->getExterior(playerCellX, playerCellY);
         MWBase::Environment::get().getWindowManager()->changeCell(current);
@@ -813,6 +870,21 @@ namespace MWWorld
         // Load cell.
         mPagedRefs.clear();
         loadCell (cell, loadingListener, changeEvent);
+
+        /*
+            Start of tes3mp addition
+
+            Send an ID_PLAYER_CELL_STATE packet with all cell states stored in LocalPlayer
+            and then clear them, but only if the player is logged in on the server
+        */
+        if (mwmp::Main::get().getLocalPlayer()->isLoggedIn())
+        {
+            mwmp::Main::get().getLocalPlayer()->sendCellStates();
+            mwmp::Main::get().getLocalPlayer()->clearCellStates();
+        }
+        /*
+            End of tes3mp addition
+        */
 
         changePlayerCell(cell, position, adjustPlayerPos);
 

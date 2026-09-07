@@ -1,5 +1,17 @@
 #include "container.hpp"
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include "../mwmp/Main.hpp"
+#include "../mwmp/Networking.hpp"
+#include "../mwmp/ObjectList.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include <components/esm/loadcont.hpp>
 #include <components/esm/containerstate.hpp>
 #include <components/settings/settings.hpp>
@@ -170,14 +182,66 @@ namespace MWClass
         if (isLocked && hasKey)
         {
             MWBase::Environment::get().getWindowManager ()->messageBox (keyName + " #{sKeyUsed}");
-            ptr.getCellRef().unlock();
+
+            /*
+                Start of tes3mp change (major)
+
+                Disable unilateral unlocking on this client and expect the server's reply to our
+                packet to do it instead
+            */
+            //ptr.getCellRef().unlock();
+            /*
+                End of tes3mp change (major)
+            */
+
             // using a key disarms the trap
             if(isTrapped)
             {
-                ptr.getCellRef().setTrap("");
-                MWBase::Environment::get().getSoundManager()->playSound3D(ptr, "Disarm Trap", 1.0f, 1.0f);
+                /*
+                    Start of tes3mp change (major)
+
+                    Disable unilateral trap disarming on this client and expect the server's reply to our
+                    packet to do it instead
+                */
+                //ptr.getCellRef().setTrap("");
+                //MWBase::Environment::get().getSoundManager()->playSound3D(ptr, "Disarm Trap", 1.0f, 1.0f);
+                /*
+                    End of tes3mp change (major)
+                */
+
                 isTrapped = false;
+
+                /*
+                    Start of tes3mp addition
+
+                    Send an ID_OBJECT_TRAP packet every time a trap is disarmed
+                */
+                mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                objectList->reset();
+                objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                objectList->addObjectTrap(ptr, ptr.getRefData().getPosition(), true);
+                objectList->sendObjectTrap();
+                /*
+                    End of tes3mp addition
+                */
             }
+
+            /*
+                Start of tes3mp addition
+
+                Send an ID_OBJECT_LOCK packet every time a container is unlocked here
+            */
+            if (isLocked)
+            {
+                mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                objectList->reset();
+                objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                objectList->addObjectLock(ptr, 0);
+                objectList->sendObjectLock();
+            }
+            /*
+                End of tes3mp addition
+            */
         }
 
 

@@ -19,11 +19,19 @@ void Manager::clear()
     mChangedSettings.clear();
 }
 
-void Manager::loadDefault(const std::string &file)
+/*
+    Start of tes3mp change (major)
+
+    Add a base64encoded argument to this function to allow unencoded files to still be opened
+*/
+void Manager::loadDefault(const std::string &file, bool base64encoded)
 {
     SettingsFileParser parser;
-    parser.loadSettingsFile(file, mDefaultSettings, true);
+    parser.loadSettingsFile(file, mDefaultSettings, base64encoded);
 }
+/*
+    End of tes3mp change (major)
+*/
 
 void Manager::loadUser(const std::string &file)
 {

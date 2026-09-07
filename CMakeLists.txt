@@ -32,10 +32,13 @@ option(BUILD_DOCS               "Build documentation." OFF )
 option(BUILD_WITH_CODE_COVERAGE "Enable code coverage with gconv" OFF)
 option(BUILD_UNITTESTS          "Enable Unittests with Google C++ Unittest" OFF)
 option(BUILD_BENCHMARKS         "Build benchmarks with Google Benchmark" OFF)
+option(BUILD_OPENMW_MP          "Build OpenMW-MP" ON)
+option(BUILD_BROWSER            "Build tes3mp Server Browser" ON)
+option(BUILD_MASTER             "Build tes3mp Master Server" OFF)
 
 set(OpenGL_GL_PREFERENCE LEGACY)  # Use LEGACY as we use GL2; GLNVD is for GL3 and up.
 
-if (NOT BUILD_LAUNCHER AND NOT BUILD_OPENCS AND NOT BUILD_WIZARD)
+if (NOT BUILD_LAUNCHER AND NOT BUILD_BROWSER AND NOT BUILD_OPENCS AND NOT BUILD_WIZARD)
    set(USE_QT FALSE)
 else()
    set(USE_QT TRUE)
@@ -192,13 +195,16 @@ if (WIN32)
     option(USE_DEBUG_CONSOLE "whether a debug console should be enabled for debug builds, if false debug output is redirected to Visual Studio output" ON)
 endif()
 
+find_package(RakNet REQUIRED)
+include_directories(${RakNet_INCLUDES})
+
 # Dependencies
 find_package(OpenGL REQUIRED)
 
 find_package(LZ4 REQUIRED)
 
 if (USE_QT)
-    find_package(Qt5Core 5.12 REQUIRED)
+    find_package(Qt5Core 5.9 REQUIRED) # Temporary adjustment for TES3MP CI
     find_package(Qt5Widgets REQUIRED)
     find_package(Qt5Network REQUIRED)
     find_package(Qt5OpenGL REQUIRED)
@@ -206,6 +212,11 @@ if (USE_QT)
     #set(CMAKE_AUTOMOC ON)
 endif()
 
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 set(USED_OSG_COMPONENTS
     osgDB
     osgViewer
@@ -225,11 +236,21 @@ set(USED_OSG_PLUGINS
     osgdb_png
     osgdb_serializers_osg
     osgdb_tga)
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 
 add_subdirectory(extern)
 
 # Sound setup
 
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 # Require at least ffmpeg 3.2 for now
 SET(FFVER_OK FALSE)
 
@@ -288,6 +309,11 @@ if (USE_SYSTEM_TINYXML)
     add_definitions (-DTIXML_USE_STL)
     include_directories(SYSTEM ${TinyXML_INCLUDE_DIRS})
 endif()
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 
 # Platform specific
 if (WIN32)
@@ -303,6 +329,11 @@ if (WIN32)
     add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
 endif()
 
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 if(OPENMW_USE_SYSTEM_BULLET)
     set(REQUIRED_BULLET_VERSION 286) # Bullet 286 required due to runtime bugfixes for btCapsuleShape
     if (DEFINED ENV{TRAVIS_BRANCH} OR DEFINED ENV{APPVEYOR})
@@ -335,6 +366,11 @@ if(OPENMW_USE_SYSTEM_BULLET)
         message(FATAL_ERROR "Bullet does not uses double precision")
     endif()
 endif()
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 
 if (NOT WIN32 AND BUILD_WIZARD) # windows users can just run the morrowind installer
     find_package(LIBUNSHIELD REQUIRED) # required only for non win32 when building openmw-wizard
@@ -354,6 +390,12 @@ if(NOT HAVE_STDINT_H)
     message(FATAL_ERROR "stdint.h was not found" )
 endif()
 
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+# but keep OSG's headers (HACK)
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 if(OPENMW_USE_SYSTEM_OSG)
     find_package(OpenSceneGraph 3.4.0 REQUIRED ${USED_OSG_COMPONENTS})
     if (${OPENSCENEGRAPH_VERSION} VERSION_GREATER 3.6.2 AND ${OPENSCENEGRAPH_VERSION} VERSION_LESS 3.6.5)
@@ -370,6 +412,14 @@ include_directories(BEFORE SYSTEM ${OPENSCENEGRAPH_INCLUDE_DIRS})
 if(OSG_STATIC)
     add_definitions(-DOSG_LIBRARY_STATIC)
 endif()
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+# but keep OSG's headers (HACK)
+ELSE(BUILD_OPENMW OR BUILD_OPENCS)
+    include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 
 set(BOOST_COMPONENTS system filesystem program_options iostreams)
 if(WIN32)
@@ -388,11 +438,31 @@ endif()
 set(Boost_NO_BOOST_CMAKE ON)
 
 find_package(Boost 1.6.2 REQUIRED COMPONENTS ${BOOST_COMPONENTS} OPTIONAL_COMPONENTS ${BOOST_OPTIONAL_COMPONENTS})
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 if(OPENMW_USE_SYSTEM_MYGUI)
     find_package(MyGUI 3.2.2 REQUIRED)
 endif()
+# End of tes3mp addition
+#
+# Don't require certain dependencies for the server
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 find_package(SDL2 2.0.9 REQUIRED)
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 find_package(OpenAL REQUIRED)
+# End of tes3mp addition
+#
+# Don't require certain dependencies for the server
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 
 include_directories(
     BEFORE SYSTEM
@@ -442,6 +512,12 @@ endif (APPLE)
 
 # Other files
 
+configure_resource_file(${OpenMW_SOURCE_DIR}/files/tes3mp/tes3mp-client-default.cfg
+    "${OpenMW_BINARY_DIR}" "tes3mp-client-default.cfg")
+
+configure_resource_file(${OpenMW_SOURCE_DIR}/files/tes3mp/tes3mp-server-default.cfg
+    "${OpenMW_BINARY_DIR}" "tes3mp-server-default.cfg")
+
 pack_resource_file(${OpenMW_SOURCE_DIR}/files/settings-default.cfg
     "${OpenMW_BINARY_DIR}" "defaults.bin")
 
@@ -473,6 +549,8 @@ if (NOT WIN32 AND NOT APPLE)
         "${OpenMW_BINARY_DIR}/org.openmw.launcher.desktop")
     configure_file(${OpenMW_SOURCE_DIR}/files/openmw.appdata.xml
         "${OpenMW_BINARY_DIR}/openmw.appdata.xml")
+    configure_file(${OpenMW_SOURCE_DIR}/files/tes3mp-browser.desktop
+	    "${OpenMW_BINARY_DIR}/tes3mp-browser.desktop")
     configure_file(${OpenMW_SOURCE_DIR}/files/org.openmw.cs.desktop
         "${OpenMW_BINARY_DIR}/org.openmw.cs.desktop")
 endif()
@@ -517,19 +595,46 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clang)
 endif (CMAKE_CXX_COMPILER_ID STREQUAL GNU OR CMAKE_CXX_COMPILER_ID STREQUAL Clang)
 
 # Extern
-
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 add_subdirectory (extern/osg-ffmpeg-videoplayer)
 add_subdirectory (extern/oics)
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 add_subdirectory (extern/Base64)
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+IF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 if (BUILD_OPENCS)
     add_subdirectory (extern/osgQt)
 endif()
+# Start of tes3mp addition
+#
+# Don't require certain dependencies for the server
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 
 # Components
 add_subdirectory (components)
 target_compile_definitions(components PRIVATE OPENMW_DOC_BASEURL="${OPENMW_DOC_BASEURL}")
 
 # Apps and tools
+if (BUILD_OPENMW_MP)
+    add_subdirectory( apps/openmw-mp )
+endif()
+
+if (BUILD_MASTER)
+    add_subdirectory( apps/master )
+endif()
+
 if (BUILD_OPENMW)
     add_subdirectory( apps/openmw )
 endif()
@@ -544,6 +649,10 @@ endif()
 
 if (BUILD_LAUNCHER)
    add_subdirectory( apps/launcher )
+endif()
+
+if (BUILD_BROWSER)
+    add_subdirectory( apps/browser )
 endif()
 
 if (BUILD_MWINIIMPORTER)
@@ -588,19 +697,19 @@ if (WIN32)
     endforeach( OUTPUTCONFIG )
 
     if (USE_DEBUG_CONSOLE AND BUILD_OPENMW)
-      set_target_properties(openmw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
-      set_target_properties(openmw PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:CONSOLE")
-      set_target_properties(openmw PROPERTIES COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_CONSOLE>)
+      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:CONSOLE")
+      set_target_properties(tes3mp PROPERTIES COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_CONSOLE>)
     elseif (BUILD_OPENMW)
       # Turn off debug console, debug output will be written to visual studio output instead
-      set_target_properties(openmw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
-      set_target_properties(openmw PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:WINDOWS")
+      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
+      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:WINDOWS")
     endif()
 
     if (BUILD_OPENMW)
         # Release builds don't use the debug console
-        set_target_properties(openmw PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-        set_target_properties(openmw PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
+        set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
+        set_target_properties(tes3mp PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
     endif()
 
     # Play a bit with the warning levels
@@ -630,7 +739,10 @@ if (WIN32)
     endforeach(d)
 
     set_target_properties(components PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    set_target_properties(osg-ffmpeg-videoplayer PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
+
+    if (BUILD_OPENMW)
+        set_target_properties(osg-ffmpeg-videoplayer PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
+    endif()
     
     if (MSVC_VERSION GREATER_EQUAL 1915 AND MSVC_VERSION LESS 1920)
         target_compile_definitions(components INTERFACE _ENABLE_EXTENDED_ALIGNED_STORAGE)
@@ -652,6 +764,10 @@ if (WIN32)
         set_target_properties(openmw-launcher PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
     endif()
 
+    if (BUILD_BROWSER)
+        set_target_properties(tes3mp-browser PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
+    endif()
+
     if (BUILD_MWINIIMPORTER)
         set_target_properties(openmw-iniimporter PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
     endif()
@@ -662,9 +778,9 @@ if (WIN32)
 
     if (BUILD_OPENMW)
         if (OPENMW_UNITY_BUILD)
-            set_target_properties(openmw PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD} /bigobj")
+            set_target_properties(tes3mp PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD} /bigobj")
         else()
-            set_target_properties(openmw PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
+            set_target_properties(tes3mp PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
         endif()
     endif()
 
@@ -678,8 +794,8 @@ if (WIN32)
   endif(MSVC)
 
   # TODO: At some point release builds should not use the console but rather write to a log file
-  #set_target_properties(openmw PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-  #set_target_properties(openmw PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
+  #set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
+  #set_target_properties(tes3mp PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
 endif()
 
 # Apple bundling
@@ -815,6 +931,10 @@ elseif(NOT APPLE)
         INSTALL(FILES "${OpenMW_SOURCE_DIR}/LICENSE" DESTINATION "." RENAME "LICENSE.txt")
         INSTALL(FILES "${OpenMW_SOURCE_DIR}/files/mygui/DejaVuFontLicense.txt" DESTINATION ".")
         INSTALL(FILES "${INSTALL_SOURCE}/defaults.bin" DESTINATION ".")
+        # Start of tes3mp addition
+        INSTALL(FILES "${INSTALL_SOURCE}/tes3mp-client-default.cfg" DESTINATION ".")
+        INSTALL(FILES "${INSTALL_SOURCE}/tes3mp-server-default.cfg" DESTINATION ".")
+        # End of tes3mp addition
         INSTALL(FILES "${INSTALL_SOURCE}/gamecontrollerdb.txt" DESTINATION ".")
 
         INSTALL(DIRECTORY "${INSTALL_SOURCE}/resources" DESTINATION ".")
@@ -830,6 +950,11 @@ elseif(NOT APPLE)
         IF(BUILD_LAUNCHER)
             SET(CPACK_PACKAGE_EXECUTABLES "${CPACK_PACKAGE_EXECUTABLES};openmw-launcher;OpenMW Launcher")
         ENDIF(BUILD_LAUNCHER)
+        # Start of tes3mp addition
+        IF(BUILD_BROWSER)
+            SET(CPACK_PACKAGE_EXECUTABLES "${CPACK_PACKAGE_EXECUTABLES};tes3mp-browser;tes3mp Launcher")
+        ENDIF(BUILD_BROWSER)
+        # End of tes3mp addition
         IF(BUILD_OPENCS)
             SET(CPACK_PACKAGE_EXECUTABLES "${CPACK_PACKAGE_EXECUTABLES};openmw-cs;OpenMW Construction Set")
         ENDIF(BUILD_OPENCS)
@@ -849,8 +974,10 @@ elseif(NOT APPLE)
         SET(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\www.openmw.org")
         SET(CPACK_NSIS_INSTALLED_ICON_NAME "openmw-launcher.exe")
         SET(CPACK_NSIS_MUI_FINISHPAGE_RUN "openmw-launcher.exe")
-        SET(CPACK_NSIS_MUI_ICON "${OpenMW_SOURCE_DIR}/files/windows/openmw.ico")
-        SET(CPACK_NSIS_MUI_UNIICON "${OpenMW_SOURCE_DIR}/files/windows/openmw.ico")
+        # Start of tes3mp change (major)
+        SET(CPACK_NSIS_MUI_ICON "${OpenMW_SOURCE_DIR}/files/tes3mp/tes3mp.ico")
+        SET(CPACK_NSIS_MUI_UNIICON "${OpenMW_SOURCE_DIR}/files/tes3mp/tes3mp.ico")
+        # End of tes3mp change (major)
         SET(CPACK_PACKAGE_ICON "${OpenMW_SOURCE_DIR}\\\\files\\\\openmw.bmp")
 
         SET(VCREDIST32 "${OpenMW_BINARY_DIR}/vcredist_x86.exe")
@@ -882,11 +1009,29 @@ elseif(NOT APPLE)
 
         # Install binaries
         IF(BUILD_OPENMW)
-            INSTALL(PROGRAMS "$<TARGET_FILE:openmw>" DESTINATION "${BINDIR}" )
+            # Start of tes3mp change (major)
+            #
+            # Use "tes3mp" as the target filename
+            INSTALL(PROGRAMS "$<TARGET_FILE:tes3mp>" DESTINATION "${BINDIR}" )
+            # End of tes3mp change (major)
         ENDIF(BUILD_OPENMW)
+        # Start of tes3mp addition
+        #
+        # Add a setting related to building the server
+        IF(BUILD_OPENMW_MP)
+            INSTALL(PROGRAMS "${INSTALL_SOURCE}/tes3mp-server" DESTINATION "${BINDIR}")
+        ENDIF(BUILD_OPENMW_MP)
+        # End of tes3mp addition
         IF(BUILD_LAUNCHER)
             INSTALL(PROGRAMS "${INSTALL_SOURCE}/openmw-launcher" DESTINATION "${BINDIR}" )
         ENDIF(BUILD_LAUNCHER)
+        # Start of tes3mp addition
+        #
+        # Add a setting related to building the server browser
+        IF(BUILD_BROWSER)
+            INSTALL(PROGRAMS "${INSTALL_SOURCE}/tes3mp-browser" DESTINATION "${BINDIR}" )
+        ENDIF(BUILD_BROWSER)
+        # End of tes3mp addition
         IF(BUILD_BSATOOL)
             INSTALL(PROGRAMS "${INSTALL_SOURCE}/bsatool" DESTINATION "${BINDIR}" )
         ENDIF(BUILD_BSATOOL)
@@ -916,6 +1061,11 @@ elseif(NOT APPLE)
         INSTALL(FILES "${OpenMW_BINARY_DIR}/org.openmw.launcher.desktop" DESTINATION "${DATAROOTDIR}/applications" COMPONENT "openmw")
         INSTALL(FILES "${OpenMW_SOURCE_DIR}/files/launcher/images/openmw.png" DESTINATION "${ICONDIR}" COMPONENT "openmw")
         INSTALL(FILES "${OpenMW_BINARY_DIR}/openmw.appdata.xml" DESTINATION "${DATAROOTDIR}/metainfo" COMPONENT "openmw")
+        # Start of tes3mp addition
+        IF(BUILD_BROWSER)
+            INSTALL(FILES "${OpenMW_BINARY_DIR}/tes3mp-browser.desktop" DESTINATION "${DATAROOTDIR}/applications" COMPONENT "browser")
+        ENDIF(BUILD_BROWSER)
+        # End of tes3mp addition
         IF(BUILD_OPENCS)
             INSTALL(FILES "${OpenMW_BINARY_DIR}/org.openmw.cs.desktop" DESTINATION "${DATAROOTDIR}/applications" COMPONENT "opencs")
             INSTALL(FILES "${OpenMW_SOURCE_DIR}/files/opencs/openmw-cs.png" DESTINATION "${ICONDIR}" COMPONENT "opencs")
@@ -926,6 +1076,11 @@ elseif(NOT APPLE)
         INSTALL(FILES "${INSTALL_SOURCE}/openmw.cfg.install" DESTINATION "${SYSCONFDIR}" RENAME "openmw.cfg" COMPONENT "openmw")
         INSTALL(FILES "${INSTALL_SOURCE}/resources/version" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw")
         INSTALL(FILES "${INSTALL_SOURCE}/gamecontrollerdb.txt" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw")
+
+        # Start of tes3mp addition
+        INSTALL(FILES "${INSTALL_SOURCE}/tes3mp-client-default.cfg" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw")
+        INSTALL(FILES "${INSTALL_SOURCE}/tes3mp-server-default.cfg" DESTINATION "${SYSCONFDIR}" COMPONENT "openmw-mp")
+        # End of tes3mp addition
 
         IF(BUILD_OPENCS)
             INSTALL(FILES "${INSTALL_SOURCE}/defaults-cs.bin" DESTINATION "${SYSCONFDIR}" COMPONENT "opencs")

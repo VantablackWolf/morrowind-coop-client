@@ -146,12 +146,56 @@ namespace MWBase
             virtual MWGui::ConfirmationDialog* getConfirmationDialog() = 0;
             virtual MWGui::TradeWindow* getTradeWindow() = 0;
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to get the ContainerWindow from elsewhere
+                in the code
+            */
+            virtual MWGui::ContainerWindow* getContainerWindow() = 0;
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to get the DialogueWindow from elsewhere
+            */
+            virtual MWGui::DialogueWindow* getDialogueWindow() = 0;
+            /*
+                End of tes3mp addition
+            */
+
             /// Make the player use an item, while updating GUI state accordingly
             virtual void useItem(const MWWorld::Ptr& item, bool force=false) = 0;
 
             virtual void updateSpellWindow() = 0;
 
             virtual void setConsoleSelectedObject(const MWWorld::Ptr& object) = 0;
+
+            /*
+                Start of tes3mp addition
+
+                Allow the direct setting of a console's Ptr, without the assumption that an object
+                was clicked and that key focus should be restored to the console window, for console
+                commands executed via server scripts
+            */
+            virtual void setConsolePtr(const MWWorld::Ptr& object) = 0;
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Allow the clearing of the console's Ptr from elsewhere in the code, so that
+                Ptrs used in console commands run from server scripts do not stay selected
+            */
+            virtual void clearConsolePtr() = 0;
+            /*
+                End of tes3mp addition
+            */
 
             /// Set time left for the player to start drowning (update the drowning bar)
             /// @param time time left to start drowning
@@ -161,6 +205,17 @@ namespace MWBase
             virtual void changeCell(const MWWorld::CellStore* cell) = 0;
             ///< change the active cell
 
+            /*
+                Start of tes3mp addition
+
+                Allow the setting of the image data for a global map tile from elsewhere
+                in the code
+            */
+            virtual void setGlobalMapImage(int cellX, int cellY, const std::vector<char>& imageData) = 0;
+            /*
+                End of tes3mp addition
+            */
+
             virtual void setFocusObject(const MWWorld::Ptr& focus) = 0;
             virtual void setFocusObjectScreenCoords(float min_x, float min_y, float max_x, float max_y) = 0;
 
@@ -169,6 +224,17 @@ namespace MWBase
             virtual void getMousePosition(int &x, int &y) = 0;
             virtual void getMousePosition(float &x, float &y) = 0;
             virtual void setDragDrop(bool dragDrop) = 0;
+
+            /*
+                Start of tes3mp addition
+
+                Allow the completion of a drag and drop from elsewhere in the code
+            */
+            virtual void finishDragDrop() = 0;
+            /*
+                End of tes3mp addition
+            */
+
             virtual bool getWorldMouseOver() = 0;
 
             virtual float getScalingFactor() = 0;
@@ -200,6 +266,16 @@ namespace MWBase
             /// update activated quick key state (if action executing was delayed for some reason)
             virtual void updateActivatedQuickKey () = 0;
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to add quickKeys from elsewhere in the code
+            */
+            virtual void setQuickKey(int slot, int quickKeyType, MWWorld::Ptr item, const std::string& spellId = "") = 0;
+            /*
+                End of tes3mp addition
+            */
+
             virtual std::string getSelectedSpell() = 0;
             virtual void setSelectedSpell(const std::string& spellId, int successChancePercent) = 0;
             virtual void setSelectedEnchantItem(const MWWorld::Ptr& item) = 0;
@@ -230,8 +306,17 @@ namespace MWBase
             virtual void messageBox (const std::string& message, enum MWGui::ShowInDialogueMode showInDialogueMode = MWGui::ShowInDialogueMode_IfPossible) = 0;
             virtual void staticMessageBox(const std::string& message) = 0;
             virtual void removeStaticMessageBox() = 0;
+            /*
+                Start of tes3mp change (major)
+
+                Add a hasServerOrigin boolean to the list of arguments so those messageboxes
+                can be differentiated from client-only ones
+            */
             virtual void interactiveMessageBox (const std::string& message,
-                                                const std::vector<std::string>& buttons = std::vector<std::string>(), bool block=false) = 0;
+                                                const std::vector<std::string>& buttons = std::vector<std::string>(), bool block=false, bool hasServerOrigin=false) = 0;
+            /*
+                End of tes3mp change (major)
+            */
 
             /// returns the index of the pressed button or -1 if no button was pressed (->MessageBoxmanager->InteractiveMessageBox)
             virtual int readPressedButton() = 0;
@@ -252,6 +337,16 @@ namespace MWBase
             virtual void processChangedSettings(const std::set< std::pair<std::string, std::string> >& changed) = 0;
 
             virtual void executeInConsole (const std::string& path) = 0;
+
+            /*
+                Start of tes3mp addition
+
+                Allow the execution of console commands from elsewhere in the code
+            */
+            virtual void executeCommandInConsole(const std::string& command) = 0;
+            /*
+                End of tes3mp addition
+            */
 
             virtual void enableRest() = 0;
             virtual bool getRestEnabled() = 0;

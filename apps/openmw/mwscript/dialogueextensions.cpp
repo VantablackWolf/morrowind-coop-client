@@ -1,5 +1,17 @@
 #include "dialogueextensions.hpp"
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include "../mwbase/windowmanager.hpp"
+#include "../mwmp/Main.hpp"
+#include "../mwmp/LocalPlayer.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include <components/compiler/extensions.hpp>
 #include <components/compiler/opcodes.hpp>
 #include <components/debug/debuglog.hpp>
@@ -43,6 +55,18 @@ namespace MWScript
                     // Invoking Journal with a non-existing index is allowed, and triggers no errors. Seriously? :(
                     try
                     {
+                        /*
+                            Start of tes3mp addition
+
+                            Send an ID_PLAYER_JOURNAL packet every time a new journal entry is added
+                            through a script
+                        */
+                        if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() && !MWBase::Environment::get().getJournal()->hasEntry(quest, index))
+                            mwmp::Main::get().getLocalPlayer()->sendJournalEntry(quest, index, ptr);
+                        /*
+                            End of tes3mp addition
+                        */
+
                         MWBase::Environment::get().getJournal()->addEntry (quest, index, ptr);
                     }
                     catch (...)
@@ -66,6 +90,18 @@ namespace MWScript
                     runtime.pop();
 
                     MWBase::Environment::get().getJournal()->setJournalIndex (quest, index);
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_PLAYER_JOURNAL packet every time a journal index is set
+                        through a script
+                    */
+                    if (mwmp::Main::get().getLocalPlayer()->isLoggedIn())
+                        mwmp::Main::get().getLocalPlayer()->sendJournalIndex(quest, index);
+                    /*
+                        End of tes3mp addition
+                    */
                 }
         };
 
@@ -93,6 +129,19 @@ namespace MWScript
                 {
                     std::string topic = runtime.getStringLiteral (runtime[0].mInteger);
                     runtime.pop();
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_PLAYER_TOPIC packet every time a new topic is added
+                        through a script
+                    */
+                    if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() &&
+                        MWBase::Environment::get().getDialogueManager()->isNewTopic(Misc::StringUtils::lowerCase(topic)))
+                        mwmp::Main::get().getLocalPlayer()->sendTopic(Misc::StringUtils::lowerCase(topic));
+                    /*
+                        End of tes3mp addition
+                    */
 
                     MWBase::Environment::get().getDialogueManager()->addTopic(topic);
                 }
@@ -142,7 +191,17 @@ namespace MWScript
                         return;
                     }
 
-                    MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Dialogue, ptr);
+                    /*
+                        Start of tes3mp change (major)
+
+                        Don't start a dialogue if the target is already engaged in one, thus
+                        preventing infinite greeting loops
+                    */
+                    if (!MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue))
+                        MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Dialogue, ptr);
+                    /*
+                        End of tes3mp change (major)
+                    */
                 }
         };
 

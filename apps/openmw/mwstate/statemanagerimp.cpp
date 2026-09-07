@@ -319,6 +319,16 @@ void MWState::StateManager::saveGame (const std::string& description, const Slot
 
 void MWState::StateManager::quickSave (std::string name)
 {
+    /*
+        Start of tes3mp change (major)
+
+        It should not be possible to quicksave the game in multiplayer, so it has been disabled
+    */
+    return;
+    /*
+        End of tes3mp change (major)
+    */
+
     if (!(mState==State_Running &&
         MWBase::Environment::get().getWorld()->getGlobalInt ("chargenstate")==-1 // char gen
             && MWBase::Environment::get().getWindowManager()->isSavingAllowed()))
@@ -566,6 +576,16 @@ void MWState::StateManager::loadGame (const Character *character, const std::str
 
 void MWState::StateManager::quickLoad()
 {
+    /*
+        Start of tes3mp change (major)
+
+        It should not be possible to quickload the game in multiplayer, so it has been disabled
+    */
+    return;
+    /*
+        End of tes3mp change (major)
+    */
+
     if (Character* currentCharacter = getCurrentCharacter ())
     {
         if (currentCharacter->begin() == currentCharacter->end())

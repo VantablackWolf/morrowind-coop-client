@@ -10,6 +10,21 @@
 #include <components/sceneutil/positionattitudetransform.hpp>
 #include <components/detournavigator/navigator.hpp>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include <components/openmw-mp/TimedLog.hpp>
+#include "../mwmp/Main.hpp"
+#include "../mwmp/Networking.hpp"
+#include "../mwmp/ActorList.hpp"
+#include "../mwmp/MechanicsHelper.hpp"
+#include "../mwgui/windowmanagerimp.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include "../mwphysics/collisiontype.hpp"
 
 #include "../mwworld/class.hpp"
@@ -139,6 +154,23 @@ namespace MWMechanics
             storage.updateCombatMove(duration);
             if (storage.mReadyToAttack) updateActorsMovement(actor, duration, storage);
             storage.updateAttack(characterController);
+
+            /*
+                Start of tes3mp addition
+
+                Record that this actor is updating an attack so that a packet will be sent about it
+            */
+            mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(actor);
+
+            if (localAttack && localAttack->pressed != storage.mAttack)
+            {
+                MechanicsHelper::resetAttack(localAttack);
+                localAttack->pressed = storage.mAttack;
+                localAttack->shouldSend = true;
+            }
+            /*
+                End of tes3mp addition
+            */
         }
         else
         {
@@ -161,11 +193,47 @@ namespace MWMechanics
             currentCell = actor.getCell();
         }
 
+        /*
+            Start of tes3mp addition
+
+            Because multiplayer doesn't pause the world during dialogue, disallow attacks on
+            a player engaged in dialogue
+        */
+        if (target == MWBase::Environment::get().getWorld()->getPlayerPtr())
+        {
+            if (MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue))
+            {
+                storage.stopAttack();
+                return false;
+            }
+        }
+        /*
+            End of tes3mp addition
+        */
+
         bool forceFlee = false;
         if (!canFight(actor, target))
         {
             storage.stopAttack();
             characterController.setAttackingOrSpell(false);
+
+            /*
+                Start of tes3mp addition
+
+                Record that this actor is stopping an attack so that a packet will be sent about it
+            */
+            mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(actor);
+
+            if (localAttack && localAttack->pressed != false)
+            {
+                MechanicsHelper::resetAttack(localAttack);
+                localAttack->pressed = false;
+                localAttack->shouldSend = true;
+            }
+            /*
+                End of tes3mp addition
+            */
+
             storage.mActionCooldown = 0.f;
             // Continue combat if target is player or player follower/escorter and an attack has been attempted
             const std::list<MWWorld::Ptr>& playerFollowersAndEscorters = MWBase::Environment::get().getMechanicsManager()->getActorsSidingWith(MWMechanics::getPlayer());
@@ -574,6 +642,30 @@ namespace MWMechanics
 
                 if (!distantCombat)
                     characterController.setAIAttackType(chooseBestAttack(weapon));
+
+                /*
+                    Start of tes3mp addition
+
+                    Record that this actor is starting an attack so that a packet will be sent about it
+                */
+                mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(actor);
+
+                if (localAttack && localAttack->pressed != true)
+                {
+                    MechanicsHelper::resetAttack(localAttack);
+                    localAttack->type = distantCombat ? mwmp::Attack::RANGED : mwmp::Attack::MELEE;
+                    localAttack->attackAnimation = characterController.getAttackType();
+                    localAttack->pressed = true;
+
+                    mwmp::ActorList *actorList = mwmp::Main::get().getNetworking()->getActorList();
+                    actorList->reset();
+                    actorList->cell = *actor.getCell()->getCell();
+                    actorList->addAttackActor(actor, *localAttack);
+                    actorList->sendAttackActors();
+                }
+                /*
+                    End of tes3mp addition
+                */
 
                 mStrength = Misc::Rng::rollClosedProbability();
 

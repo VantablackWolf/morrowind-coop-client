@@ -3,6 +3,23 @@
 #include <components/misc/constants.hpp>
 #include <components/misc/rng.hpp>
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+*/
+#include <components/openmw-mp/TimedLog.hpp>
+#include "../mwmp/Main.hpp"
+#include "../mwmp/Networking.hpp"
+#include "../mwmp/PlayerList.hpp"
+#include "../mwmp/LocalPlayer.hpp"
+#include "../mwmp/ObjectList.hpp"
+#include "../mwmp/CellController.hpp"
+#include "../mwmp/MechanicsHelper.hpp"
+/*
+    End of tes3mp addition
+*/
+
 #include "../mwbase/windowmanager.hpp"
 #include "../mwbase/soundmanager.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -165,6 +182,19 @@ namespace MWMechanics
             if (!reflected && reflectEffect(*effectIt, magicEffect, caster, target, reflectedEffects))
                 continue;
 
+            /*
+                Start of tes3mp addition
+
+                Now that reflected effects have been handled, don't unilaterally process effects further for dedicated players
+                and actors on this client and instead expect their effects to be applied correctly through the SpellsActive
+                packets received
+            */
+            if (mwmp::PlayerList::isDedicatedPlayer(target) || mwmp::Main::get().getCellController()->isDedicatedActor(target))
+                continue;
+            /*
+                End of tes3mp addition
+            */
+
             // Try resisting.
             float magnitudeMult = getEffectMultiplier(effectIt->mEffectID, target, caster, spell, &targetEffects);
             if (magnitudeMult == 0)
@@ -234,6 +264,30 @@ namespace MWMechanics
                         effectTick(target.getClass().getCreatureStats(target), target, EffectKey(*effectIt), effect.mMagnitude);
                         bool isDead = target.getClass().getCreatureStats(target).isDead();
 
+                        /*
+                            Start of tes3mp addition
+
+                            If the target was a LocalPlayer or LocalActor who died, record the caster as the killer
+                        */
+                        if (!wasDead && isDead)
+                        {
+                            bool isSuicide = target == caster || caster.isEmpty();
+
+                            if (target == MWMechanics::getPlayer())
+                            {
+                                mwmp::Main::get().getLocalPlayer()->killer = isSuicide ?
+                                    MechanicsHelper::getTarget(target) : MechanicsHelper::getTarget(caster);
+                            }
+                            else if (mwmp::Main::get().getCellController()->isLocalActor(target))
+                            {
+                                mwmp::Main::get().getCellController()->getLocalActor(target)->killer = isSuicide ?
+                                    MechanicsHelper::getTarget(target) : MechanicsHelper::getTarget(caster);
+                            }
+                        }
+                        /*
+                            End of tes3mp addition
+                        */
+
                         if (!wasDead && isDead)
                             MWBase::Environment::get().getMechanicsManager()->actorKilled(target, caster);
                     }
@@ -277,8 +331,21 @@ namespace MWMechanics
                     auto findCreature = targetStats.getSummonedCreatureMap().find(key);
                     if (findCreature != targetStats.getSummonedCreatureMap().end())
                     {
-                        MWBase::Environment::get().getMechanicsManager()->cleanupSummonedCreature(target, findCreature->second);
-                        targetStats.getSummonedCreatureMap().erase(findCreature);
+                        /*
+                            Start of tes3mp change (major)
+
+                            Don't clean up placeholder summoned creatures still awaiting a spawn
+                            packet from the server, because that would make the packet create permanent
+                            spawns instead
+                        */
+                        if (findCreature->second != -1)
+                        {
+                            MWBase::Environment::get().getMechanicsManager()->cleanupSummonedCreature(target, findCreature->second);
+                            targetStats.getSummonedCreatureMap().erase(findCreature);
+                        }
+                        /*
+                            End of tes3mp change (major)
+                        */
                     }
                 }
 
@@ -293,6 +360,20 @@ namespace MWMechanics
                         sndMgr->playSound3D(target, magicEffect->mHitSound, 1.0f, 1.0f);
                     else
                         sndMgr->playSound3D(target, schools[magicEffect->mData.mSchool]+" hit", 1.0f, 1.0f);
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_OBJECT_SOUND packet every time a sound is made here
+                    */
+                    mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                    objectList->addObjectSound(target, magicEffect->mHitSound.empty() ? schools[magicEffect->mData.mSchool] + " hit" : magicEffect->mHitSound, 1.0f, 1.0f);
+                    objectList->sendObjectSound();
+                    /*
+                        End of tes3mp addition
+                    */
 
                     // Add VFX
                     const ESM::Static* castStatic;
@@ -345,7 +426,31 @@ namespace MWMechanics
                 {
                     if (caster == getPlayer())
                         MWBase::Environment::get().getWindowManager()->messageBox("#{sMagicLockSuccess}");
-                    target.getCellRef().lock(static_cast<int>(magnitude));
+
+                    /*
+                        Start of tes3mp change (major)
+
+                        Disable unilateral locking on this client and expect the server's reply to our
+                        packet to do it instead
+                    */
+                    //target.getCellRef().lock(static_cast<int>(magnitude));
+                    /*
+                        End of tes3mp change (major)
+                    */
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_OBJECT_LOCK packet every time an object is locked here
+                    */
+                    mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                    objectList->addObjectLock(target, static_cast<int>(magnitude));
+                    objectList->sendObjectLock();
+                    /*
+                        End of tes3mp addition
+                    */
                 }
                 return true;
             }
@@ -370,7 +475,31 @@ namespace MWMechanics
                         if (caster == getPlayer())
                             MWBase::Environment::get().getWindowManager()->messageBox("#{sMagicOpenSuccess}");
                     }
-                    target.getCellRef().unlock();
+
+                    /*
+                        Start of tes3mp change (major)
+
+                        Disable unilateral locking on this client and expect the server's reply to our
+                        packet to do it instead
+                    */
+                    //target.getCellRef().unlock();
+                    /*
+                        End of tes3mp change (major)
+                    */
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_OBJECT_LOCK packet every time an object is unlocked here
+                    */
+                    mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                    objectList->addObjectLock(target, 0);
+                    objectList->sendObjectLock();
+                    /*
+                        End of tes3mp addition
+                    */
                 }
                 else
                 {
@@ -412,12 +541,23 @@ namespace MWMechanics
                 if (teleportingEnabled)
                 {
                     MWBase::Environment::get().getWorld()->getPlayer().markPosition(
-                                target.getCell(), target.getRefData().getPosition());
+                        target.getCell(), target.getRefData().getPosition());
                 }
                 else if (caster == getPlayer())
                 {
                     MWBase::Environment::get().getWindowManager()->messageBox("#{sTeleportDisabled}");
                 }
+
+                /*
+                    Start of tes3mp addition
+
+                    Send a PlayerMiscellaneous packet with the player's new mark location
+                */
+                mwmp::Main::get().getLocalPlayer()->sendMarkLocation(*target.getCell()->getCell(), target.getRefData().getPosition());
+                /*
+                    End of tes3mp addition
+                */
+
                 return true;
             }
             else if (effectId == ESM::MagicEffect::Recall)
@@ -513,6 +653,20 @@ namespace MWMechanics
                     };
                     MWBase::SoundManager *sndMgr = MWBase::Environment::get().getSoundManager();
                     sndMgr->playSound3D(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_OBJECT_SOUND packet every time a sound is made here
+                    */
+                    mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                    objectList->addObjectSound(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
+                    objectList->sendObjectSound();
+                    /*
+                        End of tes3mp addition
+                    */
                 }
                 return false;
             }
@@ -592,14 +746,36 @@ namespace MWMechanics
 
                 bool fail = false;
 
+                /*
+                    Start of tes3mp change (major)
+                
+                    Make spell casting fail based on the casting success rated determined
+                    in MechanicsHelper::getSpellSuccess()
+                */
+                mwmp::Cast *localCast = NULL;
+                mwmp::Cast *dedicatedCast = MechanicsHelper::getDedicatedCast(mCaster);
+
+                if (dedicatedCast)
+                    dedicatedCast->pressed = false;
+                else
+                {
+                    localCast = MechanicsHelper::getLocalCast(mCaster);
+                    localCast->success = MechanicsHelper::getSpellSuccess(mId, mCaster);
+                    localCast->pressed = false;
+                    localCast->shouldSend = true;
+                }
+
                 // Check success
-                float successChance = getSpellSuccessChance(spell, mCaster, nullptr, true, false);
-                if (Misc::Rng::roll0to99() >= successChance)
+                if ((localCast && localCast->success == false) ||
+                    (dedicatedCast && dedicatedCast->success == false))
                 {
                     if (mCaster == getPlayer())
                         MWBase::Environment::get().getWindowManager()->messageBox("#{sMagicSkillFail}");
                     fail = true;
                 }
+                /*
+                    End of tes3mp change (major)
+                */
 
                 if (fail)
                 {
@@ -610,6 +786,21 @@ namespace MWMechanics
 
                     MWBase::SoundManager *sndMgr = MWBase::Environment::get().getSoundManager();
                     sndMgr->playSound3D(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_OBJECT_SOUND packet every time a sound is made here
+                    */
+                    mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                    objectList->addObjectSound(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
+                    objectList->sendObjectSound();
+                    /*
+                        End of tes3mp addition
+                    */
+
                     return false;
                 }
             }

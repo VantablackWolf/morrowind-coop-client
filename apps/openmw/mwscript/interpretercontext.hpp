@@ -47,6 +47,37 @@ namespace MWScript
             InterpreterContext (MWScript::Locals *locals, const MWWorld::Ptr& reference);
             ///< The ownership of \a locals is not transferred. 0-pointer allowed.
 
+            /*
+                Start of tes3mp addition
+
+                Useful boolean for setting whether scripts send packets, set to false by default
+                to avoid massive packet spam
+            */
+            bool sendPackets = false;
+            /*
+                End of tes3mp addition
+            */
+
+            /*
+                Start of tes3mp addition
+
+                Used for tracking and checking the type of this InterpreterContext, as well as
+                its current script
+            */
+            unsigned short mContextType;
+            std::string mCurrentScriptName = "";
+
+            virtual unsigned short getContextType() const;
+
+            virtual std::string getCurrentScriptName() const;
+
+            virtual void trackContextType(unsigned short contextType);
+
+            virtual void trackCurrentScriptName(const std::string& name);
+            /*
+                End of tes3mp addition
+            */
+
             int getLocalShort (int index) const override;
 
             int getLocalLong (int index) const override;

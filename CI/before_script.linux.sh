@@ -24,6 +24,8 @@ declare -a CMAKE_CONF_OPTS=(
     -DBUILD_SHARED_LIBS=OFF
     -DUSE_SYSTEM_TINYXML=ON
     -DCMAKE_INSTALL_PREFIX=install
+    -DRakNet_LIBRARY_RELEASE=~/CrabNet/lib/libRakNetLibStatic.a
+    -DRakNet_LIBRARY_DEBUG=~/CrabNet/lib/libRakNetLibStatic.a
 )
 
 if [[ $CI_OPENMW_USE_STATIC_DEPS ]]; then
@@ -37,13 +39,22 @@ fi
 mkdir -p build
 cd build
 
+# Set up compilers
+if [ ! -z "${MATRIX_CC}" ]; then
+    eval "${MATRIX_CC}"
+fi
+
+export RAKNET_ROOT=~/CrabNet
+
 if [[ "${BUILD_TESTS_ONLY}" ]]; then
     ${ANALYZE} cmake \
         "${CMAKE_CONF_OPTS[@]}" \
         -DBUILD_OPENMW=OFF \
+        -DBUILD_OPENMW_MP=OFF \
         -DBUILD_BSATOOL=OFF \
         -DBUILD_ESMTOOL=OFF \
         -DBUILD_LAUNCHER=OFF \
+        -DBUILD_BROWSER=OFF \
         -DBUILD_MWINIIMPORTER=OFF \
         -DBUILD_ESSIMPORTER=OFF \
         -DBUILD_OPENCS=OFF \

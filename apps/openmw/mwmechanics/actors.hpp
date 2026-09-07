@@ -151,6 +151,16 @@ namespace MWMechanics
             int countDeaths (const std::string& id) const;
             ///< Return the number of deaths for actors with the given ID.
 
+            /*
+                Start of tes3mp addition
+
+                Make it possible to set the number of deaths for an actor with the given refId
+            */
+            void setDeaths(const std::string& refId, int number);
+            /*
+                End of tes3mp addition
+            */
+
             bool isAttackPreparing(const MWWorld::Ptr& ptr);
             bool isRunning(const MWWorld::Ptr& ptr);
             bool isSneaking(const MWWorld::Ptr& ptr);
@@ -200,6 +210,16 @@ namespace MWMechanics
             bool isCastingSpell(const MWWorld::Ptr& ptr) const;
             bool isReadyToBlock(const MWWorld::Ptr& ptr) const;
             bool isAttackingOrSpell(const MWWorld::Ptr& ptr) const;
+
+            /*
+                Start of tes3mp addition
+
+                Make it possible to set the attackingOrSpell state from elsewhere in the code
+            */
+            void setAttackingOrSpell(const MWWorld::Ptr& ptr, bool state) const;
+            /*
+                End of tes3mp addition
+            */
 
             int getGreetingTimer(const MWWorld::Ptr& ptr) const;
             float getAngleToPlayer(const MWWorld::Ptr& ptr) const;

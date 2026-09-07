@@ -186,12 +186,56 @@ namespace MWGui
     MWGui::ConfirmationDialog* getConfirmationDialog() override;
     MWGui::TradeWindow* getTradeWindow() override;
 
+    /*
+        Start of tes3mp addition
+
+        Make it possible to get the ContainerWindow from elsewhere
+        in the code
+    */
+    virtual MWGui::ContainerWindow* getContainerWindow();
+    /*
+        End of tes3mp addition
+    */
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to get the DialogueWindow from elsewhere
+    */
+    virtual MWGui::DialogueWindow* getDialogueWindow();
+    /*
+        End of tes3mp addition
+    */
+
     /// Make the player use an item, while updating GUI state accordingly
     void useItem(const MWWorld::Ptr& item, bool bypassBeastRestrictions=false) override;
 
     void updateSpellWindow() override;
 
     void setConsoleSelectedObject(const MWWorld::Ptr& object) override;
+
+    /*
+        Start of tes3mp addition
+
+        Allow the direct setting of a console's Ptr, without the assumption that an object
+        was clicked and that key focus should be restored to the console window, for console
+        commands executed via server scripts
+    */
+    virtual void setConsolePtr(const MWWorld::Ptr& object);
+    /*
+        End of tes3mp addition
+    */
+
+    /*
+        Start of tes3mp addition
+
+        Allow the clearing of the console's Ptr from elsewhere in the code, so that
+        Ptrs used in console commands run from server scripts do not stay selected
+    */
+    virtual void clearConsolePtr();
+    /*
+        End of tes3mp addition
+    */
 
     /// Set time left for the player to start drowning (update the drowning bar)
     /// @param time time left to start drowning
@@ -200,12 +244,34 @@ namespace MWGui
 
     void changeCell(const MWWorld::CellStore* cell) override; ///< change the active cell
 
+    /*
+        Start of tes3mp addition
+
+        Allow the setting of the image data for a global map tile from elsewhere
+        in the code
+    */
+    virtual void setGlobalMapImage(int cellX, int cellY, const std::vector<char>& imageData);
+    /*
+        End of tes3mp addition
+    */
+
     void setFocusObject(const MWWorld::Ptr& focus) override;
     void setFocusObjectScreenCoords(float min_x, float min_y, float max_x, float max_y) override;
 
-    void getMousePosition(int &x, int &y) override;
-    void getMousePosition(float &x, float &y) override;
+    void getMousePosition(int& x, int& y) override;
+    void getMousePosition(float& x, float& y) override;
     void setDragDrop(bool dragDrop) override;
+
+    /*
+        Start of tes3mp addition
+
+        Allow the completion of a drag and drop from elsewhere in the code
+    */
+    virtual void finishDragDrop();
+    /*
+        End of tes3mp addition
+    */
+
     bool getWorldMouseOver() override;
 
     float getScalingFactor() override;
@@ -232,6 +298,16 @@ namespace MWGui
     void activateQuickKey (int index) override;
     /// update activated quick key state (if action executing was delayed for some reason)
     void updateActivatedQuickKey () override;
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to add quickKeys from elsewhere in the code
+    */
+    virtual void setQuickKey(int slot, int quickKeyType, MWWorld::Ptr item, const std::string& spellId = "");
+    /*
+        End of tes3mp addition
+    */
 
     std::string getSelectedSpell() override { return mSelectedSpell; }
     void setSelectedSpell(const std::string& spellId, int successChancePercent) override;
@@ -263,11 +339,20 @@ namespace MWGui
     ///Gracefully attempts to exit the topmost GUI mode
     void exitCurrentGuiMode() override;
 
-    void messageBox (const std::string& message, enum MWGui::ShowInDialogueMode showInDialogueMode = MWGui::ShowInDialogueMode_IfPossible) override;
+    void messageBox(const std::string & message, enum MWGui::ShowInDialogueMode showInDialogueMode = MWGui::ShowInDialogueMode_IfPossible) override;
     void staticMessageBox(const std::string& message) override;
     void removeStaticMessageBox() override;
-    void interactiveMessageBox (const std::string& message,
-                                        const std::vector<std::string>& buttons = std::vector<std::string>(), bool block=false) override;
+    /*
+        Start of tes3mp change (major)
+
+        Add a hasServerOrigin boolean to the list of arguments so those messageboxes
+        can be differentiated from client-only ones
+    */
+    void interactiveMessageBox(const std::string& message,
+        const std::vector<std::string>& buttons = std::vector<std::string>(), bool block = false, bool hasServerOrigin = false) override;
+    /*
+        End of tes3mp change (major)
+    */
 
     int readPressedButton () override; ///< returns the index of the pressed button or -1 if no button was pressed (->MessageBoxmanager->InteractiveMessageBox)
 
@@ -293,6 +378,16 @@ namespace MWGui
     MWWorld::Ptr getWatchedActor() const override;
 
     void executeInConsole (const std::string& path) override;
+
+    /*
+        Start of tes3mp addition
+
+        Allow the execution of console commands from elsewhere in the code
+    */
+    virtual void executeCommandInConsole(const std::string& command);
+    /*
+        End of tes3mp addition
+    */
 
     void enableRest() override { mRestAllowed = true; }
     bool getRestEnabled() override;
@@ -440,6 +535,17 @@ namespace MWGui
     ScreenFader* mScreenFader;
     DebugWindow* mDebugWindow;
     JailScreen* mJailScreen;
+
+    /*
+        Start of tes3mp addition
+
+        Keep a pointer to the container window because of its usefulness
+        in multiplayer for container sync
+    */
+    ContainerWindow* mContainerWindow;
+    /*
+        End of tes3mp addition
+    */
 
     std::vector<WindowBase*> mWindows;
 

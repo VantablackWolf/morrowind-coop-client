@@ -248,6 +248,17 @@ namespace MWWorld
 
             bool isResolved() const;
 
+            /*
+                Start of tes3mp addiition
+
+                Make it possible to set the container's resolved state from elsewhere, to avoid unnecessary
+                refills before overriding its contents
+            */
+            void setResolved(bool state);
+            /*
+                End of tes3mp addition
+            */
+
             void resolve();
             ResolutionHandle resolveTemporarily();
             void unresolve();
