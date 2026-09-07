@@ -12,28 +12,29 @@
 */
 
 #include <components/misc/rng.hpp>
+#include <components/misc/strings/format.hpp>
 
-#include "../mwbase/windowmanager.hpp"
-#include "../mwbase/mechanicsmanager.hpp"
-#include "../mwbase/world.hpp"
 #include "../mwbase/environment.hpp"
+#include "../mwbase/luamanager.hpp"
+#include "../mwbase/mechanicsmanager.hpp"
+#include "../mwbase/windowmanager.hpp"
+#include "../mwbase/world.hpp"
 
-#include "../mwmechanics/npcstats.hpp"
 #include "../mwmechanics/actorutil.hpp"
+#include "../mwmechanics/npcstats.hpp"
 
+#include "../mwworld/class.hpp"
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/store.hpp"
-#include "../mwworld/class.hpp"
 
 #include "jailscreen.hpp"
 
 namespace MWGui
 {
     JailScreen::JailScreen()
-        : WindowBase("openmw_jail_screen.layout"),
-          mDays(1),
-          mFadeTimeRemaining(0),
-          mTimeAdvancer(0.01f)
+        : WindowBase("openmw_jail_screen.layout")
+        , mDays(1)
+        , mFadeTimeRemaining(0)
     {
         getWidget(mProgressBar, "ProgressBar");
 
@@ -51,7 +52,7 @@ namespace MWGui
         mFadeTimeRemaining = 0.5;
 
         setVisible(false);
-        mProgressBar->setScrollRange(100+1);
+        mProgressBar->setScrollRange(100 + 1);
         mProgressBar->setScrollPosition(0);
         mProgressBar->setTrackSize(0);
 
@@ -79,6 +80,7 @@ namespace MWGui
         if (mFadeTimeRemaining <= 0)
         {
             MWWorld::Ptr player = MWMechanics::getPlayer();
+<<<<<<< HEAD
 
             /*
                 Start of tes3mp change (minor)
@@ -93,6 +95,12 @@ namespace MWGui
             /*
                 End of tes3mp change (minor)
             */
+=======
+            MWBase::Environment::get().getWorld()->teleportToClosestMarker(
+                player, ESM::RefId::stringRefId("prisonmarker"));
+            MWBase::Environment::get().getWindowManager()->fadeScreenOut(
+                0.f); // override fade-in caused by cell transition
+>>>>>>> omw51
 
             setVisible(true);
             mTimeAdvancer.run(100);
@@ -102,7 +110,8 @@ namespace MWGui
     void JailScreen::onJailProgressChanged(int cur, int /*total*/)
     {
         mProgressBar->setScrollPosition(0);
-        mProgressBar->setTrackSize(static_cast<int>(cur / (float)(mProgressBar->getScrollRange()) * mProgressBar->getLineSize()));
+        mProgressBar->setTrackSize(
+            static_cast<int>(cur / (float)(mProgressBar->getScrollRange()) * mProgressBar->getLineSize()));
     }
 
     void JailScreen::onJailFinished()
@@ -135,6 +144,7 @@ namespace MWGui
         */
 
         // We should not worsen corprus when in prison
+<<<<<<< HEAD
         for (auto& spell : player.getClass().getCreatureStats(player).getCorprusSpells())
         {
             spell.second.mNextWorsening += mDays * 24;
@@ -223,5 +233,9 @@ namespace MWGui
         std::vector<std::string> buttons;
         buttons.emplace_back("#{sOk}");
         MWBase::Environment::get().getWindowManager()->interactiveMessageBox(message, buttons);
+=======
+        player.getClass().getCreatureStats(player).getActiveSpells().skipWorsenings(mDays * 24);
+        MWBase::Environment::get().getLuaManager()->jailTimeServed(player, mDays);
+>>>>>>> omw51
     }
 }

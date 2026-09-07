@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MyGUI type="Layout">
+<<<<<<< HEAD:files/mygui/openmw_text_input.layout
+    <Widget type="Window" skin="MW_Dialog" layer="Windows" position="0 0 320 97" align="Center" name="_Main">
+=======
+    <Widget type="Window" skin="MW_Dialog" layer="Modal" position="0 0 320 97" align="Center" name="_Main">
+>>>>>>> omw51:files/data/mygui/openmw_text_input.layout
+
+        <!-- Appearance -->
+        <Widget type="TextBox" skin="ProgressText" position="6 6 300 18" name="LabelT" align="Left Top">
+            <Property key="TextAlign" value="Left Top"/>
+        </Widget>
+        <Widget type="EditBox" skin="MW_TextEdit" position="6 28 300 30" name="TextEdit" align="Left Top"/>
+
+        <!-- Dialog buttons -->
+        <Widget type="AutoSizedButton" skin="MW_Button" position="264 60 42 23" name="OKButton">
+            <Property key="ExpandDirection" value="Left"/>
+<<<<<<< HEAD:files/mygui/openmw_text_input.layout
+            <Property key="Caption" value="OK"/>
+=======
+            <Property key="Caption" value="#{Interface:OK}"/>
+>>>>>>> omw51:files/data/mygui/openmw_text_input.layout
+        </Widget>
+    </Widget>
+</MyGUI>

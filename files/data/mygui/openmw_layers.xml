@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MyGUI type="Layer" version="1.0">
+    <Layer name="Scene" overlapped="false" pick="false"/>
+<<<<<<< HEAD:files/mygui/openmw_layers.xml
+    <Layer name="Overlay" overlapped="false" pick="false"/>
+    <Layer name="AdditiveOverlay" type="AdditiveLayer" pick="false"/>
+    <Layer name="HUD" overlapped="false" pick="true"/>
+    <Layer name="Menu" overlapped="false" pick="true"/>
+    <Layer name="MainMenu" overlapped="true" pick="true"/>
+=======
+    <Layer name="FadeToBlack" overlapped="false" pick="false"/>
+    <Layer name="HitOverlay" type="AdditiveLayer" pick="false"/>
+    <Layer name="HUD" overlapped="false" pick="true"/>
+>>>>>>> omw51:files/data/mygui/openmw_layers.xml
+    <Layer name="JournalBooks" type="ScalingLayer" pick="true">
+        <Property key="Size" value="600 520"/>
+    </Layer>
+    <Layer name="Windows" overlapped="true" pick="true"/>
+<<<<<<< HEAD:files/mygui/openmw_layers.xml
+    <Layer name="Debug" overlapped="true" pick="true"/>
+    <Layer name="Popup" overlapped="true" pick="true"/>
+    <Layer name="Notification" overlapped="false" pick="false"/>
+    <Layer name="DragAndDrop" overlapped="false" pick="false"/>
+    <Layer name="LoadingScreen" overlapped="false" pick="true"/>
+    <Layer name="MessageBox" overlapped="false" pick="true"/>
+=======
+    <Layer name="DragAndDrop" overlapped="false" pick="false"/>
+    <Layer name="DrowningBar" overlapped="false" pick="false"/>
+    <Layer name="MainMenuBackground" overlapped="true" pick="true"/>
+    <Layer name="MainMenu" overlapped="true" pick="true"/>
+    <Layer name="Settings" overlapped="true" pick="true"/>
+    <Layer name="ControllerButtons" overlapped="true" pick="false"/>
+    <Layer name="LoadingScreenBackground" overlapped="false" pick="true"/>
+    <Layer name="LoadingScreen" overlapped="false" pick="true"/>
+    <Layer name="Debug" overlapped="true" pick="true"/>
+    <Layer name="Console" overlapped="true" pick="true"/>
+    <Layer name="Modal" overlapped="true" pick="true"/>
+    <Layer name="Popup" overlapped="true" pick="true"/>
+    <Layer name="Notification" overlapped="false" pick="false"/>
+    <Layer name="Video" overlapped="false" pick="true"/>
+>>>>>>> omw51:files/data/mygui/openmw_layers.xml
+    <Layer name="InputBlocker" overlapped="false" pick="true"/>
+    <Layer name="Pointer" overlapped="false" pick="false"/>
+</MyGUI>

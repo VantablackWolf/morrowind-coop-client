@@ -28,14 +28,21 @@ Doxygen
 .idea
 cmake-build-*
 files/windows/*.aps
+<<<<<<< HEAD
 cmake-build-*
+=======
+.cache/clangd
+>>>>>>> omw51
 ## qt-creator
 CMakeLists.txt.user*
 .vs
 .vscode
 
 ## resources
+<<<<<<< HEAD
 data
+=======
+>>>>>>> omw51
 resources
 /*.cfg
 /*.desktop
@@ -73,6 +80,10 @@ components/ui_contentselector.h
 docs/mainpage.hpp
 docs/Doxyfile
 docs/DoxyfilePages
+<<<<<<< HEAD
+=======
+docs/source/reference/lua-scripting/generated_html
+>>>>>>> omw51
 moc_*.cxx
 *.cxx_parameters
 *qrc_launcher.cxx
@@ -85,3 +96,10 @@ moc_*.cxx
 *.[ao]
 *.so
 venv/
+<<<<<<< HEAD
+=======
+
+## operating system files
+.DS_Store
+Thumbs.db
+>>>>>>> omw51

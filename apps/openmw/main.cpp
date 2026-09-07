@@ -1,12 +1,18 @@
-#include <components/version/version.hpp>
-#include <components/files/configurationmanager.hpp>
-#include <components/files/escape.hpp>
+#include <components/debug/debugging.hpp>
 #include <components/fallback/fallback.hpp>
 #include <components/fallback/validate.hpp>
-#include <components/debug/debugging.hpp>
+#include <components/files/configurationmanager.hpp>
+#include <components/misc/osgpluginchecker.hpp>
 #include <components/misc/rng.hpp>
+#include <components/platform/platform.hpp>
+#include <components/version/version.hpp>
+
+#include "mwgui/debugwindow.hpp"
 
 #include "engine.hpp"
+#include "options.hpp"
+
+#include <boost/program_options/variables_map.hpp>
 
 /*
     Start of tes3mp addition
@@ -19,18 +25,20 @@
 */
 
 #if defined(_WIN32)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include <components/misc/windows.hpp>
 // makes __argc and __argv available on windows
 #include <cstdlib>
+
+extern "C" __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 #endif
+
+#include <filesystem>
 
 #if (defined(__APPLE__) || defined(__linux) || defined(__unix) || defined(__posix))
 #include <unistd.h>
 #endif
 
+<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -47,6 +55,8 @@
 
 using namespace Fallback;
 
+=======
+>>>>>>> omw51
 /**
  * \brief Parses application command line and calls \ref Cfg::ConfigurationManager
  * to parse configuration files.
@@ -56,12 +66,13 @@ using namespace Fallback;
  * \retval true - Everything goes OK
  * \retval false - Error
  */
-bool parseOptions (int argc, char** argv, OMW::Engine& engine, Files::ConfigurationManager& cfgMgr)
+bool parseOptions(int argc, char** argv, OMW::Engine& engine, Files::ConfigurationManager& cfgMgr)
 {
     // Create a local alias for brevity
     namespace bpo = boost::program_options;
     typedef std::vector<std::string> StringsVector;
 
+<<<<<<< HEAD
     bpo::options_description desc("Syntax: openmw <options>\nAllowed options");
 
     desc.add_options()
@@ -167,31 +178,31 @@ bool parseOptions (int argc, char** argv, OMW::Engine& engine, Files::Configurat
     bpo::parsed_options valid_opts = bpo::command_line_parser(argc, argv)
         .options(desc).allow_unregistered().run();
 
+=======
+    bpo::options_description desc = OpenMW::makeOptionsDescription();
+>>>>>>> omw51
     bpo::variables_map variables;
 
-    // Runtime options override settings from all configs
-    bpo::store(valid_opts, variables);
+    Files::parseArgs(argc, argv, variables, desc);
     bpo::notify(variables);
 
-    if (variables.count ("help"))
+    if (variables.count("help"))
     {
-        getRawStdout() << desc << std::endl;
+        Debug::getRawStdout() << desc << std::endl;
         return false;
     }
 
-    if (variables.count ("version"))
+    if (variables.count("version"))
     {
-        cfgMgr.readConfiguration(variables, desc, true);
-
-        Version::Version v = Version::getOpenmwVersion(variables["resources"].as<Files::EscapePath>().mPath.string());
-        getRawStdout() << v.describe() << std::endl;
+        Debug::getRawStdout() << Version::getOpenmwVersionDescription() << std::endl;
         return false;
     }
 
-    bpo::variables_map composingVariables = cfgMgr.separateComposingVariables(variables, desc);
+    cfgMgr.processPaths(variables, std::filesystem::current_path());
+
     cfgMgr.readConfiguration(variables, desc);
-    cfgMgr.mergeComposingVariables(variables, composingVariables, desc);
 
+<<<<<<< HEAD
     Version::Version v = Version::getOpenmwVersion(variables["resources"].as<Files::EscapePath>().mPath.string());
 
     /*
@@ -213,42 +224,54 @@ bool parseOptions (int argc, char** argv, OMW::Engine& engine, Files::Configurat
     /*
         End of tes3mp change (minor)
     */
+=======
+    Debug::setupLogging(cfgMgr.getLogPath(), "OpenMW");
+    Log(Debug::Info) << Version::getOpenmwVersionDescription();
+
+    Settings::Manager::load(cfgMgr);
+
+    MWGui::DebugWindow::startLogRecording();
+>>>>>>> omw51
 
     engine.setGrabMouse(!variables["no-grab"].as<bool>());
 
     // Font encoding settings
-    std::string encoding(variables["encoding"].as<Files::EscapeHashString>().toStdString());
+    std::string encoding(variables["encoding"].as<std::string>());
     Log(Debug::Info) << ToUTF8::encodingUsingMessage(encoding);
     engine.setEncoding(ToUTF8::calculateEncoding(encoding));
 
-    // directory settings
-    engine.enableFSStrict(variables["fs-strict"].as<bool>());
+    Files::PathContainer dataDirs(asPathContainer(variables["data"].as<Files::MaybeQuotedPathContainer>()));
 
-    Files::PathContainer dataDirs(Files::EscapePath::toPathContainer(variables["data"].as<Files::EscapePathContainer>()));
-
-    Files::PathContainer::value_type local(variables["data-local"].as<Files::EscapePath>().mPath);
+    Files::PathContainer::value_type local(variables["data-local"]
+                                               .as<Files::MaybeQuotedPathContainer::value_type>()
+                                               .u8string()); // This call to u8string is redundant, but required to
+                                                             // build on MSVC 14.26 due to implementation bugs.
     if (!local.empty())
-        dataDirs.push_back(local);
+        dataDirs.push_back(std::move(local));
 
-    cfgMgr.processPaths(dataDirs);
+    cfgMgr.filterOutNonExistingPaths(dataDirs);
 
-    engine.setResourceDir(variables["resources"].as<Files::EscapePath>().mPath);
+    engine.setResourceDir(variables["resources"]
+                              .as<Files::MaybeQuotedPath>()
+                              .u8string()); // This call to u8string is redundant, but required to build on MSVC 14.26
+                                            // due to implementation bugs.
     engine.setDataDirs(dataDirs);
 
     // fallback archives
-    StringsVector archives = variables["fallback-archive"].as<Files::EscapeStringVector>().toStdStringVector();
+    StringsVector archives = variables["fallback-archive"].as<StringsVector>();
     for (StringsVector::const_iterator it = archives.begin(); it != archives.end(); ++it)
     {
         engine.addArchive(*it);
     }
 
-    StringsVector content = variables["content"].as<Files::EscapeStringVector>().toStdStringVector();
+    StringsVector content = variables["content"].as<StringsVector>();
     if (content.empty())
     {
         Log(Debug::Error) << "No content file given (esm/esp, nor omwgame/omwaddon). Aborting...";
         return false;
     }
-    std::set<std::string> contentDedupe;
+    engine.addContentFile("builtin.omwscripts");
+    std::set<std::string> contentDedupe{ "builtin.omwscripts" };
     for (const auto& contentFile : content)
     {
         if (!contentDedupe.insert(contentFile).second)
@@ -263,21 +286,28 @@ bool parseOptions (int argc, char** argv, OMW::Engine& engine, Files::Configurat
         engine.addContentFile(file);
     }
 
-    StringsVector groundcover = variables["groundcover"].as<Files::EscapeStringVector>().toStdStringVector();
+    StringsVector groundcover = variables["groundcover"].as<StringsVector>();
     for (auto& file : groundcover)
     {
         engine.addGroundcoverFile(file);
     }
 
+    if (variables.count("lua-scripts"))
+    {
+        Log(Debug::Warning) << "Lua scripts have been specified via the old lua-scripts option and will not be loaded. "
+                               "Please update them to a version which uses the new omwscripts format.";
+    }
+
     // startup-settings
-    engine.setCell(variables["start"].as<Files::EscapeHashString>().toStdString());
-    engine.setSkipMenu (variables["skip-menu"].as<bool>(), variables["new-game"].as<bool>());
+    engine.setCell(variables["start"].as<std::string>());
+    engine.setSkipMenu(variables["skip-menu"].as<bool>(), variables["new-game"].as<bool>());
     if (!variables["skip-menu"].as<bool>() && variables["new-game"].as<bool>())
         Log(Debug::Warning) << "Warning: new-game used without skip-menu -> ignoring it";
 
     // scripts
     engine.setCompileAll(variables["script-all"].as<bool>());
     engine.setCompileAllDialogue(variables["script-all-dialogue"].as<bool>());
+<<<<<<< HEAD
     engine.setScriptConsoleMode (variables["script-console"].as<bool>());
     
     /*
@@ -296,11 +326,17 @@ bool parseOptions (int argc, char** argv, OMW::Engine& engine, Files::Configurat
     /*
         End of tes3mp change (major)
     */
+=======
+    engine.setScriptConsoleMode(variables["script-console"].as<bool>());
+    engine.setStartupScript(variables["script-run"].as<std::string>());
+    engine.setWarningsMode(variables["script-warn"].as<int>());
+    engine.setSaveGameFile(variables["load-savegame"].as<Files::MaybeQuotedPath>().u8string());
+>>>>>>> omw51
 
     // other settings
-    Fallback::Map::init(variables["fallback"].as<FallbackMap>().mMap);
+    Fallback::Map::init(variables["fallback"].as<Fallback::FallbackMap>().mMap);
     engine.setSoundUsage(!variables["no-sound"].as<bool>());
-    engine.setActivationDistanceOverride (variables["activate-dist"].as<int>());
+    engine.setActivationDistanceOverride(variables["activate-dist"].as<int>());
     engine.enableFontExport(variables["export-fonts"].as<bool>());
     engine.setRandomSeed(variables["random-seed"].as<unsigned int>());
 
@@ -331,21 +367,21 @@ namespace
             Debug::Level level;
             switch (severity)
             {
-            case osg::ALWAYS:
-            case osg::FATAL:
-                level = Debug::Error;
-                break;
-            case osg::WARN:
-            case osg::NOTICE:
-                level = Debug::Warning;
-                break;
-            case osg::INFO:
-                level = Debug::Info;
-                break;
-            case osg::DEBUG_INFO:
-            case osg::DEBUG_FP:
-            default:
-                level = Debug::Debug;
+                case osg::ALWAYS:
+                case osg::FATAL:
+                    level = Debug::Error;
+                    break;
+                case osg::WARN:
+                case osg::NOTICE:
+                    level = Debug::Warning;
+                    break;
+                case osg::INFO:
+                    level = Debug::Info;
+                    break;
+                case osg::DEBUG_INFO:
+                case osg::DEBUG_FP:
+                default:
+                    level = Debug::Debug;
             }
             std::string_view s(msgCopy);
             if (s.size() < 1024)
@@ -365,21 +401,25 @@ namespace
     };
 }
 
-int runApplication(int argc, char *argv[])
+int runApplication(int argc, char* argv[])
 {
+    Platform::init();
+
 #ifdef __APPLE__
-    boost::filesystem::path binary_path = boost::filesystem::system_complete(boost::filesystem::path(argv[0]));
-    boost::filesystem::current_path(binary_path.parent_path());
     setenv("OSG_GL_TEXTURE_STORAGE", "OFF", 0);
 #endif
 
     osg::setNotifyHandler(new OSGLogHandler());
     Files::ConfigurationManager cfgMgr;
-    std::unique_ptr<OMW::Engine> engine;
-    engine.reset(new OMW::Engine(cfgMgr));
+    std::unique_ptr<OMW::Engine> engine = std::make_unique<OMW::Engine>(cfgMgr);
+
+    engine->setRecastMaxLogLevel(Debug::getRecastMaxLogLevel());
 
     if (parseOptions(argc, argv, *engine, cfgMgr))
     {
+        if (!Misc::checkRequiredOSGPluginsArePresent())
+            return 1;
+
         engine->go();
     }
 
@@ -387,11 +427,12 @@ int runApplication(int argc, char *argv[])
 }
 
 #ifdef ANDROID
-extern "C" int SDL_main(int argc, char**argv)
+extern "C" int SDL_main(int argc, char** argv)
 #else
-int main(int argc, char**argv)
+int main(int argc, char** argv)
 #endif
 {
+<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -412,6 +453,9 @@ int main(int argc, char**argv)
     /*
         End of tes3mp change (major)
     */
+=======
+    return Debug::wrapApplication(&runApplication, argc, argv, "OpenMW");
+>>>>>>> omw51
 }
 
 // Platform specific for Windows when there is no console built into the executable.

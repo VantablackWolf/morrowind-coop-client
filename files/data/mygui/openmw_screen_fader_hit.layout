@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MyGUI type="Layout">
+<<<<<<< HEAD:files/mygui/openmw_screen_fader_hit.layout
+    <Widget type="ImageBox" skin="ImageBox" layer="AdditiveOverlay" position="0 0 300 200" name="_Main" align="Stretch">
+=======
+    <Widget type="ImageBox" skin="ImageBox" layer="HitOverlay" position="0 0 300 200" name="_Main" align="Stretch">
+>>>>>>> omw51:files/data/mygui/openmw_screen_fader_hit.layout
+        <Property key="ImageTexture" value="black"/>
+    </Widget>
+</MyGUI>
