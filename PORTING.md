@@ -51,9 +51,32 @@ file at a time with a compile after each edit is the whole loop.
 | `audit-port.sh` | stale files, hooks stranded by file *moves* | hooks that stayed in the file |
 | `check-hook-depth.sh` | hooks relocated into a deeper scope | a hook that moved sideways |
 | `check-missing-definitions.sh` | definitions swallowed by a runaway comment | anything still compiling and linking |
+| `check-hook-shadowing.sh` | a hook working on a shadow copy of the variable the function uses | shadowing that is deliberate |
+| `check-orphaned-resources.sh` | assets no build file installs any more | assets installed by a wildcard |
 
-Run all four. Each one on this list exists because the ones above it missed
-something real.
+Run all six. Each one on this list exists because the ones above it missed
+something real, and each says plainly what it still cannot see.
+
+Only `check-resolution.sh` is a gate. The rest exit 0 on purpose: they generate
+leads for a human to read, and a check that fails a build on its benign hits
+just teaches people to skip it.
+
+Two of them earn their place from the same underlying event, which is worth
+understanding because it will happen again. When upstream restructures a
+function -- hoisting a declaration above a new `if`/`else`, say -- and the merge
+drops the hook into one of the new branches, the merge also has to add a
+declaration inside that branch to make the hook compile. That new declaration
+shadows the hoisted one. Everything compiles: both variables are well-formed,
+the types match, neither is unused, and at `/W3` MSVC says nothing. But the
+branch now writes to its private copy while the function goes on to use the
+outer variable, still at its initial value -- which for an `MWWorld::Ptr` means
+empty, and empty means a segfault at the first dereference.
+
+`check-hook-shadowing.sh` looks for exactly that shape. Note its criterion is
+**not** "a shadow inside a hook": in both real cases the shadowing declaration
+sat just *outside* the hook markers, because it is the line the merge added
+rather than a line the fork ever wrote. What identifies it is that the block it
+opens contains a hook.
 
 ---
 
@@ -198,6 +221,45 @@ from 0.47 → 0.51:
 type this port was written for, so that class of change becomes a compile error
 naming the field. **Run it first on a new OpenMW** — it is the fastest available
 survey of what actually changed under you.
+
+### Budget for the bugs that only running it can find
+
+A clean build is roughly the halfway point, not the end. Every check in the
+table above exists to shrink this list, and the list is still not empty, because
+the defects that survive all of them are ones where the code is *valid* and only
+its meaning changed. From the 0.47 -> 0.51 port, in the order they were found:
+
+| Symptom | Cause |
+|---|---|
+| server exited instantly, no message | `main()` had no `catch`; 0.51 throws during config parsing |
+| every content file "missing" | 0.51 keys file collections by extension *without* the leading dot |
+| every plugin blamed on its neighbour | 0.51 prepends `builtin.omwscripts`, and the server compares by position |
+| died after connecting, on drawing chat | six MyGUI layouts no build file installed any more |
+| segfault on the first global script | a relocated hook shadowing the `Ptr` the function goes on to use |
+| promotion packets carrying the old rank | four faction hooks placed before the rank change instead of after |
+| double subtitles, double item removal | a hook left live beside the upstream copy it was meant to replace |
+
+Not one of these produces a compiler diagnostic. Several produce no log line
+either, and the two that do produce a misleading one. Plan the schedule around
+that: get to a running client early and spend real time in it, because until
+something has connected, logged in, and drawn a frame, "it builds" is a claim
+about syntax.
+
+Two habits paid for themselves repeatedly:
+
+**Establish the baseline first.** Build pristine upstream OpenMW against the
+same game data and confirm it plays. When the port then misbehaves you can ask
+whether upstream does the same thing, and the answer is usually decisive in one
+run. The `OpDisable` segfault was confirmed as ours in about a minute this way.
+
+**Turn off the crash catcher when you want the truth.**
+`OPENMW_DISABLE_CRASH_CATCHER=1` turns an access violation back into an honest
+segfault. With it installed, the same fault surfaced as `Execution of script
+"MarkTRStartScript" failed: SHM lock timed out` -- a message that names neither
+the fault nor anything near it, and that the script interpreter then swallowed
+so the game kept running with the object silently un-disabled.
+
+---
 
 ---
 

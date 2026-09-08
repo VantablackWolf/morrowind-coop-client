@@ -17,6 +17,14 @@
 #      in 23 files. The build would have failed eventually; the point is that
 #      nothing in the merge pointed at the cause.
 #
+#      Build files count. 0.51 replaced files/mygui/CMakeLists.txt with
+#      files/data/CMakeLists.txt, stranding the entry that installed
+#      tes3mp_logo.png. Note the limit of this check, though: the six MyGUI
+#      layouts stranded by the same edit were bare lines in a list with no
+#      tes3mp markers around them, so nothing here can see them go. That is
+#      what CI/check-orphaned-resources.sh is for -- it asks whether anything
+#      builds a file rather than who added it.
+#
 # Usage: CI/audit-port.sh <old-openmw-ref> <new-openmw-ref> <path-to-previous-tes3mp>
 #
 # Example, after CI/port-to-openmw.sh:
@@ -41,14 +49,21 @@ echo
 
 echo "== Stranded hooks (present in the previous TES3MP, absent from this tree)"
 missing=0
-for f in $(cd "$PREV" && grep -rl 'Start of tes3mp' --include='*.cpp' --include='*.hpp' --include='*.h' . 2>/dev/null | sed 's|^\./||'); do
+for f in $(cd "$PREV" && grep -rl 'Start of tes3mp' --include='*.cpp' --include='*.hpp' --include='*.h' --include='CMakeLists.txt' --include='*.cmake' . 2>/dev/null | sed 's|^\./||'); do
     was=$(grep -c 'Start of tes3mp' "$PREV/$f")
     if [ ! -f "$f" ]; then
         # File is gone from this tree. Its hooks had to land somewhere else --
         # check whether each description still appears anywhere in the port.
         while IFS= read -r desc; do
             [ -z "$desc" ] && continue
-            if ! grep -rqF -- "$desc" apps components 2>/dev/null; then
+            # Compare on a PREFIX, not the whole line. Upstream runs clang-format
+            # over everything it touches, so a hook's comment gets re-wrapped at a
+            # different column and an exact-line search reports a migrated hook as
+            # stranded. On the 0.51 port that was two of three hits: the loadcell
+            # getShortDescription hooks had moved to components/esm3/ intact, and
+            # only "because it was widely" vs "because it was" separated them.
+            probe="${desc:0:40}"
+            if ! grep -rqF -- "$probe" apps components files cmake CMakeLists.txt 2>/dev/null; then
                 echo "   STRANDED: $f"
                 echo "             $desc"
                 missing=$((missing + 1))
