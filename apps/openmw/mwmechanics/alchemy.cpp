@@ -357,22 +357,21 @@ void MWMechanics::Alchemy::addPotion(const std::string& name)
     /*
     const ESM::Potion* record = getRecord(newRecord);
     if (!record)
-<<<<<<< HEAD
-    {
-        record = MWBase::Environment::get().getWorld()->createRecord(newRecord);
-    }
+    /*
+        Start of tes3mp change (major)
 
-    mAlchemist.getClass().getContainerStore (mAlchemist).add (record->mId, 1, mAlchemist);
+        Don't create the potion record or add the potion on this client; store it and let
+        the server send it back.
+
+        0.51 removed World::createRecord in favour of ESMStore::insert, and dropped the
+        actor argument from ContainerStore::add. Both are left commented for reference.
     */
+    // record = MWBase::Environment::get().getESMStore()->insert(newRecord);
+    // mAlchemist.getClass().getContainerStore(mAlchemist).add(record->mId, 1);
     mStoredPotion = newRecord;
     /*
         End of tes3mp change (major)
     */
-=======
-        record = MWBase::Environment::get().getESMStore()->insert(newRecord);
-
-    mAlchemist.getClass().getContainerStore(mAlchemist).add(record->mId, 1);
->>>>>>> omw51
 }
 
 void MWMechanics::Alchemy::increaseSkill()

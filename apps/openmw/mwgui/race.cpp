@@ -101,38 +101,18 @@ namespace MWGui
         getWidget(mBackButton, "BackButton");
         mBackButton->eventMouseButtonClick += MyGUI::newDelegate(this, &RaceDialog::onBackClicked);
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
-            Disable back button here so players can't change their names after logging into
-            their server accounts
+            Disable the back button here so players can't change their names after logging
+            into their server accounts
         */
         backButton->setVisible(false);
         /*
             End of tes3mp change (major)
         */
 
-        MyGUI::Button* okButton;
-        getWidget(okButton, "OKButton");
-        okButton->setCaption(MWBase::Environment::get().getWindowManager()->getGameSettingString("sOK", ""));
-        okButton->eventMouseButtonClick += MyGUI::newDelegate(this, &RaceDialog::onOkClicked);
-=======
         getWidget(mOkButton, "OKButton");
-        mOkButton->setCaption(
-            MyGUI::UString(MWBase::Environment::get().getWindowManager()->getGameSettingString("sOK", {})));
-        mOkButton->eventMouseButtonClick += MyGUI::newDelegate(this, &RaceDialog::onOkClicked);
-
-        if (Settings::gui().mControllerMenus)
-        {
-            mControllerButtons.mLStick = "#{Interface:Mouse}";
-            mControllerButtons.mA = "#{Interface:Select}";
-            mControllerButtons.mB = "#{Interface:Back}";
-            mControllerButtons.mY = "#{Interface:Sex}";
-            mControllerButtons.mL1 = "#{Interface:Hair}";
-            mControllerButtons.mR1 = "#{Interface:Face}";
-        }
->>>>>>> omw51
 
         updateRaces();
         updateSkills();

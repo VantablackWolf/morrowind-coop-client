@@ -25,23 +25,18 @@ float scaleDamage(float damage, const MWWorld::Ptr& attacker, const MWWorld::Ptr
     static const float fDifficultyMult
         = MWBase::Environment::get().getESMStore()->get<ESM::GameSetting>().find("fDifficultyMult")->mValue.getFloat();
 
-<<<<<<< HEAD
     /*
         Start of tes3mp change (major)
 
-        Use difficulty setting received from server instead of basing it on client settings
+        Use the difficulty setting received from the server instead of the client's own.
+
+        0.51 reads Settings::game().mDifficulty directly into difficultyTerm, so the
+        server value is substituted here rather than assigned to a local first.
     */
-    difficultySetting = mwmp::Main::get().getLocalPlayer()->difficulty;
+    const float difficultyTerm = 0.01f * mwmp::Main::get().getLocalPlayer()->difficulty;
     /*
         End of tes3mp change (major)
     */
-
-    static const float fDifficultyMult = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find("fDifficultyMult")->mValue.getFloat();
-
-    float difficultyTerm = 0.01f * difficultySetting;
-=======
-    const float difficultyTerm = 0.01f * Settings::game().mDifficulty;
->>>>>>> omw51
 
     float x = 0;
     if (victim == player)
