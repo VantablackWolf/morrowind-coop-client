@@ -12,7 +12,6 @@
 #include <components/misc/rng.hpp>
 #include <components/vfs/pathutil.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -22,12 +21,6 @@
 /*
     End of tes3mp addition
 */
-
-#include <osg/Timer>
-
-#include "../mwworld/ptr.hpp"
-=======
->>>>>>> omw51
 #include "../mwworld/doorstate.hpp"
 #include "../mwworld/globalvariablename.hpp"
 #include "../mwworld/ptr.hpp"
@@ -179,7 +172,6 @@ namespace MWBase
         virtual void getDoorMarkers(MWWorld::CellStore& cell, std::vector<DoorMarker>& out) = 0;
         ///< get a list of teleport door markers for a given cell, to be displayed on the local map
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -189,12 +181,8 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual std::vector<ESM::ESMReader>& getEsmReader() = 0;
-=======
         virtual void setGlobalInt(MWWorld::GlobalVariableName name, int value) = 0;
         ///< Set value independently from real type.
->>>>>>> omw51
 
         virtual void setGlobalFloat(MWWorld::GlobalVariableName name, float value) = 0;
         ///< Set value independently from real type.
@@ -218,27 +206,21 @@ namespace MWBase
         virtual void removeRefScript(const MWWorld::CellRef* ref) = 0;
         //< Remove the script attached to ref from mLocalScripts
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
                 Make it possible to check whether global variables exist and to create
                 new ones
             */
-            virtual bool hasGlobal(const std::string& name) = 0;
+            virtual bool hasGlobal(MWWorld::GlobalVariableName name) = 0;
 
-            virtual void createGlobal(const std::string& name, ESM::VarType varType) = 0;
+            virtual void createGlobal(MWWorld::GlobalVariableName name, ESM::VarType varType) = 0;
             /*
                 End of tes3mp addition
             */
-
-            virtual void setGlobalInt (const std::string& name, int value) = 0;
-            ///< Set value independently from real type.
-=======
         virtual MWWorld::Ptr getPtr(const ESM::RefId& name, bool activeOnly) = 0;
         ///< Return a pointer to a liveCellRef with the given name.
         /// \param activeOnly do non search inactive cells.
->>>>>>> omw51
 
         virtual MWWorld::Ptr searchPtr(const ESM::RefId& name, bool activeOnly, bool searchInContainers = true) = 0;
         ///< Return a pointer to a liveCellRef with the given name.
@@ -267,7 +249,6 @@ namespace MWBase
 
         virtual const std::vector<MWWorld::Weather>& getAllWeather() const = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -277,7 +258,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -287,13 +267,7 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual MWWorld::Ptr findContainer (const MWWorld::ConstPtr& ptr) = 0;
-            ///< Return a pointer to a liveCellRef which contains \a ptr.
-            /// \note Search is limited to the active cells.
-=======
         virtual int getCurrentWeatherScriptId() const = 0;
->>>>>>> omw51
 
         virtual const MWWorld::Weather& getCurrentWeather() const = 0;
 
@@ -311,7 +285,6 @@ namespace MWBase
 
         virtual int getMasserPhase() const = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -323,7 +296,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -334,7 +306,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -345,7 +316,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -356,11 +326,7 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual int getCurrentWeather() const = 0;
-=======
         virtual int getSecundaPhase() const = 0;
->>>>>>> omw51
 
         virtual void setMoonColour(bool red) = 0;
 
@@ -405,7 +371,6 @@ namespace MWBase
             = 0;
         ///< @return an updated Ptr
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -416,7 +381,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -427,12 +391,8 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual float getDistanceToFacedObject() = 0;
-=======
         virtual MWWorld::Ptr moveObjectBy(const MWWorld::Ptr& ptr, const osg::Vec3f& vec, bool moveToActive) = 0;
         ///< @return an updated Ptr
->>>>>>> omw51
 
         virtual void scaleObject(const MWWorld::Ptr& ptr, float scale, bool force = false) = 0;
 
@@ -619,7 +579,6 @@ namespace MWBase
          */
         virtual MWWorld::SpellCastState startSpellCast(const MWWorld::Ptr& actor) = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -629,7 +588,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -640,7 +598,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -650,11 +607,7 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual void updateAnimatedCollisionShape(const MWWorld::Ptr &ptr) = 0;
-=======
         virtual void castSpell(const MWWorld::Ptr& actor, bool scriptedSpell = false) = 0;
->>>>>>> omw51
 
         virtual void launchMagicBolt(const ESM::RefId& spellId, const MWWorld::Ptr& caster,
             const osg::Vec3f& fallbackDirection, ESM::RefNum item)
@@ -704,17 +657,7 @@ namespace MWBase
         /// Moves all stolen items from \a ptr to the closest evidence chest.
         virtual void confiscateStolenItems(const MWWorld::Ptr& ptr) = 0;
 
-<<<<<<< HEAD
-            virtual const ESM::Creature *createRecord (const ESM::Creature &record) = 0;
-            ///< Create a new record (of type creature) in the ESM store.
-            /// \return pointer to created record
-
-            virtual const ESM::Armor *createRecord (const ESM::Armor& record) = 0;
-            ///< Create a new record (of type armor) in the ESM store.
-            /// \return pointer to created record
-=======
         virtual void goToJail() = 0;
->>>>>>> omw51
 
         /// Spawn a random creature from a levelled list next to the player
         virtual void spawnRandomCreature(const ESM::RefId& creatureList) = 0;
@@ -737,7 +680,6 @@ namespace MWBase
 
         virtual bool isWalkingOnWater(const MWWorld::ConstPtr& actor) const = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -747,7 +689,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -757,7 +698,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -767,7 +707,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -777,7 +716,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -787,56 +725,11 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual void getActorsStandingOn (const MWWorld::ConstPtr& object, std::vector<MWWorld::Ptr> &actors) = 0; ///< get a list of actors standing on \a object
-            virtual bool getPlayerStandingOn (const MWWorld::ConstPtr& object) = 0; ///< @return true if the player is standing on \a object
-            virtual bool getActorStandingOn (const MWWorld::ConstPtr& object) = 0; ///< @return true if any actor is standing on \a object
-            virtual bool getPlayerCollidingWith(const MWWorld::ConstPtr& object) = 0; ///< @return true if the player is colliding with \a object
-            virtual bool getActorCollidingWith (const MWWorld::ConstPtr& object) = 0; ///< @return true if any actor is colliding with \a object
-            virtual void hurtStandingActors (const MWWorld::ConstPtr& object, float dmgPerSecond) = 0;
-            ///< Apply a health difference to any actors standing on \a object.
-            /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
-            virtual void hurtCollidingActors (const MWWorld::ConstPtr& object, float dmgPerSecond) = 0;
-            ///< Apply a health difference to any actors colliding with \a object.
-            /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
-
-            virtual float getWindSpeed() = 0;
-
-            virtual void getContainersOwnedBy (const MWWorld::ConstPtr& npc, std::vector<MWWorld::Ptr>& out) = 0;
-            ///< get all containers in active cells owned by this Npc
-            virtual void getItemsOwnedBy (const MWWorld::ConstPtr& npc, std::vector<MWWorld::Ptr>& out) = 0;
-            ///< get all items in active cells owned by this Npc
-
-            virtual bool getLOS(const MWWorld::ConstPtr& actor,const MWWorld::ConstPtr& targetActor) = 0;
-            ///< get Line of Sight (morrowind stupid implementation)
-
-            virtual float getDistToNearestRayHit(const osg::Vec3f& from, const osg::Vec3f& dir, float maxDist, bool includeWater = false) = 0;
-
-            virtual void enableActorCollision(const MWWorld::Ptr& actor, bool enable) = 0;
-
-            enum RestPermitted
-            {
-                Rest_Allowed = 0,
-                Rest_OnlyWaiting = 1,
-                Rest_PlayerIsInAir = 2,
-                Rest_PlayerIsUnderwater = 3,
-                Rest_EnemiesAreNearby = 4
-            };
-
-            /// check if the player is allowed to rest
-            virtual RestPermitted canRest() const = 0;
-
-            /// \todo Probably shouldn't be here
-            virtual MWRender::Animation* getAnimation(const MWWorld::Ptr &ptr) = 0;
-            virtual const MWRender::Animation* getAnimation(const MWWorld::ConstPtr &ptr) const = 0;
-            virtual void reattachPlayerCamera() = 0;
-=======
         /// Return a vector aiming the actor's weapon towards a target.
         /// @note The length of the vector is the distance between actor and target.
         virtual osg::Vec3f aimToTarget(
             const MWWorld::ConstPtr& actor, const MWWorld::ConstPtr& target, bool isRangedCombat)
             = 0;
->>>>>>> omw51
 
         virtual void addContainerScripts(const MWWorld::Ptr& reference, MWWorld::CellStore* cell) = 0;
         virtual void removeContainerScripts(const MWWorld::Ptr& reference) = 0;

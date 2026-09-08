@@ -158,7 +158,6 @@ namespace MWWorld
 
         bool rotateDoor(const Ptr door, DoorState state, float duration);
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp change (major)
 
@@ -170,16 +169,11 @@ namespace MWWorld
             /*
                 End of tes3mp change (major)
             */
-
-    private:
-            bool rotateDoor(const Ptr door, DoorState state, float duration);
-=======
         void processDoors(float duration);
         ///< Run physics simulation and modify \a world accordingly.
 
         void doPhysics(float duration, osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
         ///< Run physics simulation and modify \a world accordingly.
->>>>>>> omw51
 
         void updateNavigator();
 
@@ -260,7 +254,6 @@ namespace MWWorld
 
         const std::vector<int>& getESMVersions() const override;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -270,11 +263,7 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            std::vector<ESM::ESMReader>& getEsmReader() override;
-=======
         LocalScripts& getLocalScripts() override;
->>>>>>> omw51
 
         bool isCellExterior() const override;
 
@@ -291,26 +280,20 @@ namespace MWWorld
         void setGlobalFloat(GlobalVariableName name, float value) override;
         ///< Set value independently from real type.
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
                 Make it possible to check whether global variables exist and to create
                 new ones
             */
-            bool hasGlobal(const std::string& name);
+            bool hasGlobal(MWWorld::GlobalVariableName name) override;
 
-            void createGlobal(const std::string& name, ESM::VarType varType);
+            void createGlobal(MWWorld::GlobalVariableName name, ESM::VarType varType) override;
             /*
                 End of tes3mp addition
             */
-
-            void setGlobalInt (const std::string& name, int value) override;
-            ///< Set value independently from real type.
-=======
         int getGlobalInt(GlobalVariableName name) const override;
         ///< Get value independently from real type.
->>>>>>> omw51
 
         float getGlobalFloat(GlobalVariableName name) const override;
         ///< Get value independently from real type.
@@ -349,7 +332,6 @@ namespace MWWorld
 
         void enable(const Ptr& ptr) override;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -359,7 +341,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -369,13 +350,7 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            MWWorld::Ptr findContainer (const MWWorld::ConstPtr& ptr) override;
-            ///< Return a pointer to a liveCellRef which contains \a ptr.
-            /// \note Search is limited to the active cells.
-=======
         void disable(const Ptr& ptr) override;
->>>>>>> omw51
 
         void advanceTime(double hours, bool incremental = false) override;
         ///< Advance in-game time.
@@ -405,7 +380,6 @@ namespace MWWorld
 
         int getMasserPhase() const override;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -417,7 +391,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -428,7 +401,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -439,7 +411,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -450,11 +421,7 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            int getCurrentWeather() const override;
-=======
         int getSecundaPhase() const override;
->>>>>>> omw51
 
         void setMoonColour(bool red) override;
 
@@ -556,7 +523,6 @@ namespace MWWorld
         /// @param object
         /// @param number of objects to place
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -566,7 +532,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -577,7 +542,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -587,12 +551,8 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            void updateAnimatedCollisionShape(const Ptr &ptr) override;
-=======
         bool canPlaceObject(float cursorX, float cursorY) override;
         ///< @return true if it is possible to place on object at specified cursor location
->>>>>>> omw51
 
         void processChangedSettings(const Settings::CategorySettingVector& settings) override;
 
@@ -635,15 +595,6 @@ namespace MWWorld
         /// @note throws an exception when invoked on a teleport door
         void activateDoor(const MWWorld::Ptr& door, MWWorld::DoorState state) override;
 
-<<<<<<< HEAD
-            const ESM::Creature *createRecord(const ESM::Creature &record) override;
-            ///< Create a new record (of type creature) in the ESM store.
-            /// \return pointer to created record
-
-            const ESM::Armor *createRecord (const ESM::Armor& record) override;
-            ///< Create a new record (of type armor) in the ESM store.
-            /// \return pointer to created record
-=======
         void getActorsStandingOn(const MWWorld::ConstPtr& object,
             std::vector<MWWorld::Ptr>& actors) override; ///< get a list of actors standing on \a object
         bool getPlayerStandingOn(
@@ -660,7 +611,6 @@ namespace MWWorld
         void hurtCollidingActors(const MWWorld::ConstPtr& object, float dmgPerSecond) override;
         ///< Apply a health difference to any actors colliding with \a object.
         /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
->>>>>>> omw51
 
         float getWindSpeed() const override;
 
@@ -753,7 +703,6 @@ namespace MWWorld
 
         bool findInteriorPositionInWorldSpace(const MWWorld::CellStore* cell, osg::Vec3f& result) override;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -763,7 +712,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -773,7 +721,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -783,7 +730,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -793,7 +739,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -803,23 +748,9 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            void getActorsStandingOn (const MWWorld::ConstPtr& object, std::vector<MWWorld::Ptr> &actors) override; ///< get a list of actors standing on \a object
-            bool getPlayerStandingOn (const MWWorld::ConstPtr& object) override; ///< @return true if the player is standing on \a object
-            bool getActorStandingOn (const MWWorld::ConstPtr& object) override; ///< @return true if any actor is standing on \a object
-            bool getPlayerCollidingWith(const MWWorld::ConstPtr& object) override; ///< @return true if the player is colliding with \a object
-            bool getActorCollidingWith (const MWWorld::ConstPtr& object) override; ///< @return true if any actor is colliding with \a object
-            void hurtStandingActors (const MWWorld::ConstPtr& object, float dmgPerSecond) override;
-            ///< Apply a health difference to any actors standing on \a object.
-            /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
-            void hurtCollidingActors (const MWWorld::ConstPtr& object, float dmgPerSecond) override;
-            ///< Apply a health difference to any actors colliding with \a object.
-            /// To hurt actors, healthPerSecond should be a positive value. For a negative value, actors will be healed.
-=======
         /// Teleports \a ptr to the closest reference of \a id (e.g. DivineMarker, PrisonMarker, TempleMarker)
         /// @note id must be lower case
         void teleportToClosestMarker(const MWWorld::Ptr& ptr, const ESM::RefId& id) override;
->>>>>>> omw51
 
         /// List all references (filtered by \a type) detected by \a ptr. The range
         /// is determined by the current magnitude of the "Detect X" magic effect belonging to \a type.

@@ -166,7 +166,6 @@ namespace MWBase
         /// Make the player use an item, while updating GUI state accordingly
         virtual void useItem(const MWWorld::Ptr& item, bool force = false) = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -177,7 +176,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -187,12 +185,7 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            /// Make the player use an item, while updating GUI state accordingly
-            virtual void useItem(const MWWorld::Ptr& item, bool force=false) = 0;
-=======
         virtual void updateSpellWindow() = 0;
->>>>>>> omw51
 
         virtual void setConsoleSelectedObject(const MWWorld::Ptr& object) = 0;
         virtual MWWorld::Ptr getConsoleSelectedObject() const = 0;
@@ -205,7 +198,6 @@ namespace MWBase
         static constexpr std::string_view sConsoleColor_Info = "#AAAAAA";
         virtual void printToConsole(const std::string& msg, std::string_view color) = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -217,7 +209,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -228,22 +219,14 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            /// Set time left for the player to start drowning (update the drowning bar)
-            /// @param time time left to start drowning
-            /// @param maxTime how long we can be underwater (in total) until drowning starts
-            virtual void setDrowningTimeLeft (float time, float maxTime) = 0;
-=======
         /// Set time left for the player to start drowning (update the drowning bar)
         /// @param time time left to start drowning
         /// @param maxTime how long we can be underwater (in total) until drowning starts
         virtual void setDrowningTimeLeft(float time, float maxTime) = 0;
->>>>>>> omw51
 
         virtual void changeCell(const MWWorld::CellStore* cell) = 0;
         ///< change the active cell
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -254,16 +237,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual void setFocusObject(const MWWorld::Ptr& focus) = 0;
-            virtual void setFocusObjectScreenCoords(float min_x, float min_y, float max_x, float max_y) = 0;
-
-            virtual void setCursorVisible(bool visible) = 0;
-            virtual void setCursorActive(bool active) = 0;
-            virtual void getMousePosition(int &x, int &y) = 0;
-            virtual void getMousePosition(float &x, float &y) = 0;
-            virtual void setDragDrop(bool dragDrop) = 0;
-
             /*
                 Start of tes3mp addition
 
@@ -273,9 +246,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual bool getWorldMouseOver() = 0;
-=======
         virtual void setFocusObject(const MWWorld::Ptr& focus) = 0;
         virtual void setFocusObjectScreenCoords(float x, float y) = 0;
 
@@ -285,7 +255,6 @@ namespace MWBase
         virtual void getMousePosition(float& x, float& y) = 0;
         virtual void setDragDrop(bool dragDrop) = 0;
         virtual bool getWorldMouseOver() = 0;
->>>>>>> omw51
 
         virtual float getScalingFactor() const = 0;
 
@@ -322,7 +291,6 @@ namespace MWBase
         virtual void unsetSelectedSpell() = 0;
         virtual void unsetSelectedWeapon() = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -332,21 +300,9 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual std::string getSelectedSpell() = 0;
-            virtual void setSelectedSpell(const std::string& spellId, int successChancePercent) = 0;
-            virtual void setSelectedEnchantItem(const MWWorld::Ptr& item) = 0;
-            virtual const MWWorld::Ptr& getSelectedEnchantItem() const = 0;
-            virtual void setSelectedWeapon(const MWWorld::Ptr& item) = 0;
-            virtual const MWWorld::Ptr& getSelectedWeapon() const = 0;
-            virtual int getFontHeight() const = 0;
-            virtual void unsetSelectedSpell() = 0;
-            virtual void unsetSelectedWeapon() = 0;
-=======
         virtual void showCrosshair(bool show) = 0;
         virtual bool setHudVisibility(bool show) = 0;
         virtual bool isHudVisible() const = 0;
->>>>>>> omw51
 
         virtual void disallowMouse() = 0;
         virtual void allowMouse() = 0;
@@ -374,10 +330,6 @@ namespace MWBase
             bool block = false, int defaultFocus = -1)
             = 0;
 
-<<<<<<< HEAD
-            virtual void messageBox (const std::string& message, enum MWGui::ShowInDialogueMode showInDialogueMode = MWGui::ShowInDialogueMode_IfPossible) = 0;
-            virtual void staticMessageBox(const std::string& message) = 0;
-            virtual void removeStaticMessageBox() = 0;
             /*
                 Start of tes3mp change (major)
 
@@ -389,11 +341,9 @@ namespace MWBase
             /*
                 End of tes3mp change (major)
             */
-=======
         /// returns the index of the pressed button or -1 if no button was pressed
         /// (->MessageBoxmanager->InteractiveMessageBox)
         virtual int readPressedButton() = 0;
->>>>>>> omw51
 
         virtual void updateConsoleObjectPtr(const MWWorld::Ptr& currentPtr, const MWWorld::Ptr& newPtr) = 0;
 
@@ -417,7 +367,6 @@ namespace MWBase
         virtual bool getPlayerSleeping() = 0;
         virtual void wakeUpPlayer() = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -427,13 +376,7 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual void enableRest() = 0;
-            virtual bool getRestEnabled() = 0;
-            virtual bool getJournalAllowed() = 0; 
-=======
         virtual void showSoulgemDialog(MWWorld::Ptr item) = 0;
->>>>>>> omw51
 
         virtual void changePointer(const std::string& name) = 0;
 
