@@ -605,6 +605,23 @@ namespace MWMechanics
         synchronisation maps onto ActiveSpellParams, remote spell effects will not be
         applied with their original timing, and summon spells relayed through ObjectList
         will not attach to their caster.
+
+        FOUR hooks from 0.8.1 are dropped here, all of them dependent on that same model.
+        Listed explicitly so none of them is lost silently:
+
+          1. The addSpell overload taking a timestamp and a sendPacket flag.
+          2. params.mTimeStamp assignment -- ActiveSpellParams has no such field in 0.51,
+             and without stacking there is no longer a "which of the stacked copies" to
+             disambiguate.
+          3. The ID_PLAYER_SPELLS_ACTIVE packet sent when a player or local actor gains an
+             active spell through gameplay. It also used searchPtrViaActorId(), which 0.51
+             removed along with integer actor ids.
+          4. The convenience addSpell() without the timestamp argument, which forwarded to
+             the seven-argument version.
+
+        Reinstating spell synchronisation means deciding where in 0.51's queue-based
+        ActiveSpells the packet belongs, and how a remote spell's timing is represented now
+        that ActiveSpellParams carries no timestamp.
     */
     void ActiveSpells::addSpell(const ActiveSpellParams& params)
     {
