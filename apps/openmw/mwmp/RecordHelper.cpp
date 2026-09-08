@@ -169,7 +169,7 @@ void RecordHelper::overrideRecord(const mwmp::ArmorRecord& record)
     {
         if (!recordData.mEnchant.empty() && !doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
         {
-            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new armor record with invalid enchantmentId %s", recordData.mEnchant.c_str());
+            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new armor record with invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
             return;
         }
         else
@@ -212,7 +212,7 @@ void RecordHelper::overrideRecord(const mwmp::ArmorRecord& record)
             if (recordData.mEnchant.empty() || doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
                 finalData.mEnchant = recordData.mEnchant;
             else
-                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.c_str());
+                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
         }
 
         if (record.baseOverrides.hasEnchantmentCharge)
@@ -304,7 +304,7 @@ void RecordHelper::overrideRecord(const mwmp::BookRecord& record)
     {
         if (!recordData.mEnchant.empty() && !doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
         {
-            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new book record with invalid enchantmentId %s", recordData.mEnchant.c_str());
+            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new book record with invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
             return;
         }
         else
@@ -345,7 +345,7 @@ void RecordHelper::overrideRecord(const mwmp::BookRecord& record)
             if (recordData.mEnchant.empty() || doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
                 finalData.mEnchant = recordData.mEnchant;
             else
-                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.c_str());
+                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
         }
 
         if (record.baseOverrides.hasEnchantmentCharge)
@@ -370,7 +370,8 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
 {
     MWBase::World *world = MWBase::Environment::get().getWorld();
 
-    ESM::Cell recordData = record.data;
+    ESM::Cell recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mName.empty())
     {
@@ -379,7 +380,7 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
     }
 
     MWWorld::Ptr playerPtr = world->getPlayerPtr();
-    ESM::Cell playerCell = *playerPtr.getCell()->getCell();
+    const MWWorld::Cell playerCell = *playerPtr.getCell()->getCell();
     ESM::Position playerPos = playerPtr.getRefData().getPosition();
 
     bool isActiveCell = mwmp::Main::get().getCellController()->isActiveWorldCell(recordData);
@@ -395,7 +396,13 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
     if (record.baseId.empty())
     {
         recordData.mData.mFlags |= ESM::Cell::Flags::Interior;
-        recordData.mCellId.mWorldspace = Misc::StringUtils::lowerCase(recordData.mName);
+
+        /*
+            0.51 replaced ESM::Cell::mCellId with a single RefId mId, derived from the
+            interior flag, the name and the grid position. updateId() recomputes it, so
+            the flag must be set first -- which it is, just above.
+        */
+        recordData.updateId();
 
         world->unloadCell(recordData);
         world->clearCellStore(recordData);
@@ -406,7 +413,7 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
         const ESM::Cell *baseData = world->getStore().get<ESM::Cell>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Cell finalData = *baseData;
         finalData.mName = recordData.mName;
-        finalData.mCellId.mWorldspace = Misc::StringUtils::lowerCase(recordData.mName);
+        finalData.updateId();
 
         world->unloadCell(finalData);
         world->clearCellStore(finalData);
@@ -420,7 +427,7 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
         if (basePathgrid)
         {
             ESM::Pathgrid finalPathgrid = *basePathgrid;
-            finalPathgrid.mCell = recordData.mName;
+            finalPathgrid.mCell = mwmp::RefIdCompat::fromWireCreate(recordData.mName);
             world->getModifiableStore().overrideRecord(finalPathgrid);
         }
     }
@@ -433,10 +440,12 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
     // Move the player back to the cell they were in
     if (isActiveCell)
     {
+        // 0.51 removed changeToExteriorCell(); changeToCell() takes a resolved cell id.
         if (playerCell.isExterior())
-            world->changeToExteriorCell(playerPos, true, true);
+            world->changeToCell(
+                ESM::RefId::esm3ExteriorCell(playerCell.getGridX(), playerCell.getGridY()), playerPos, true, true);
         else
-            world->changeToInteriorCell(playerCell.mName, playerPos, true, true);
+            world->changeToInteriorCell(std::string(playerCell.getNameId()), playerPos, true, true);
     }
 }
 
@@ -458,7 +467,7 @@ void RecordHelper::overrideRecord(const mwmp::ClothingRecord& record)
     {
         if (!recordData.mEnchant.empty() && !doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
         {
-            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new clothing record with invalid enchantmentId %s", recordData.mEnchant.c_str());
+            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new clothing record with invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
             return;
         }
         else
@@ -493,7 +502,7 @@ void RecordHelper::overrideRecord(const mwmp::ClothingRecord& record)
             if (recordData.mEnchant.empty() || doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
                 finalData.mEnchant = recordData.mEnchant;
             else
-                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.c_str());
+                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
         }
 
         if (record.baseOverrides.hasEnchantmentCharge)
@@ -662,7 +671,7 @@ void RecordHelper::overrideRecord(const mwmp::CreatureRecord& record)
             finalData.mScript = recordData.mScript;
 
         if (!record.inventoryBaseId.empty() && doesRecordIdExist<ESM::Creature>(record.inventoryBaseId))
-            finalData.mInventory.mList = world->getStore().get<ESM::Creature>().search(record.inventoryBaseId)->mInventory.mList;
+            finalData.mInventory.mList = world->getStore().get<ESM::Creature>().search(mwmp::RefIdCompat::fromWireCreate(record.inventoryBaseId))->mInventory.mList;
         else if (record.baseOverrides.hasInventory)
             finalData.mInventory.mList = recordData.mInventory.mList;
 
@@ -784,7 +793,8 @@ void RecordHelper::overrideRecord(const mwmp::EnchantmentRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::GameSettingRecord& record)
 {
-    const ESM::GameSetting& recordData = record.data;
+    ESM::GameSetting recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1048,7 +1058,9 @@ void RecordHelper::overrideRecord(const mwmp::MiscellaneousRecord& record)
             finalData.mData.mValue = recordData.mData.mValue;
 
         if (record.baseOverrides.hasKeyState)
-            finalData.mData.mIsKey = recordData.mData.mIsKey;
+            // 0.51 folded mIsKey into the MCDTstruct flags bitfield.
+            finalData.mData.mFlags = (finalData.mData.mFlags & ~ESM::Miscellaneous::Key)
+                | (recordData.mData.mFlags & ESM::Miscellaneous::Key);
 
         if (record.baseOverrides.hasScript)
             finalData.mScript = recordData.mScript;
@@ -1172,7 +1184,7 @@ void RecordHelper::overrideRecord(const mwmp::NpcRecord& record)
         }
 
         if (!record.inventoryBaseId.empty() && doesRecordIdExist<ESM::NPC>(record.inventoryBaseId))
-            finalData.mInventory.mList = world->getStore().get<ESM::NPC>().search(record.inventoryBaseId)->mInventory.mList;
+            finalData.mInventory.mList = world->getStore().get<ESM::NPC>().search(mwmp::RefIdCompat::fromWireCreate(record.inventoryBaseId))->mInventory.mList;
         else if (record.baseOverrides.hasInventory)
             finalData.mInventory.mList = recordData.mInventory.mList;
 
@@ -1228,7 +1240,9 @@ void RecordHelper::overrideRecord(const mwmp::PotionRecord& record)
             finalData.mData.mValue = recordData.mData.mValue;
 
         if (record.baseOverrides.hasAutoCalc)
-            finalData.mData.mAutoCalc = recordData.mData.mAutoCalc;
+            // 0.51 folded mAutoCalc into the ALDTstruct flags bitfield.
+            finalData.mData.mFlags = (finalData.mData.mFlags & ~ESM::Potion::Autocalc)
+                | (recordData.mData.mFlags & ESM::Potion::Autocalc);
 
         if (record.baseOverrides.hasScript)
             finalData.mScript = recordData.mScript;
@@ -1405,7 +1419,8 @@ void RecordHelper::overrideRecord(const mwmp::ScriptRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::SoundRecord& record)
 {
-    const ESM::Sound& recordData = record.data;
+    ESM::Sound recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1555,7 +1570,7 @@ void RecordHelper::overrideRecord(const mwmp::WeaponRecord& record)
     {
         if (!recordData.mEnchant.empty() && !doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
         {
-            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new weapon record with invalid enchantmentId %s", recordData.mEnchant.c_str());
+            LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring new weapon record with invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
             return;
         }
         else
@@ -1620,7 +1635,7 @@ void RecordHelper::overrideRecord(const mwmp::WeaponRecord& record)
             if (recordData.mEnchant.empty() || doesRecordIdExist<ESM::Enchantment>(recordData.mEnchant))
                 finalData.mEnchant = recordData.mEnchant;
             else
-                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.c_str());
+                LOG_APPEND(TimedLog::LOG_INFO, "-- Ignoring invalid enchantmentId %s", recordData.mEnchant.getRefIdString().c_str());
         }
 
         if (record.baseOverrides.hasEnchantmentCharge)
