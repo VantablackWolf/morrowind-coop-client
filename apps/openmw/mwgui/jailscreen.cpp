@@ -144,27 +144,26 @@ namespace MWGui
         /*
             Start of tes3mp change (major)
 
-            UNRESOLVED -- NEEDS A DECISION, NOT AN ADAPTATION.
+            Apply the server's jail overrides from the PlayerJail packet.
 
-            0.8.1 had three hooks in the body of this function, around code that no longer
-            exists here:
+            0.8.1 had three hooks in the body of this function: two suppressing the
+            Security and Sneak increases when ignoreJailSkillIncreases is set, and one
+            replacing the jail end message with jailEndText. 0.51 moved all of that into
+            Lua -- the skill increases, the message, and the released-from-prison
+            bookkeeping are what jailTimeServed() does now -- so there is no C++ code left
+            here to hook.
 
-              - suppressing the Security and Sneak increases when ignoreJailSkillIncreases
-                is set (two hooks, one for each branch of the increase)
-              - replacing the jail end message with jailEndText from a PlayerJail packet
+            Rather than reimplement any of it in C++ alongside Lua's version, the two
+            overrides travel with the event and the Lua handler honours them. That keeps
+            one implementation of jail behaviour, which is the point of upstream having
+            moved it, and means a server override applies no matter what else ends up
+            listening for _onJailTimeServed.
 
-            0.51 moved all of it into Lua: the skill increases, the message, and the
-            "released from jail" bookkeeping are now what jailTimeServed() below does. There
-            is no C++ code left here to hook.
-
-            Reinstating this means deciding where the server's overrides belong -- most
-            likely as Lua-side settings that jailTimeServed consults, which is a design
-            question for a maintainer rather than a merge. Until then a PlayerJail packet's
-            ignoreJailSkillIncreases and jailEndText fields are accepted and ignored.
-
-            The teleportation override above is unaffected; that code is still here.
+            jailProgressText is not passed here because it is consumed earlier, when the
+            jail progress bar is built (see setText above).
         */
-        MWBase::Environment::get().getLuaManager()->jailTimeServed(player, mDays);
+        MWBase::Environment::get().getLuaManager()->jailTimeServed(
+            player, mDays, localPlayer->ignoreJailSkillIncreases, localPlayer->jailEndText);
         /*
             End of tes3mp change (major)
         */

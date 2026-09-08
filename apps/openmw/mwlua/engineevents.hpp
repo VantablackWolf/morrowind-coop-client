@@ -83,6 +83,17 @@ namespace MWLua
         {
             ESM::RefNum mActor;
             int mDays;
+            /*
+                Start of tes3mp addition
+
+                Carry the server's jail overrides to the Lua handler that now decides
+                what serving a sentence does. See apps/openmw/mwgui/jailscreen.cpp.
+            */
+            bool mIgnoreSkillIncreases = false;
+            std::string mEndText;
+            /*
+                End of tes3mp addition
+            */
         };
         using Event = std::variant<OnActive, OnInactive, OnConsume, OnActivate, OnUseItem, OnNewExterior, OnTeleported,
             OnAnimationTextKey, OnAnimationEnded, OnSkillUse, OnSkillLevelUp, OnJailTimeServed>;

@@ -116,7 +116,17 @@ local function skillLevelUpHandler(skillid, source, params)
     end
 end
 
-local function jailTimeServed(days)
+-- Start of tes3mp change (major)
+--
+-- ignoreSkillIncreases and endText are the server's jail overrides, carried here from
+-- the PlayerJail packet. 0.8.1 applied them in C++ in jailscreen.cpp; 0.51 moved every
+-- part of serving a sentence into this function, so they are honoured here instead of
+-- being reimplemented alongside it.
+--
+-- Both are optional. Called without them -- by anything other than tes3mp's jail
+-- screen -- this behaves exactly as upstream does.
+local function jailTimeServed(days, ignoreSkillIncreases, endText)
+-- End of tes3mp change (major)
     if not days or days <= 0 then
         return
     end
@@ -128,12 +138,21 @@ local function jailTimeServed(days)
         skillByNumber[#skillByNumber+1] = skillid
     end
 
+    -- Start of tes3mp change (major)
+    --
+    -- A server can suppress the skill changes entirely. The roll is skipped rather than
+    -- rolled and discarded, so the shared random sequence is not advanced either.
+    if not ignoreSkillIncreases then
+    -- End of tes3mp change (major)
     math.randomseed(core.getSimulationTime())
     for day=1,days do
         local skillid = skillByNumber[math.random(#skillByNumber)]
         -- skillLevelUp() handles skill-based increase/decrease
         I.SkillProgression.skillLevelUp(skillid, I.SkillProgression.SKILL_INCREASE_SOURCES.Jail)
     end
+    -- Start of tes3mp change (major)
+    end
+    -- End of tes3mp change (major)
 
     local message = mechanicsL10n('ReleasedFromPrison', { days = days })
     for skillid, skillStat in pairs(NPC.stats.skills) do
@@ -147,6 +166,16 @@ local function jailTimeServed(days)
             message = message..'\n'..mechanicsL10n(skillMsg, { skill = skillRecord.name, level = skillStat(self).base })
         end
     end
+
+    -- Start of tes3mp change (major)
+    --
+    -- A server can replace the whole release message. When it does, the per-skill lines
+    -- built above are dropped with it: the server is stating what happened, and on a
+    -- server that also set ignoreSkillIncreases there is nothing to report anyway.
+    if endText ~= nil and endText ~= '' then
+        message = endText
+    end
+    -- End of tes3mp change (major)
 
     I.UI.showInteractiveMessage(message)
 end
