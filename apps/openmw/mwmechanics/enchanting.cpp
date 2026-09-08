@@ -116,40 +116,36 @@ namespace MWMechanics
             enchantmentPtr = MWBase::Environment::get().getESMStore()->insert(enchantment);
 
         // Apply the enchantment
-<<<<<<< HEAD
 
         /*
             Start of tes3mp change (major)
 
-            Send the enchantment's record to the server
+            Send the enchantment's record to the server.
 
             Don't add the new item to the player's inventory and instead expect the server to
-            add it
+            add it.
 
-            Store the quantity used for the enchantment so it can be retrieved in applyEnchantment()
-            when applicable
-            
-            The applyEnchantment() method is where the record of the newly enchanted item will be sent
-            to the server, causing the server to send back the player's inventory with the new item
-            included
+            The applyEnchantment() call still runs so the enchanted item id exists locally, but
+            only the removal of the old item is applied here; the addition comes back from the
+            server with the player's inventory.
+
+            0.51 dropped the actor argument from ContainerStore::remove and returns the new id
+            as an ESM::RefId.
         */
         mwmp::Main::get().getNetworking()->getWorldstate()->sendEnchantmentRecord(enchantmentPtr);
 
-        store.remove(mOldItemPtr, count, player);
-
-        if(!mSelfEnchanting)
-            payForEnchantment();
-=======
         const ESM::RefId& newItemId
             = mOldItemPtr.getClass().applyEnchantment(mOldItemPtr, enchantmentPtr->mId, getGemCharge(), mNewItemName);
+        (void)newItemId;
 
         if (!mSelfEnchanting)
             payForEnchantment(count);
 
-        // Add the new item to player inventory and remove the old one
         store.remove(mOldItemPtr, count);
-        store.add(newItemId, count);
->>>>>>> omw51
+        // store.add(newItemId, count);
+        /*
+            End of tes3mp change (major)
+        */
 
         mwmp::Main::get().getLocalPlayer()->storeLastEnchantmentQuantity(count);
 

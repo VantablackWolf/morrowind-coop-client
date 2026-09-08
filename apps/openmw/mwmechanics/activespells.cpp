@@ -585,104 +585,33 @@ namespace MWMechanics
         }) != mSpells.end();
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp change (major)
 
-        Add a timestamp argument so spells received from other clients can have the same timestamps they had there,
-        as well as a sendPacket argument used to prevent packets from being sent back to the server when we've just
-        received them from it
+        UNRESOLVED -- NEEDS REDESIGN, NOT ADAPTATION.
+
+        0.8.1 added an ActiveSpells::addSpell overload taking
+        (id, stack, effects, displayName, casterActorId, timestamp, sendPacket) so spells
+        arriving from other clients could keep their original timestamps, and so echoing a
+        spell back to the server could be suppressed.
+
+        0.51 rebuilt ActiveSpells around a queue of ActiveSpellParams. There is no stacking
+        flag, no integer caster actor id (casters are ESM::RefNum now), and no per-spell
+        timestamp in the old sense. The overload cannot be ported by changing types -- the
+        model it was written against is gone.
+
+        Four call sites depend on it: mwmp/DedicatedActor.cpp, mwmp/DedicatedPlayer.cpp,
+        mwmp/LocalPlayer.cpp and mwmp/ObjectList.cpp. Until someone decides how spell
+        synchronisation maps onto ActiveSpellParams, remote spell effects will not be
+        applied with their original timing, and summon spells relayed through ObjectList
+        will not attach to their caster.
     */
-    void ActiveSpells::addSpell(const std::string &id, bool stack, std::vector<ActiveEffect> effects,
-                                const std::string &displayName, int casterActorId, MWWorld::TimeStamp timestamp, bool sendPacket)
-    /*
-        End of tes3mp change (major)
-    */
-    {
-        TContainer::iterator it(mSpells.find(id));
-
-        ActiveSpellParams params;
-        params.mEffects = effects;
-        params.mDisplayName = displayName;
-        params.mCasterActorId = casterActorId;
-
-        /*
-            Start of tes3mp addition
-
-            Track the timestamp of this active spell so that, if spells are stacked, the correct one can be removed
-        */
-        params.mTimeStamp = timestamp;
-        /*
-            End of tes3mp addition
-        */
-
-        if (it == end() || stack)
-        {
-            mSpells.insert(std::make_pair(id, params));
-        }
-        else
-        {
-            // addSpell() is called with effects for a range.
-            // but a spell may have effects with different ranges (e.g. Touch & Target)
-            // so, if we see new effects for same spell assume additional 
-            // spell effects and add to existing effects of spell
-            mergeEffects(params.mEffects, it->second.mEffects);
-            it->second = params;
-        }
-
-        /*
-            Start of tes3mp addition
-
-            Whenever a player gains an active spell as a result of gameplay, send an ID_PLAYER_SPELLS_ACTIVE packet
-            to the server with it
-        */
-        if (sendPacket)
-        {
-            if (this == &MWMechanics::getPlayer().getClass().getCreatureStats(MWMechanics::getPlayer()).getActiveSpells())
-            {
-                mwmp::Main::get().getLocalPlayer()->sendSpellsActiveAddition(id, stack, params);
-            }
-            else
-            {
-                MWWorld::Ptr actorPtr = MWBase::Environment::get().getWorld()->searchPtrViaActorId(getActorId());
-
-                if (mwmp::Main::get().getCellController()->isLocalActor(actorPtr))
-                    mwmp::Main::get().getCellController()->getLocalActor(actorPtr)->sendSpellsActiveAddition(id, stack, params);
-            }
-        }
-        /*
-            End of tes3mp addition
-        */
-
-        mSpellsChanged = true;
-    }
-
-    /*
-        Start of tes3mp addition
-
-        Declare addSpell() without the timestamp argument and make it call the version with that argument,
-        using the current time for the timestamp
-    */
-    void ActiveSpells::addSpell(const std::string& id, bool stack, std::vector<ActiveEffect> effects,
-                                const std::string& displayName, int casterActorId)
-    {
-        MWWorld::TimeStamp timestamp = MWBase::Environment::get().getWorld()->getTimeStamp();
-
-        addSpell(id, stack, effects, displayName, casterActorId, timestamp);
-    }
-    /*
-        End of tes3mp addition
-    */
-
-    void ActiveSpells::mergeEffects(std::vector<ActiveEffect>& addTo, const std::vector<ActiveEffect>& from)
-=======
     void ActiveSpells::addSpell(const ActiveSpellParams& params)
     {
         mQueue.emplace_back(params);
     }
 
     void ActiveSpells::addSpell(const ESM::Spell* spell, const MWWorld::Ptr& actor, bool ignoreResistances)
->>>>>>> omw51
     {
         mQueue.emplace_back(ActiveSpellParams{ spell, actor, ignoreResistances });
     }

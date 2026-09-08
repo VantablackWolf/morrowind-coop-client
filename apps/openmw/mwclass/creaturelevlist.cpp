@@ -130,19 +130,14 @@ namespace MWClass
             */
             /*
             manualRef.getPtr().getCellRef().setScale(ptr.getCellRef().getScale());
-<<<<<<< HEAD
-            MWWorld::Ptr placed = MWBase::Environment::get().getWorld()->placeObject(manualRef.getPtr(), ptr.getCell() , ptr.getCellRef().getPosition());
-            customData.mSpawnActorId = placed.getClass().getCreatureStats(placed).getActorId();
-            */
-            /*
-                End of tes3mp change (major)
-            */
-=======
             MWWorld::Ptr placed = MWBase::Environment::get().getWorld()->placeObject(
                 manualRef.getPtr(), ptr.getCell(), ptr.getRefData().getPosition());
             MWBase::Environment::get().getWorldModel()->registerPtr(placed);
             customData.mSpawnedActor = placed.getCellRef().getRefNum();
->>>>>>> omw51
+            */
+            /*
+                End of tes3mp change (major)
+            */
             customData.mSpawn = false;
         }
         else
