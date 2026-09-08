@@ -1,6 +1,5 @@
 #include "armor.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -13,11 +12,6 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadarmo.hpp>
-#include <components/esm/loadskil.hpp>
-#include <components/esm/loadgmst.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
@@ -26,7 +20,6 @@
 #include <components/esm3/loadnpc.hpp>
 #include <components/esm3/loadrace.hpp>
 #include <components/esm3/loadskil.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -68,9 +61,6 @@ namespace MWClass
 
     std::string_view Armor::getModel(const MWWorld::ConstPtr& ptr) const
     {
-<<<<<<< HEAD
-        // TODO: add option somewhere to enable collision for placeable objects
-
         /*
             Start of tes3mp addition
 
@@ -91,9 +81,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         return getClassModel<ESM::Armor>(ptr);
->>>>>>> omw51
     }
 
     std::string_view Armor::getName(const MWWorld::ConstPtr& ptr) const
@@ -347,12 +335,6 @@ namespace MWClass
         const MWWorld::LiveCellRef<ESM::Armor>* ref = ptr.get<ESM::Armor>();
 
         ESM::Armor newItem = *ref->mBase;
-<<<<<<< HEAD
-        newItem.mId="";
-        newItem.mName=newName;
-        newItem.mData.mEnchant=enchCharge;
-        newItem.mEnchant=enchId;
-
         /*
             Start of tes3mp addition
 
@@ -363,15 +345,11 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-
-        const ESM::Armor *record = MWBase::Environment::get().getWorld()->createRecord (newItem);
-=======
         newItem.mId = ESM::RefId();
         newItem.mName = newName;
         newItem.mData.mEnchant = enchCharge;
         newItem.mEnchant = enchId;
         const ESM::Armor* record = MWBase::Environment::get().getESMStore()->insert(newItem);
->>>>>>> omw51
         return record->mId;
     }
 

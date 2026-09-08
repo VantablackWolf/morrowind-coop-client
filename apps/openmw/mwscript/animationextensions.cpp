@@ -71,16 +71,6 @@ namespace MWScript
                         throw std::runtime_error("animation mode out of range");
                 }
 
-<<<<<<< HEAD
-                    if (arg0==1)
-                    {
-                        mode = runtime[0].mInteger;
-                        runtime.pop();
-
-                        if (mode<0 || mode>2)
-                            throw std::runtime_error ("animation mode out of range");
-                    }
-
                     /*
                         Start of tes3mp addition
 
@@ -100,14 +90,9 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-
-                    MWBase::Environment::get().getMechanicsManager()->playAnimationGroup (ptr, group, mode, std::numeric_limits<int>::max(), true);
-               }
-=======
                 MWBase::Environment::get().getMechanicsManager()->playAnimationGroup(
                     ptr, group, mode, std::numeric_limits<uint32_t>::max(), true);
             }
->>>>>>> omw51
         };
 
         template <class R>

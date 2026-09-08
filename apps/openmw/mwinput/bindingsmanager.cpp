@@ -729,15 +729,6 @@ namespace MWInput
             newFileName = Files::pathToUnicodeString(mUserFile) + ".new";
             if (mInputBinder->save(newFileName))
             {
-<<<<<<< HEAD
-                if (joystickUsed && currentValue == 1.0 && actionIsActive(A_ToggleWeapon))
-                    action = A_CycleWeaponRight;
-
-                else if (joystickUsed && currentValue == 1.0 && actionIsActive(A_ToggleSpell))
-                    action = A_CycleSpellRight;
-
-                else
-                {
                     /*
                         Start of tes3mp addition
 
@@ -748,15 +739,8 @@ namespace MWInput
                     /*
                         End of tes3mp addition
                     */
-
-                    MWWorld::Player& player = MWBase::Environment::get().getWorld()->getPlayer();
-                    MWMechanics::DrawState_ state = player.getDrawState();
-                    player.setAttackingOrSpell(currentValue != 0 && state != MWMechanics::DrawState_Nothing);
-                }
-=======
                 std::filesystem::rename(Files::pathFromUnicodeString(newFileName), mUserFile);
                 Log(Debug::Info) << "Saved input bindings: " << mUserFile;
->>>>>>> omw51
             }
             else
             {

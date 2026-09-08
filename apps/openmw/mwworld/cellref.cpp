@@ -30,7 +30,6 @@ namespace MWWorld
     {
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -45,7 +44,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -58,7 +56,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -71,11 +68,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    std::string CellRef::getRefId() const
-=======
     ESM::RefNum CellRef::getRefNum() const noexcept
->>>>>>> omw51
     {
         return std::visit(ESM::VisitOverload{
                               [&](const ESM4::Reference& ref) -> ESM::RefNum { return ref.mId; },
@@ -121,7 +114,6 @@ namespace MWWorld
             mCellRef.mVariant);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -134,9 +126,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-=======
     static const std::string emptyString = "";
->>>>>>> omw51
 
     ESM::Position CellRef::getDoorDest() const
     {
@@ -150,7 +140,6 @@ namespace MWWorld
             mCellRef.mVariant);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -163,11 +152,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    std::string CellRef::getDestCell() const
-=======
     ESM::RefId CellRef::getDestCell() const
->>>>>>> omw51
     {
         auto esm3Visit = [&](const ESM::CellRef& ref) -> ESM::RefId {
             if (!ref.mDestCell.empty())
@@ -192,7 +177,6 @@ namespace MWWorld
         auto actorDestCell
             = [&](const ESM4::ActorCharacter&) -> ESM::RefId { throw std::logic_error("Not applicable"); };
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -205,13 +189,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    float CellRef::getScale() const
-    {
-        return mCellRef.mScale;
-=======
         return std::visit(ESM::VisitOverload{ esm3Visit, esm4Visit, actorDestCell }, mCellRef.mVariant);
->>>>>>> omw51
     }
 
     void CellRef::setScale(float scale)

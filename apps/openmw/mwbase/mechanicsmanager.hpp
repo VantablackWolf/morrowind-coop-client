@@ -111,7 +111,6 @@ namespace MWBase
             const MWWorld::Ptr& ptr, const MWWorld::Ptr& target, const std::set<MWWorld::Ptr>* targetAllies)
             = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -121,13 +120,8 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            /// Check if \a observer is potentially aware of \a ptr. Does not do a line of sight check!
-            virtual bool awarenessCheck (const MWWorld::Ptr& ptr, const MWWorld::Ptr& observer) = 0;
-=======
         /// Removes an actor and its allies from combat with the actor's targets.
         virtual void stopCombat(const MWWorld::Ptr& ptr) = 0;
->>>>>>> omw51
 
         enum OffenseType
         {
@@ -270,7 +264,6 @@ namespace MWBase
 
         virtual bool isAggressive(const MWWorld::Ptr& ptr, const MWWorld::Ptr& target) = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -280,12 +273,8 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual void castSpell(const MWWorld::Ptr& ptr, const std::string spellId, bool manualSpell) = 0;
-=======
         /// Resurrects the player if necessary
         virtual void resurrect(const MWWorld::Ptr& ptr) = 0;
->>>>>>> omw51
 
         virtual bool isCastingSpell(const MWWorld::Ptr& ptr) const = 0;
         virtual bool isReadyToBlock(const MWWorld::Ptr& ptr) const = 0;
@@ -310,9 +299,6 @@ namespace MWBase
         /// <Owner, item count>
         virtual std::vector<std::pair<ESM::RefId, int>> getStolenItemOwners(const ESM::RefId& itemid) = 0;
 
-<<<<<<< HEAD
-            virtual bool isBoundItem(const MWWorld::Ptr& item) = 0;
-
             /*
                 Start of tes3mp addition
 
@@ -322,12 +308,8 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual bool isAllowedToUse (const MWWorld::Ptr& ptr, const MWWorld::Ptr& target, MWWorld::Ptr& victim) = 0;
-=======
         /// Has the player stolen this item from the given owner?
         virtual bool isItemStolenFrom(const ESM::RefId& itemid, const MWWorld::Ptr& ptr) = 0;
->>>>>>> omw51
 
         virtual bool isBoundItem(const MWWorld::Ptr& item) = 0;
         virtual bool isAllowedToUse(const MWWorld::Ptr& ptr, const MWWorld::Ptr& target, MWWorld::Ptr& victim) = 0;

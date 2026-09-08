@@ -214,7 +214,6 @@ int MWMechanics::NpcStats::getLevelProgress() const
     return mLevelProgress;
 }
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -228,7 +227,6 @@ void MWMechanics::NpcStats::setLevelProgress(int value)
 /*
     End of tes3mp addition
 */
-
 /*
     Start of tes3mp addition
 
@@ -242,7 +240,6 @@ int MWMechanics::NpcStats::getSkillIncrease(int attribute) const
 /*
     End of tes3mp addition
 */
-
 /*
     Start of tes3mp addition
 
@@ -256,7 +253,6 @@ void MWMechanics::NpcStats::setSkillIncrease(int attribute, int value)
 /*
     End of tes3mp addition
 */
-
 /*
     Start of tes3mp addition
 
@@ -275,14 +271,11 @@ void MWMechanics::NpcStats::setCrimeTime(std::time_t crimeTime)
 /*
     End of tes3mp addition
 */
-
-=======
 void MWMechanics::NpcStats::setLevelProgress(int progress)
 {
     mLevelProgress = progress;
 }
 
->>>>>>> omw51
 void MWMechanics::NpcStats::levelUp()
 {
     const MWWorld::Store<ESM::GameSetting>& gmst = MWBase::Environment::get().getESMStore()->get<ESM::GameSetting>();

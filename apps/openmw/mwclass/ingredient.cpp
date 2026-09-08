@@ -1,6 +1,5 @@
 #include "ingredient.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -12,15 +11,11 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadingr.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
 #include <components/esm3/loadingr.hpp>
 #include <components/esm3/loadnpc.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -58,9 +53,6 @@ namespace MWClass
 
     std::string_view Ingredient::getModel(const MWWorld::ConstPtr& ptr) const
     {
-<<<<<<< HEAD
-        // TODO: add option somewhere to enable collision for placeable objects
-
         /*
             Start of tes3mp addition
 
@@ -81,9 +73,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         return getClassModel<ESM::Ingredient>(ptr);
->>>>>>> omw51
     }
 
     std::string_view Ingredient::getName(const MWWorld::ConstPtr& ptr) const

@@ -239,7 +239,6 @@ namespace MWGui
 
     void ContainerWindow::setPtr(const MWWorld::Ptr& container)
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -249,13 +248,10 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
-=======
         if (container.isEmpty() || (container.getType() != ESM::REC_CONT && !container.getClass().isActor()))
             throw std::runtime_error("Invalid argument in ContainerWindow::setPtr");
         bool lootAnyway = mTreatNextOpenAsLoot;
         mTreatNextOpenAsLoot = false;
->>>>>>> omw51
         mPtr = container;
 
         bool loot = mPtr.getClass().isActor() && mPtr.getClass().getCreatureStats(mPtr).isDead();
@@ -305,7 +301,6 @@ namespace MWGui
 
     void ContainerWindow::onClose()
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -315,11 +310,6 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
-        WindowBase::onClose();
-
-=======
->>>>>>> omw51
         // Make sure the window was actually closed and not temporarily hidden.
         if (MWBase::Environment::get().getWindowManager()->containsMode(GM_Container))
             return;
@@ -526,7 +516,6 @@ namespace MWGui
             MWBase::Environment::get().getWindowManager()->removeGuiMode(GM_Container);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -540,7 +529,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -571,7 +559,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-=======
     ControllerButtons* ContainerWindow::getControllerButtons()
     {
         if (mDisposeCorpseButton->getVisible())
@@ -634,5 +621,4 @@ namespace MWGui
         if (ptr == mPtr)
             mUpdateNextFrame = true;
     }
->>>>>>> omw51
 }

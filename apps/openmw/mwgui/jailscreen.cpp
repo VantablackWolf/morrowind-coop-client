@@ -80,8 +80,6 @@ namespace MWGui
         if (mFadeTimeRemaining <= 0)
         {
             MWWorld::Ptr player = MWMechanics::getPlayer();
-<<<<<<< HEAD
-
             /*
                 Start of tes3mp change (minor)
 
@@ -95,12 +93,10 @@ namespace MWGui
             /*
                 End of tes3mp change (minor)
             */
-=======
             MWBase::Environment::get().getWorld()->teleportToClosestMarker(
                 player, ESM::RefId::stringRefId("prisonmarker"));
             MWBase::Environment::get().getWindowManager()->fadeScreenOut(
                 0.f); // override fade-in caused by cell transition
->>>>>>> omw51
 
             setVisible(true);
             mTimeAdvancer.run(100);
@@ -144,20 +140,6 @@ namespace MWGui
         */
 
         // We should not worsen corprus when in prison
-<<<<<<< HEAD
-        for (auto& spell : player.getClass().getCreatureStats(player).getCorprusSpells())
-        {
-            spell.second.mNextWorsening += mDays * 24;
-        }
-
-        std::set<int> skills;
-        for (int day=0; day<mDays; ++day)
-        {
-            int skill = Misc::Rng::rollDice(ESM::Skill::Length);
-            skills.insert(skill);
-
-            MWMechanics::SkillValue& value = player.getClass().getNpcStats(player).getSkill(skill);
-
             /*
                 Start of tes3mp change (minor)
 
@@ -169,19 +151,6 @@ namespace MWGui
             /*
                 End of tes3mp change (minor)
             */
-                value.setBase(std::min(100.f, value.getBase() + 1));
-            else
-                value.setBase(std::max(0.f, value.getBase()-1));
-        }
-
-        const MWWorld::Store<ESM::GameSetting>& gmst = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>();
-
-        std::string message;
-        if (mDays == 1)
-            message = gmst.find("sNotifyMessage42")->mValue.getString();
-        else
-            message = gmst.find("sNotifyMessage43")->mValue.getString();
-
         /*
             Start of tes3mp addition
 
@@ -192,15 +161,6 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
-        message = Misc::StringUtils::format(message, mDays);
-
-        for (const int& skill : skills)
-        {
-            std::string skillName = gmst.find(ESM::Skill::sSkillNameIds[skill])->mValue.getString();
-            int skillValue = player.getClass().getNpcStats(player).getSkill(skill).getBase();
-            std::string skillMsg = gmst.find("sNotifyMessage44")->mValue.getString();
-
             /*
                 Start of tes3mp change (minor)
 
@@ -211,12 +171,6 @@ namespace MWGui
             /*
                 End of tes3mp change (minor)
             */
-                skillMsg = gmst.find("sNotifyMessage39")->mValue.getString();
-
-            skillMsg = Misc::StringUtils::format(skillMsg, skillName, skillValue);
-            message += "\n" + skillMsg;
-        }
-
         /*
             Start of tes3mp addition
 
@@ -229,13 +183,7 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
-        std::vector<std::string> buttons;
-        buttons.emplace_back("#{sOk}");
-        MWBase::Environment::get().getWindowManager()->interactiveMessageBox(message, buttons);
-=======
         player.getClass().getCreatureStats(player).getActiveSpells().skipWorsenings(mDays * 24);
         MWBase::Environment::get().getLuaManager()->jailTimeServed(player, mDays);
->>>>>>> omw51
     }
 }

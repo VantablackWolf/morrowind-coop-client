@@ -42,11 +42,6 @@ namespace MWWorld
             }
         }
 
-<<<<<<< HEAD
-        MWBase::Environment::get().getMechanicsManager()->itemTaken(
-                    actor, getTarget(), MWWorld::Ptr(), getTarget().getRefData().getCount());
-        MWWorld::Ptr newitem = *actor.getClass().getContainerStore (actor).add (getTarget(), getTarget().getRefData().getCount(), actor);
-
         /*
             Start of tes3mp addition
 
@@ -61,9 +56,6 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-
-        MWBase::Environment::get().getWorld()->deleteObject (getTarget());
-=======
         int count = getTarget().getCellRef().getCount();
         if (getTarget().getClass().isGold(getTarget()))
             count *= getTarget().getClass().getValue(getTarget());
@@ -71,7 +63,6 @@ namespace MWWorld
         MWBase::Environment::get().getMechanicsManager()->itemTaken(actor, getTarget(), MWWorld::Ptr(), count);
         MWWorld::Ptr newitem = *actor.getClass().getContainerStore(actor).add(getTarget(), count);
         MWBase::Environment::get().getWorld()->deleteObject(getTarget());
->>>>>>> omw51
         setTarget(newitem);
     }
 }

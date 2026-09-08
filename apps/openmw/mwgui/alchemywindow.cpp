@@ -154,19 +154,6 @@ namespace MWGui
 
         switch (result)
         {
-<<<<<<< HEAD
-        case MWMechanics::Alchemy::Result_NoName:
-            winMgr->messageBox("#{sNotifyMessage37}");
-            break;
-        case MWMechanics::Alchemy::Result_NoMortarAndPestle:
-            winMgr->messageBox("#{sNotifyMessage45}");
-            break;
-        case MWMechanics::Alchemy::Result_LessThanTwoIngredients:
-            winMgr->messageBox("#{sNotifyMessage6a}");
-            break;
-        case MWMechanics::Alchemy::Result_Success:
-            winMgr->playSound("potion success");
-
             /*
                 Start of tes3mp addition
 
@@ -179,17 +166,6 @@ namespace MWGui
             /*
                 End of tes3mp addition
             */
-
-            if (count == 1)
-                winMgr->messageBox("#{sPotionSuccess}");
-            else
-                winMgr->messageBox("#{sPotionSuccess} "+mNameEdit->getCaption()+" ("+std::to_string(count)+")");
-            break;
-        case MWMechanics::Alchemy::Result_NoEffects:
-        case MWMechanics::Alchemy::Result_RandomFailure:
-            winMgr->messageBox("#{sNotifyMessage8}");
-            winMgr->playSound("potion fail");
-
             /*
                 Start of tes3mp addition
 
@@ -202,9 +178,6 @@ namespace MWGui
             /*
                 End of tes3mp addition
             */
-
-            break;
-=======
             case MWMechanics::Alchemy::Result_NoName:
                 winMgr->messageBox("#{sNotifyMessage37}");
                 break;
@@ -227,7 +200,6 @@ namespace MWGui
                 winMgr->messageBox("#{sNotifyMessage8}");
                 winMgr->playSound(ESM::RefId::stringRefId("potion fail"));
                 break;
->>>>>>> omw51
         }
 
         // remove ingredient slots that have been fully used up

@@ -104,15 +104,6 @@ namespace Translation
     {
         mEncoder = encoder;
     }
-<<<<<<< HEAD
-
-    bool Storage::hasTranslation() const
-    {
-        return !mCellNamesTranslations.empty() ||
-               !mTopicIDs.empty() ||
-               !mPhraseForms.empty();
-    }
-
     /*
         Start of tes3mp addition
 
@@ -131,6 +122,4 @@ namespace Translation
     /*
         End of tes3mp addition
     */
-=======
->>>>>>> omw51
 }

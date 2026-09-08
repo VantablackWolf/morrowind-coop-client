@@ -78,7 +78,6 @@ namespace MWDialogue
         mTopics.clear();
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -96,7 +95,6 @@ namespace MWDialogue
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp change (minor)
 
@@ -107,9 +105,7 @@ namespace MWDialogue
     /*
         End of tes3mp change (major)
     */
-=======
     void Journal::addEntry(const ESM::RefId& id, int index, const MWWorld::Ptr& actor)
->>>>>>> omw51
     {
         // bail out if we already have heard this...
         const ESM::RefId& infoId = JournalEntry::idFromIndex(id, index);
@@ -126,7 +122,6 @@ namespace MWDialogue
 
         StampedJournalEntry entry = StampedJournalEntry::makeFromQuest(id, index, actor);
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -141,10 +136,6 @@ namespace MWDialogue
         /*
             End of tes3mp addition
         */
-
-        Quest& quest = getQuest (id);
-        quest.addEntry (entry); // we are doing slicing on purpose here
-=======
         Quest& quest = getOrStartQuest(id);
         if (quest.addEntry(entry)) // we are doing slicing on purpose here
         {
@@ -156,7 +147,6 @@ namespace MWDialogue
                     it.second.setFinished(false);
             }
         }
->>>>>>> omw51
 
         // there is no need to show empty entries in journal
         if (!entry.getText().empty())

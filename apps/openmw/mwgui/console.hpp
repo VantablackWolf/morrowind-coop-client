@@ -26,7 +26,6 @@ namespace MWGui
         void setSelectedObject(const MWWorld::Ptr& object);
         MWWorld::Ptr getSelectedObject() const { return mPtr; }
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -38,10 +37,6 @@ namespace MWGui
             /*
                 End of tes3mp addition
             */
-
-            MyGUI::EditBox* mCommandLine;
-            MyGUI::EditBox* mHistory;
-=======
         MyGUI::EditBox* mCommandLine;
         MyGUI::EditBox* mHistory;
         MyGUI::EditBox* mSearchTerm;
@@ -49,7 +44,6 @@ namespace MWGui
         MyGUI::Button* mPreviousButton;
         MyGUI::Button* mCaseSensitiveToggleButton;
         MyGUI::Button* mRegExSearchToggleButton;
->>>>>>> omw51
 
         typedef std::list<std::string> StringList;
 

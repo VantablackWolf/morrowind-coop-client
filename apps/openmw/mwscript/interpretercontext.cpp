@@ -41,7 +41,6 @@
 
 namespace MWScript
 {
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -70,12 +69,7 @@ namespace MWScript
     /*
         End of tes3mp addition
     */
-
-    const MWWorld::Ptr InterpreterContext::getReferenceImp (
-        const std::string& id, bool activeOnly, bool doThrow) const
-=======
     const MWWorld::Ptr InterpreterContext::getReferenceImp(const ESM::RefId& id, bool activeOnly, bool doThrow) const
->>>>>>> omw51
     {
         if (!id.empty())
         {
@@ -220,7 +214,6 @@ namespace MWScript
         if (!mLocals)
             throw std::runtime_error("local variables not available in this context");
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -230,9 +223,6 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
-        mLocals->mShorts.at (index) = value;
-
         /*
             Start of tes3mp addition
 
@@ -251,9 +241,7 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-=======
         mLocals->mShorts.at(index) = static_cast<Interpreter::Type_Short>(value);
->>>>>>> omw51
     }
 
     void InterpreterContext::setLocalLong(int index, int value)
@@ -261,7 +249,6 @@ namespace MWScript
         if (!mLocals)
             throw std::runtime_error("local variables not available in this context");
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -271,9 +258,6 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
-        mLocals->mLongs.at (index) = value;
-
         /*
             Start of tes3mp addition
 
@@ -292,9 +276,7 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-=======
         mLocals->mLongs.at(index) = value;
->>>>>>> omw51
     }
 
     void InterpreterContext::setLocalFloat(int index, float value)
@@ -302,7 +284,6 @@ namespace MWScript
         if (!mLocals)
             throw std::runtime_error("local variables not available in this context");
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -317,9 +298,6 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
-        mLocals->mFloats.at (index) = value;
-
         /*
             Start of tes3mp addition
 
@@ -339,9 +317,7 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-=======
         mLocals->mFloats.at(index) = value;
->>>>>>> omw51
     }
 
     void InterpreterContext::messageBox(std::string_view message, const std::vector<std::string>& buttons)
@@ -372,7 +348,6 @@ namespace MWScript
 
     void InterpreterContext::setGlobalShort(std::string_view name, int value)
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -382,7 +357,6 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
         /*
             Start of tes3mp addition
 
@@ -397,16 +371,11 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
-        MWBase::Environment::get().getWorld()->setGlobalInt (name, value);
-=======
         MWBase::Environment::get().getWorld()->setGlobalInt(name, value);
->>>>>>> omw51
     }
 
     void InterpreterContext::setGlobalLong(std::string_view name, int value)
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -416,7 +385,6 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
         /*
             Start of tes3mp addition
 
@@ -431,16 +399,11 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
-        MWBase::Environment::get().getWorld()->setGlobalInt (name, value);
-=======
         MWBase::Environment::get().getWorld()->setGlobalInt(name, value);
->>>>>>> omw51
     }
 
     void InterpreterContext::setGlobalFloat(std::string_view name, float value)
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -455,7 +418,6 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
         /*
             Start of tes3mp addition
 
@@ -470,11 +432,7 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-
-        MWBase::Environment::get().getWorld()->setGlobalFloat (name, value);
-=======
         MWBase::Environment::get().getWorld()->setGlobalFloat(name, value);
->>>>>>> omw51
     }
 
     std::vector<std::string> InterpreterContext::getGlobals() const
@@ -729,9 +687,6 @@ namespace MWScript
     {
         Locals& locals = getMemberLocals(global, id);
 
-<<<<<<< HEAD
-        Locals& locals = getMemberLocals (scriptId, global);
-
         /*
             Start of tes3mp change (minor)
 
@@ -743,7 +698,6 @@ namespace MWScript
         /*
             End of tes3mp change (minor)
         */
-
         /*
             Start of tes3mp addition
 
@@ -762,9 +716,7 @@ namespace MWScript
         /*
             End of tes3mp addition
         */
-=======
         locals.mShorts[findLocalVariableIndex(id, name, 's')] = static_cast<Interpreter::Type_Short>(value);
->>>>>>> omw51
     }
 
     void InterpreterContext::setMemberLong(ESM::RefId id, std::string_view name, int value, bool global)

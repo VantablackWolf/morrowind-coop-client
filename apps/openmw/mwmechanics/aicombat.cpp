@@ -8,7 +8,6 @@
 #include <components/misc/rng.hpp>
 #include <components/sceneutil/positionattitudetransform.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -23,11 +22,7 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwphysics/collisiontype.hpp"
-=======
 #include "../mwphysics/raycasting.hpp"
->>>>>>> omw51
 
 #include "../mwworld/class.hpp"
 #include "../mwworld/esmstore.hpp"
@@ -169,10 +164,6 @@ namespace MWMechanics
             }
 
             storage.updateCombatMove(duration);
-<<<<<<< HEAD
-            if (storage.mReadyToAttack) updateActorsMovement(actor, duration, storage);
-            storage.updateAttack(characterController);
-
             /*
                 Start of tes3mp addition
 
@@ -189,14 +180,12 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-=======
             storage.mRotateMove = false;
             if (storage.mReadyToAttack)
                 updateActorsMovement(actor, duration, storage);
             if (storage.mRotateMove)
                 return false;
             storage.updateAttack(actor, characterController);
->>>>>>> omw51
         }
         else
         {
@@ -220,7 +209,6 @@ namespace MWMechanics
             currentCell = actor.getCell();
         }
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -238,20 +226,15 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-=======
         const MWWorld::Class& actorClass = actor.getClass();
         MWMechanics::CreatureStats& stats = actorClass.getCreatureStats(actor);
         if (stats.isParalyzed() || stats.getKnockedDown())
             return false;
->>>>>>> omw51
 
         bool forceFlee = false;
         if (!canFight(actor, target))
         {
             storage.stopAttack();
-<<<<<<< HEAD
-            characterController.setAttackingOrSpell(false);
-
             /*
                 Start of tes3mp addition
 
@@ -268,10 +251,7 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-=======
             stats.setAttackingOrSpell(false);
->>>>>>> omw51
             storage.mActionCooldown = 0.f;
             // Continue combat if target is player or player follower/escorter and an attack has been attempted
             const auto& playerFollowersAndEscorters
@@ -738,7 +718,6 @@ namespace MWMechanics
                 if (!distantCombat)
                     characterController.setAIAttackType(chooseBestAttack(weapon));
 
-<<<<<<< HEAD
                 /*
                     Start of tes3mp addition
 
@@ -762,12 +741,8 @@ namespace MWMechanics
                 /*
                     End of tes3mp addition
                 */
-
-                mStrength = Misc::Rng::rollClosedProbability();
-=======
                 auto& prng = MWBase::Environment::get().getWorld()->getPrng();
                 mStrength = Misc::Rng::rollClosedProbability(prng);
->>>>>>> omw51
 
                 const MWWorld::ESMStore& store = *MWBase::Environment::get().getESMStore();
 

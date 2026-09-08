@@ -182,7 +182,6 @@ namespace MWWorld
         ///< Returns the remaining duration of the object, such as an equippable light
         /// source. (default implementation: -1, i.e. infinite)
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -193,20 +192,14 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            virtual bool hasInventoryStore (const Ptr& ptr) const;
-            ///< Does this object have an inventory store, i.e. equipment slots? (default implementation: false)
-=======
         virtual ESM::RefId getScript(const ConstPtr& ptr) const;
         ///< Return name of the script attached to ptr (default implementation: return an empty
         /// string).
->>>>>>> omw51
 
         virtual float getWalkSpeed(const Ptr& ptr) const;
         virtual float getRunSpeed(const Ptr& ptr) const;
         virtual float getSwimSpeed(const Ptr& ptr) const;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -217,14 +210,8 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            virtual void setRemainingUsageTime (const Ptr& ptr, float duration) const;
-            ///< Sets the remaining duration of the object, such as an equippable light
-            /// source. (default implementation: throw an exception)
-=======
         /// Return maximal movement speed for the current state.
         virtual float getMaxSpeed(const Ptr& ptr) const;
->>>>>>> omw51
 
         /// Return current movement speed.
         virtual float getCurrentSpeed(const Ptr& ptr) const;

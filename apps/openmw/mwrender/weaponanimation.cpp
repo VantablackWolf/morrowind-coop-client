@@ -5,7 +5,6 @@
 #include <components/resource/resourcesystem.hpp>
 #include <components/resource/scenemanager.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -15,10 +14,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/world.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/soundmanager.hpp"
 #include "../mwbase/world.hpp"
@@ -110,36 +105,6 @@ namespace MWRender
 
     void WeaponAnimation::detachArrow(MWWorld::Ptr actor)
     {
-<<<<<<< HEAD
-        osg::Group* parent = getArrowBone();
-        if (!parent)
-            return;
-
-        MWWorld::ConstContainerStoreIterator ammo = inv.getSlot(MWWorld::InventoryStore::Slot_Ammunition);
-        if (ammo == inv.end())
-            return;
-        std::string model = ammo->getClass().getModel(*ammo);
-
-        osg::ref_ptr<osg::Node> arrow = getResourceSystem()->getSceneManager()->getInstance(model, parent);
-
-        mAmmunition = PartHolderPtr(new PartHolder(arrow));
-    }
-}
-
-void WeaponAnimation::detachArrow(MWWorld::Ptr actor)
-{
-    mAmmunition.reset();
-}
-
-void WeaponAnimation::releaseArrow(MWWorld::Ptr actor, float attackStrength)
-{
-    MWWorld::InventoryStore& inv = actor.getClass().getInventoryStore(actor);
-    MWWorld::ContainerStoreIterator weapon = inv.getSlot(MWWorld::InventoryStore::Slot_CarriedRight);
-    if (weapon == inv.end())
-        return;
-    if (weapon->getTypeName() != typeid(ESM::Weapon).name())
-        return;
-
     /*
         Start of tes3mp addition
 
@@ -170,18 +135,6 @@ void WeaponAnimation::releaseArrow(MWWorld::Ptr actor, float attackStrength)
     /*
         End of tes3mp addition
     */
-
-    // The orientation of the launched projectile. Always the same as the actor orientation, even if the ArrowBone's orientation dictates otherwise.
-    osg::Quat orient = osg::Quat(actor.getRefData().getPosition().rot[0], osg::Vec3f(-1,0,0))
-            * osg::Quat(actor.getRefData().getPosition().rot[2], osg::Vec3f(0,0,-1));
-
-    const MWWorld::Store<ESM::GameSetting> &gmst =
-        MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>();
-
-    MWMechanics::applyFatigueLoss(actor, *weapon, attackStrength);
-
-    if (MWMechanics::getWeaponType(weapon->get<ESM::Weapon>()->mBase->mData.mType)->mWeaponClass == ESM::WeaponType::Thrown)
-    {
         /*
             Start of tes3mp addition
 
@@ -192,16 +145,6 @@ void WeaponAnimation::releaseArrow(MWWorld::Ptr actor, float attackStrength)
         /*
             End of tes3mp addition
         */
-
-        // Thrown weapons get detached now
-        osg::Node* weaponNode = getWeaponNode();
-        if (!weaponNode)
-            return;
-        osg::NodePathList nodepaths = weaponNode->getParentalNodePaths();
-        if (nodepaths.empty())
-            return;
-        osg::Vec3f launchPos = osg::computeLocalToWorld(nodepaths[0]).getTrans();
-
         /*
             Start of tes3mp addition
 
@@ -234,28 +177,6 @@ void WeaponAnimation::releaseArrow(MWWorld::Ptr actor, float attackStrength)
         /*
             End of tes3mp addition
         */
-
-        float fThrownWeaponMinSpeed = gmst.find("fThrownWeaponMinSpeed")->mValue.getFloat();
-        float fThrownWeaponMaxSpeed = gmst.find("fThrownWeaponMaxSpeed")->mValue.getFloat();
-        float speed = fThrownWeaponMinSpeed + (fThrownWeaponMaxSpeed - fThrownWeaponMinSpeed) * attackStrength;
-
-        MWWorld::Ptr weaponPtr = *weapon;
-        MWBase::Environment::get().getWorld()->launchProjectile(actor, weaponPtr, launchPos, orient, weaponPtr, speed, attackStrength);
-
-        showWeapon(false);
-
-        inv.remove(*weapon, 1, actor);
-    }
-    else
-    {
-        // With bows and crossbows only the used arrow/bolt gets detached
-        MWWorld::ContainerStoreIterator ammo = inv.getSlot(MWWorld::InventoryStore::Slot_Ammunition);
-        if (ammo == inv.end())
-            return;
-
-        if (!mAmmunition)
-            return;
-
         /*
             Start of tes3mp addition
 
@@ -266,13 +187,6 @@ void WeaponAnimation::releaseArrow(MWWorld::Ptr actor, float attackStrength)
         /*
             End of tes3mp addition
         */
-
-        osg::ref_ptr<osg::Node> ammoNode = mAmmunition->getNode();
-        osg::NodePathList nodepaths = ammoNode->getParentalNodePaths();
-        if (nodepaths.empty())
-            return;
-        osg::Vec3f launchPos = osg::computeLocalToWorld(nodepaths[0]).getTrans();
-
         /*
             Start of tes3mp addition
 
@@ -305,18 +219,6 @@ void WeaponAnimation::releaseArrow(MWWorld::Ptr actor, float attackStrength)
         /*
             End of tes3mp addition
         */
-
-        float fProjectileMinSpeed = gmst.find("fProjectileMinSpeed")->mValue.getFloat();
-        float fProjectileMaxSpeed = gmst.find("fProjectileMaxSpeed")->mValue.getFloat();
-        float speed = fProjectileMinSpeed + (fProjectileMaxSpeed - fProjectileMinSpeed) * attackStrength;
-
-        MWWorld::Ptr weaponPtr = *weapon;
-        MWWorld::Ptr ammoPtr = *ammo;
-        MWBase::Environment::get().getWorld()->launchProjectile(actor, ammoPtr, launchPos, orient, weaponPtr, speed, attackStrength);
-
-        inv.remove(ammoPtr, 1, actor);
-=======
->>>>>>> omw51
         mAmmunition.reset();
     }
 

@@ -66,16 +66,6 @@ namespace MWWorld
 
         size_t countSavedGameRecords() const;
 
-<<<<<<< HEAD
-            int countSavedGameRecords() const;
-
-            void write (ESM::ESMWriter& writer, Loading::Listener& progress) const;
-
-            bool readRecord (ESM::ESMReader& reader, uint32_t type);
-            ///< Records for variables that do not exist are dropped silently.
-            ///
-            /// \return Known type?
-        
             /*
                 Start of tes3mp addition
 
@@ -85,7 +75,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -95,9 +84,7 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-=======
         void write(ESM::ESMWriter& writer, Loading::Listener& progress) const;
->>>>>>> omw51
 
         bool readRecord(ESM::ESMReader& reader, uint32_t type);
         ///< Records for variables that do not exist are dropped silently.

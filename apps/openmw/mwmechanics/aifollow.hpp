@@ -83,7 +83,6 @@ namespace MWMechanics
             return target.getRefData().getPosition().asVec3();
         }
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -93,22 +92,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-        private:
-            /// This will make the actor always follow.
-            /** Thus ignoring mDuration and mX,mY,mZ (used for summoned creatures). **/
-            const bool mAlwaysFollow;
-            const float mDuration; // Hours
-            float mRemainingDuration; // Hours
-            const float mX;
-            const float mY;
-            const float mZ;
-            const std::string mCellId;
-            bool mActive; // have we spotted the target?
-            const int mFollowIndex;
-
-            static int mFollowIndexCounter;
-
             /*
                 Start of tes3mp addition
 
@@ -118,7 +101,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-=======
     private:
         /// This will make the actor always follow.
         /** Thus ignoring mDuration and mX,mY,mZ (used for summoned creatures). **/
@@ -133,7 +115,6 @@ namespace MWMechanics
         const int mFollowIndex;
 
         static int mFollowIndexCounter;
->>>>>>> omw51
     };
 }
 #endif

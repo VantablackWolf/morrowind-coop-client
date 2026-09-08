@@ -55,19 +55,6 @@ namespace MWMechanics
 
             ESM::ActiveSpells::ActiveSpellParams toEsm() const;
 
-<<<<<<< HEAD
-            TIterator begin() const;
-
-            TIterator end() const;
-
-            void update(float duration) const;
-
-        private:
-
-            mutable TContainer mSpells;
-            mutable MagicEffects mEffects;
-            mutable bool mSpellsChanged;
-
             /*
                 Start of tes3mp addition
 
@@ -77,20 +64,7 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            void rebuildEffects() const;
-
-            /// Add any effects that are in "from" and not in "addTo" to "addTo"
-            void mergeEffects(std::vector<ActiveEffect>& addTo, const std::vector<ActiveEffect>& from);
-
-            double timeToExpire (const TIterator& iterator) const;
-            ///< Returns time (in in-game hours) until the spell pointed to by \a iterator
-            /// expires.
-
-            const TContainer& getActiveSpells() const;
-=======
             friend class ActiveSpells;
->>>>>>> omw51
 
         public:
             ActiveSpellParams(
@@ -101,7 +75,6 @@ namespace MWMechanics
 
             const ESM::RefId& getSourceSpellId() const { return mSourceSpellId; }
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -112,10 +85,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            /// Removes the active effects from this spell/potion/.. with \a id
-            void removeEffects (const std::string& id);
-
             /*
                 Start of tes3mp addition
 
@@ -126,15 +95,10 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            /// Remove all active effects with this effect id
-            void purgeEffect (short effectId);
-=======
             const std::vector<ActiveEffect>& getEffects() const { return mEffects; }
             std::vector<ActiveEffect>& getEffects() { return mEffects; }
 
             ESM::RefNum getCaster() const { return mCaster; }
->>>>>>> omw51
 
             int getWorsenings() const { return mWorsenings; }
 
@@ -143,7 +107,6 @@ namespace MWMechanics
             ESM::RefNum getItem() const { return mItem; }
             ESM::RefId getEnchantment() const;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -153,7 +116,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -163,14 +125,9 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            /// Remove all spells
-            void clear();
-=======
             const ESM::Spell* getSpell() const;
             bool hasFlag(ESM::ActiveSpells::Flags flags) const;
             void setFlag(ESM::ActiveSpells::Flags flags);
->>>>>>> omw51
 
             // Increments worsenings count and sets the next timestamp
             void worsen();
@@ -183,7 +140,6 @@ namespace MWMechanics
         typedef std::list<ActiveSpellParams> Collection;
         typedef Collection::const_iterator TIterator;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -194,8 +150,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-=======
         void readState(const ESM::ActiveSpells& state);
         void writeState(ESM::ActiveSpells& state) const;
 
@@ -276,7 +230,6 @@ namespace MWMechanics
         void skipWorsenings(double hours);
 
         void unloadActor(const MWWorld::Ptr& ptr);
->>>>>>> omw51
     };
 }
 

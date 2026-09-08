@@ -67,7 +67,6 @@ namespace MWMechanics
         void purgeCorprusDisease();
         void purgeCurses();
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -77,14 +76,7 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            void purgeCommonDisease();
-            void purgeBlightDisease();
-            void purgeCorprusDisease();
-            void purgeCurses();
-=======
         Collection::const_iterator begin() const;
->>>>>>> omw51
 
         Collection::const_iterator end() const;
 

@@ -26,9 +26,6 @@ namespace Translation
 
         void setEncoder(ToUTF8::Utf8Encoder* encoder);
 
-<<<<<<< HEAD
-        bool hasTranslation() const;
-
         /*
             Start of tes3mp addition
 
@@ -38,9 +35,6 @@ namespace Translation
         /*
             End of tes3mp addition
         */
-
-=======
->>>>>>> omw51
     private:
         typedef std::map<std::string, std::string, std::less<>> ContainerType;
 

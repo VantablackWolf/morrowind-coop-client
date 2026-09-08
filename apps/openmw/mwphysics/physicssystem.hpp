@@ -287,7 +287,6 @@ namespace MWPhysics
         void reportStats(unsigned int frameNumber, osg::Stats& stats) const;
         void reportCollision(const btVector3& position, const btVector3& normal);
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -297,11 +296,7 @@ namespace MWPhysics
             /*
                 End of tes3mp addition
             */
-
-            void updateAnimatedCollisionShape(const MWWorld::Ptr& object);
-=======
         float mPhysicsDt;
->>>>>>> omw51
 
     private:
         void updateWater();

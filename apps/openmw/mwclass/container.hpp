@@ -64,7 +64,6 @@ namespace MWClass
         MWWorld::ContainerStore& getContainerStore(const MWWorld::Ptr& ptr) const override;
         ///< Return container store
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -74,13 +73,8 @@ namespace MWClass
             /*
                 End of tes3mp addition
             */
-
-            std::string getScript (const MWWorld::ConstPtr& ptr) const override;
-            ///< Return name of the script attached to ptr
-=======
         ESM::RefId getScript(const MWWorld::ConstPtr& ptr) const override;
         ///< Return name of the script attached to ptr
->>>>>>> omw51
 
         float getCapacity(const MWWorld::Ptr& ptr) const override;
         ///< Return total weight that fits into the object. Throws an exception, if the object can't

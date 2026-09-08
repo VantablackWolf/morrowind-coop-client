@@ -42,7 +42,6 @@ namespace MWGui
         void activateQuickKey(int index);
         void updateActivatedQuickKey();
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -52,21 +51,6 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
-        /// @note This enum is serialized, so don't move the items around!
-        enum QuickKeyType
-        {
-            Type_Item,
-            Type_Magic,
-            Type_MagicItem,
-            Type_Unassigned,
-            Type_HandToHand
-        };
-
-        void write (ESM::ESMWriter& writer);
-        void readRecord (ESM::ESMReader& reader, uint32_t type);
-        void clear() override;
-
         /*
             Start of tes3mp addition
 
@@ -76,14 +60,11 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
-=======
         void write(ESM::ESMWriter& writer);
         void readRecord(ESM::ESMReader& reader, uint32_t type);
         void clear() override;
 
         std::string_view getWindowIdForLua() const override { return "QuickKeys"; }
->>>>>>> omw51
 
     private:
         struct keyData

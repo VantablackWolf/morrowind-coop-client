@@ -5,7 +5,6 @@
 #include <components/misc/rng.hpp>
 #include <components/misc/strings/format.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -16,10 +15,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/windowmanager.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
 #include "../mwbase/world.hpp"
@@ -86,7 +81,6 @@ namespace MWMechanics
                 creatureStats.getActiveSpells().addSpell(spell, actor, false);
                 MWBase::Environment::get().getWorld()->applyLoopingParticles(actor);
 
-<<<<<<< HEAD
                 /*
                     Start of tes3mp addition
 
@@ -96,12 +90,6 @@ namespace MWMechanics
                 /*
                     End of tes3mp addition
                 */
-
-                std::string msg = "sMagicContractDisease";
-                msg = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find(msg)->mValue.getString();
-                msg = Misc::StringUtils::format(msg, spell->mName);
-                MWBase::Environment::get().getWindowManager()->messageBox(msg);
-=======
                 if (actor == getPlayer())
                 {
                     std::string msg = MWBase::Environment::get()
@@ -112,7 +100,6 @@ namespace MWMechanics
                     msg = Misc::StringUtils::format(msg, spell->mName);
                     MWBase::Environment::get().getWindowManager()->messageBox(msg);
                 }
->>>>>>> omw51
             }
         }
     }

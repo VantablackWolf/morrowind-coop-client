@@ -4,7 +4,6 @@
 
 #include <MyGUI_LanguageManager.h>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -17,11 +16,7 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/misc/stringops.hpp>
-=======
 #include <components/misc/strings/format.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -47,8 +42,6 @@ namespace MWWorld
             return;
 
         MWWorld::Ptr target = getTarget();
-<<<<<<< HEAD
-
         /*
             Start of tes3mp addition
 
@@ -66,11 +59,7 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-
-        MWWorld::ContainerStore& store = target.getClass().getContainerStore (target);
-=======
         MWWorld::ContainerStore& store = target.getClass().getContainerStore(target);
->>>>>>> omw51
         store.resolve();
         MWWorld::ContainerStore& actorStore = actor.getClass().getContainerStore(actor);
         std::map<std::string, int> takenMap;
@@ -84,9 +73,6 @@ namespace MWWorld
             // not work for a last item in the container - empty harvested containers are considered as "allowed to
             // use".
             MWBase::Environment::get().getMechanicsManager()->itemTaken(actor, *it, target, itemCount);
-<<<<<<< HEAD
-            actorStore.add(*it, itemCount, actor);
-
             /*
                 Start of tes3mp addition
 
@@ -96,15 +82,10 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            store.remove(*it, itemCount, getTarget());
-            takenMap[it->getClass().getName(*it)]+=itemCount;
-=======
             actorStore.add(*it, itemCount);
             store.remove(*it, itemCount);
             std::string name{ it->getClass().getName(*it) };
             takenMap[name] += itemCount;
->>>>>>> omw51
         }
 
         /*

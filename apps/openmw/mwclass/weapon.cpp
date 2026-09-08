@@ -1,6 +1,5 @@
 #include "weapon.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -13,15 +12,11 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadweap.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
 #include <components/esm3/loadnpc.hpp>
 #include <components/esm3/loadweap.hpp>
->>>>>>> omw51
 #include <components/misc/constants.hpp>
 #include <components/settings/values.hpp>
 
@@ -63,9 +58,6 @@ namespace MWClass
 
     std::string_view Weapon::getModel(const MWWorld::ConstPtr& ptr) const
     {
-<<<<<<< HEAD
-        // TODO: add option somewhere to enable collision for placeable objects
-
         /*
             Start of tes3mp addition
 
@@ -87,9 +79,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         return getClassModel<ESM::Weapon>(ptr);
->>>>>>> omw51
     }
 
     std::string_view Weapon::getName(const MWWorld::ConstPtr& ptr) const
@@ -307,8 +297,6 @@ namespace MWClass
         newItem.mData.mEnchant = static_cast<uint16_t>(enchCharge);
         newItem.mEnchant = enchId;
         newItem.mData.mFlags |= ESM::Weapon::Magical;
-<<<<<<< HEAD
-
         /*
             Start of tes3mp addition
 
@@ -321,11 +309,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-
-        const ESM::Weapon *record = MWBase::Environment::get().getWorld()->createRecord (newItem);
-=======
         const ESM::Weapon* record = MWBase::Environment::get().getESMStore()->insert(newItem);
->>>>>>> omw51
         return record->mId;
     }
 

@@ -409,7 +409,6 @@ namespace MWWorld
                 return mSharedExt.at(index - mSharedInt.size());
         }
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -420,10 +419,7 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-        ESM::Cell *insert(const ESM::Cell &cell);
-=======
         void listIdentifier(std::vector<ESM::RefId>& list) const override;
->>>>>>> omw51
 
         ESM::Cell* insert(const ESM::Cell& cell);
     };
@@ -444,7 +440,6 @@ namespace MWWorld
 
         void setUp() override;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -455,28 +450,11 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-
-        const ESM::Pathgrid *search(int x, int y) const;
-        const ESM::Pathgrid *search(const std::string& name) const;
-        const ESM::Pathgrid *find(int x, int y) const;
-        const ESM::Pathgrid* find(const std::string& name) const;
-        const ESM::Pathgrid *search(const ESM::Cell &cell) const;
-        const ESM::Pathgrid *find(const ESM::Cell &cell) const;
-    };
-
-
-    template <>
-    class Store<ESM::Skill> : public IndexedStore<ESM::Skill>
-    {
-    public:
-        Store();
-=======
         const ESM::Pathgrid* search(const ESM::RefId& name) const;
         const ESM::Pathgrid* find(const ESM::RefId& name) const;
         const ESM::Pathgrid* search(const ESM::Cell& cell) const;
         const ESM::Pathgrid* search(const MWWorld::Cell& cell) const;
         const ESM::Pathgrid* find(const ESM::Cell& cell) const;
->>>>>>> omw51
     };
 
     template <>

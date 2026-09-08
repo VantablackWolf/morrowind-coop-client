@@ -76,7 +76,6 @@ namespace MWClass
         MWWorld::ContainerStore& getContainerStore(const MWWorld::Ptr& ptr) const override;
         ///< Return container store
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -86,13 +85,8 @@ namespace MWClass
             /*
                 End of tes3mp addition
             */
-
-            std::string getScript (const MWWorld::ConstPtr& ptr) const override;
-            ///< Return name of the script attached to ptr
-=======
         MWWorld::InventoryStore& getInventoryStore(const MWWorld::Ptr& ptr) const override;
         ///< Return inventory store
->>>>>>> omw51
 
         bool hasInventoryStore(const MWWorld::ConstPtr& ptr) const override;
 

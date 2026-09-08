@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -20,11 +19,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "creaturestats.hpp"
-
-=======
->>>>>>> omw51
 namespace ESM
 {
     struct Class;
@@ -44,7 +38,6 @@ namespace MWMechanics
         int mReputation;
         int mCrimeId;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -54,20 +47,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            // ----- used by the player only, maybe should be moved at some point -------
-            int mBounty;
-            int mWerewolfKills;
-            /// Used only for the player and for NPC's with ranks, modified by scripts; other NPCs have maximum one faction defined in their NPC record
-            std::map<std::string, int> mFactionRank;
-            std::set<std::string> mExpelled;
-            std::map<std::string, int> mFactionReputation;
-            int mLevelProgress; // 0-10
-            std::vector<int> mSkillIncreases; // number of skill increases for each attribute (resets after leveling up)
-            std::vector<int> mSpecIncreases; // number of skill increases for each specialization (accumulates throughout the entire game)
-            std::set<std::string> mUsedIds;
-            // ---------------------------------------------------------------------------
-=======
         // ----- used by the player only, maybe should be moved at some point -------
         int mBounty;
         int mWerewolfKills;
@@ -83,7 +62,6 @@ namespace MWMechanics
                                          // the entire game)
         std::set<ESM::RefId> mUsedIds;
         // ---------------------------------------------------------------------------
->>>>>>> omw51
 
         /// Countdown to getting damage while underwater
         float mTimeToStartDrowning;
@@ -137,7 +115,6 @@ namespace MWMechanics
         int getSkillIncreasesForSpecialization(ESM::Class::Specialization spec) const;
         void setSkillIncreasesForSpecialization(ESM::Class::Specialization spec, int increases);
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -149,7 +126,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -161,11 +137,7 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            int getLevelupAttributeMultiplier(int attribute) const;
-=======
         void levelUp();
->>>>>>> omw51
 
         void updateHealth();
         ///< Calculate health based on endurance and strength.

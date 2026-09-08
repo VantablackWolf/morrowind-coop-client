@@ -74,7 +74,6 @@ namespace MWClass
         MWWorld::InventoryStore& getInventoryStore(const MWWorld::Ptr& ptr) const override;
         ///< Return inventory store
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -84,11 +83,7 @@ namespace MWClass
             /*
                 End of tes3mp addition
             */
-
-            void hit(const MWWorld::Ptr& ptr, float attackStrength, int type) const override;
-=======
         bool hasInventoryStore(const MWWorld::ConstPtr& ptr) const override { return true; }
->>>>>>> omw51
 
         bool evaluateHit(const MWWorld::Ptr& ptr, MWWorld::Ptr& victim, osg::Vec3f& hitPosition) const override;
 

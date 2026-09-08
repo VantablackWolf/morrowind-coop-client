@@ -762,7 +762,6 @@ namespace MWWorld
             list.push_back(ESM::RefId::stringRefId(sharedCell->mName));
         }
     }
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -799,10 +798,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-    ESM::Cell *Store<ESM::Cell>::insert(const ESM::Cell &cell)
-=======
     ESM::Cell* Store<ESM::Cell>::insert(const ESM::Cell& cell)
->>>>>>> omw51
     {
         if (search(cell) != nullptr)
         {

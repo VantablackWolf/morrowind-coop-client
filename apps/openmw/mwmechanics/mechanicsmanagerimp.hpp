@@ -161,7 +161,6 @@ namespace MWMechanics
         /// Check if there are actors in selected range
         bool isAnyActorInRange(const osg::Vec3f& position, float radius) override;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -171,15 +170,10 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            void getPersuasionDispositionChange(const MWWorld::Ptr& npc, PersuasionType type, bool& success, float& tempChange, float& permChange) override;
-            ///< Perform a persuasion action on NPC
-=======
         std::vector<MWWorld::Ptr> getActorsSidingWith(const MWWorld::Ptr& actor) override;
         std::vector<MWWorld::Ptr> getActorsFollowing(const MWWorld::Ptr& actor) override;
         std::vector<int> getActorsFollowingIndices(const MWWorld::Ptr& actor) override;
         std::map<int, MWWorld::Ptr> getActorsFollowingByIndex(const MWWorld::Ptr& actor) override;
->>>>>>> omw51
 
         std::vector<MWWorld::Ptr> getActorsFighting(const MWWorld::Ptr& actor) override;
         std::vector<MWWorld::Ptr> getEnemiesNearby(const MWWorld::Ptr& actor) override;
@@ -244,7 +238,6 @@ namespace MWMechanics
 
         void cleanupSummonedCreature(ESM::RefNum creature) override;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -254,12 +247,8 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            void castSpell(const MWWorld::Ptr& ptr, const std::string spellId, bool manualSpell=false) override;
-=======
         void confiscateStolenItemToOwner(
             const MWWorld::Ptr& player, const MWWorld::Ptr& item, const MWWorld::Ptr& victim, int count) override;
->>>>>>> omw51
 
         bool isAttackPreparing(const MWWorld::Ptr& ptr) override;
         bool isRunning(const MWWorld::Ptr& ptr) override;
@@ -277,18 +266,6 @@ namespace MWMechanics
         bool canReportCrime(
             const MWWorld::Ptr& actor, const MWWorld::Ptr& victim, std::set<MWWorld::Ptr>& playerFollowers);
 
-<<<<<<< HEAD
-            void confiscateStolenItems (const MWWorld::Ptr& player, const MWWorld::Ptr& targetContainer) override;
-
-            /// List the owners that the player has stolen this item from (the owner can be an NPC or a faction).
-            /// <Owner, item count>
-            std::vector<std::pair<std::string, int> > getStolenItemOwners(const std::string& itemid) override;
-
-            /// Has the player stolen this item from the given owner?
-            bool isItemStolenFrom(const std::string& itemid, const MWWorld::Ptr& ptr) override;
-
-            bool isBoundItem(const MWWorld::Ptr& item) override;
-
             /*
                 Start of tes3mp addition
 
@@ -298,40 +275,8 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            /// @return is \a ptr allowed to take/use \a target or is it a crime?
-            bool isAllowedToUse (const MWWorld::Ptr& ptr, const MWWorld::Ptr& target, MWWorld::Ptr& victim) override;
-
-            void setWerewolf(const MWWorld::Ptr& actor, bool werewolf) override;
-            void applyWerewolfAcrobatics(const MWWorld::Ptr& actor) override;
-
-            void cleanupSummonedCreature(const MWWorld::Ptr& caster, int creatureActorId) override;
-
-            void confiscateStolenItemToOwner(const MWWorld::Ptr &player, const MWWorld::Ptr &item, const MWWorld::Ptr& victim, int count) override;
-
-            bool isAttackPreparing(const MWWorld::Ptr& ptr) override;
-            bool isRunning(const MWWorld::Ptr& ptr) override;
-            bool isSneaking(const MWWorld::Ptr& ptr) override;
-
-            void reportStats(unsigned int frameNumber, osg::Stats& stats) const override;
-
-            int getGreetingTimer(const MWWorld::Ptr& ptr) const override;
-            float getAngleToPlayer(const MWWorld::Ptr& ptr) const override;
-            GreetingState getGreetingState(const MWWorld::Ptr& ptr) const override;
-            bool isTurningToPlayer(const MWWorld::Ptr& ptr) const override;
-
-            void restoreStatsAfterCorprus(const MWWorld::Ptr& actor, const std::string& sourceId) override;
-
-        private:
-            bool canCommitCrimeAgainst(const MWWorld::Ptr& victim, const MWWorld::Ptr& attacker);
-            bool canReportCrime(const MWWorld::Ptr &actor, const MWWorld::Ptr &victim, std::set<MWWorld::Ptr> &playerFollowers);
-
-            bool reportCrime (const MWWorld::Ptr& ptr, const MWWorld::Ptr& victim,
-                                      OffenseType type, const std::string& factionId, int arg=0);
-=======
         bool reportCrime(const MWWorld::Ptr& ptr, const MWWorld::Ptr& victim, OffenseType type,
             const ESM::RefId& factionId, int arg = 0);
->>>>>>> omw51
     };
 }
 

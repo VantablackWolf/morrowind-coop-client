@@ -14,7 +14,6 @@
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_Window.h>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -25,14 +24,8 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/globalmap.hpp>
-#include <components/esm/esmwriter.hpp>
-#include <components/settings/settings.hpp>
-=======
 #include <components/esm3/esmwriter.hpp>
 #include <components/esm3/globalmap.hpp>
->>>>>>> omw51
 #include <components/myguiplatform/myguitexture.hpp>
 #include <components/settings/values.hpp>
 
@@ -412,7 +405,6 @@ namespace MWGui
         redraw();
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -425,7 +417,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -440,11 +431,7 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
-    void LocalMapBase::setActiveCell(const int x, const int y, bool interior)
-=======
     void LocalMapBase::setActiveCell(const MWWorld::Cell& cell)
->>>>>>> omw51
     {
         if (&cell == mActiveCell)
             return; // don't do anything if we're still in the same cell
@@ -1262,7 +1249,6 @@ namespace MWGui
         }
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -1276,7 +1262,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-=======
     float MapWindow::getMarkerSize(size_t agregatedWeight) const
     {
         float markerSize = 12.f * mGlobalMapZoom;
@@ -1299,7 +1284,6 @@ namespace MWGui
         imageX *= mGlobalMapZoom;
         imageY *= mGlobalMapZoom;
     }
->>>>>>> omw51
 
     void MapWindow::updateCustomMarkers()
     {

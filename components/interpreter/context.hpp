@@ -13,7 +13,6 @@ namespace Interpreter
     public:
         virtual ~Context() {}
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -29,11 +28,7 @@ namespace Interpreter
             /*
                 End of tes3mp addition
             */
-
-            virtual ~Context() {}
-=======
         virtual ESM::RefId getTarget() const = 0;
->>>>>>> omw51
 
         virtual int getLocalShort(int index) const = 0;
 
@@ -109,10 +104,6 @@ namespace Interpreter
 
         virtual void setMemberLong(ESM::RefId id, std::string_view name, int value, bool global) = 0;
 
-<<<<<<< HEAD
-            virtual void setMemberFloat (const std::string& id, const std::string& name, float value, bool global)
-                = 0;
-
             /*
                 Start of tes3mp addition
 
@@ -126,9 +117,7 @@ namespace Interpreter
             /*
                 End of tes3mp addition
             */
-=======
         virtual void setMemberFloat(ESM::RefId id, std::string_view name, float value, bool global) = 0;
->>>>>>> omw51
     };
 }
 

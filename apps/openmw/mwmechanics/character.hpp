@@ -146,7 +146,6 @@ namespace MWMechanics
         AnimationQueue mAnimQueue;
         bool mLuaAnimations{ false };
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -156,13 +155,8 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    /// @see Animation::setActive
-    void setActive(int active);
-=======
         CharacterState mIdleState{ CharState_None };
         std::string mCurrentIdle;
->>>>>>> omw51
 
         CharacterState mMovementState{ CharState_None };
         std::string mCurrentMovement;

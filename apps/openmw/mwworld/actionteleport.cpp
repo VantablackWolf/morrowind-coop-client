@@ -1,6 +1,5 @@
 #include "actionteleport.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -16,14 +15,8 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/environment.hpp"
-#include "../mwbase/world.hpp"
-#include "../mwbase/mechanicsmanager.hpp"
-=======
 #include <components/esm3/loadcell.hpp>
 #include <components/esm3/loadmgef.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/luamanager.hpp"
@@ -104,26 +97,6 @@ namespace MWWorld
 
             if (actor.getClass().getCreatureStats(actor).getAiSequence().isInCombat(world->getPlayerPtr()))
             {
-<<<<<<< HEAD
-                int cellX;
-                int cellY;
-                world->positionToIndex(mPosition.pos[0],mPosition.pos[1],cellX,cellY);
-
-                newCellStore = world->getExterior(cellX, cellY);
-                if (cellController->isDedicatedActor(actor))
-                    cellController->getDedicatedActor(actor)->cell = *newCellStore->getCell();
-
-                world->moveObject(actor,world->getExterior(cellX,cellY),
-                    mPosition.pos[0],mPosition.pos[1],mPosition.pos[2]);
-            }
-            else
-            {
-                newCellStore = world->getInterior(mCellName);
-                if (cellController->isDedicatedActor(actor))
-                    cellController->getDedicatedActor(actor)->cell = *newCellStore->getCell();
-
-                world->moveObject(actor,world->getInterior(mCellName),mPosition.pos[0],mPosition.pos[1],mPosition.pos[2]);
-            }
             /*
                 Start of tes3mp change (minor)
             */
@@ -168,13 +141,11 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-=======
                 actor.getClass().getCreatureStats(actor).getAiSequence().stopCombat();
                 return;
             }
             else
                 teleported = world->moveObject(actor, &worldModel->getCell(mCellId), mPosition.asVec3(), true, true);
->>>>>>> omw51
         }
 
         if (!world->isWaterWalkingCastableOnTarget(teleported) && MWMechanics::hasWaterWalking(teleported))

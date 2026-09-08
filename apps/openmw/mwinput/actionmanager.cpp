@@ -6,7 +6,6 @@
 
 #include <components/settings/values.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -18,11 +17,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/inputmanager.hpp"
-#include "../mwbase/statemanager.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/inputmanager.hpp"
 #include "../mwbase/luamanager.hpp"
@@ -253,7 +247,6 @@ namespace MWInput
             || MWBase::Environment::get().getWindowManager()->isGuiMode())
             return;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -269,21 +262,6 @@ namespace MWInput
         /*
             End of tes3mp addition
         */
-
-        MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Rest); //Open rest GUI
-    }
-
-    void ActionManager::toggleInventory()
-    {
-        if (!MWBase::Environment::get().getInputManager()->getControlSwitch("playercontrols"))
-            return;
-
-        if (MyGUI::InputManager::getInstance().isModalAny())
-            return;
-
-        if (MWBase::Environment::get().getWindowManager()->isConsoleMode())
-            return;
-
         /*
             Start of tes3mp addition
 
@@ -294,21 +272,7 @@ namespace MWInput
         /*
             End of tes3mp addition
         */
-
-        // Toggle between game mode and inventory mode
-        if(!MWBase::Environment::get().getWindowManager()->isGuiMode())
-            MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Inventory);
-        else
-        {
-            MWGui::GuiMode mode = MWBase::Environment::get().getWindowManager()->getMode();
-            if(mode == MWGui::GM_Inventory || mode == MWGui::GM_Container)
-                MWBase::Environment::get().getWindowManager()->popGuiMode();
-        }
-
-        // .. but don't touch any other mode, except container.
-=======
         MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Rest); // Open rest GUI
->>>>>>> omw51
     }
 
     void ActionManager::toggleConsole()

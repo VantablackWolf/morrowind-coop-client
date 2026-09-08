@@ -1,6 +1,5 @@
 #include "actionread.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -11,11 +10,9 @@
 /*
     End of tes3mp addition
 */
-=======
 #include <components/esm3/loadbook.hpp>
 #include <components/esm3/loadclas.hpp>
 #include <components/esm3/loadskil.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/luamanager.hpp"
@@ -65,16 +62,6 @@ namespace MWWorld
         {
             MWBase::Environment::get().getLuaManager()->skillLevelUp(player, skill, "book");
 
-<<<<<<< HEAD
-            const ESM::Class *class_ =
-                MWBase::Environment::get().getWorld()->getStore().get<ESM::Class>().find (
-                    playerRef->mBase->mClass
-                );
-
-            npcStats.increaseSkill (ref->mBase->mData.mSkillId, *class_, true, true);
-
-            npcStats.flagAsUsed (ref->mBase->mId);
-
             /*
                 Start of tes3mp addition
 
@@ -84,9 +71,7 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-=======
             npcStats.flagAsUsed(ref->mBase->mId);
->>>>>>> omw51
         }
     }
 }

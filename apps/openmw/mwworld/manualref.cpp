@@ -16,7 +16,6 @@ namespace
         cellRef.blank();
         cellRef.mRefID = name;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -26,15 +25,8 @@ namespace
         /*
             End of tes3mp addition
         */
-
-        MWWorld::LiveCellRef<T> ref(cellRef, base);
-
-        refValue = ref;
-        ptrValue = MWWorld::Ptr(&boost::any_cast<MWWorld::LiveCellRef<T>&>(refValue), nullptr);
-=======
         refValue = MWWorld::LiveCellRef<T>(cellRef, base);
         ptrValue = MWWorld::Ptr(&std::any_cast<MWWorld::LiveCellRef<T>&>(refValue), nullptr);
->>>>>>> omw51
     }
 
     template <typename T>

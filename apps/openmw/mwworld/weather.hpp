@@ -456,7 +456,6 @@ namespace MWWorld
         MWBase::Sound* mRainSound{ nullptr };
         ESM::RefId mPlayingRainSoundID;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -467,14 +466,8 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-
-        void addWeather(const std::string& name,
-                        float dlFactor, float dlOffset,
-                        const std::string& particleEffect = "");
-=======
         void addWeather(
             const std::string& name, float dlFactor, float dlOffset, const std::string& particleEffect = "");
->>>>>>> omw51
 
         void importRegions();
 

@@ -1,6 +1,5 @@
 #include "actor.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -13,12 +12,7 @@
 /*
     End of tes3mp addition
 */
-
-#include <BulletCollision/CollisionShapes/btBoxShape.h>
-#include <BulletCollision/CollisionDispatch/btCollisionWorld.h>
-=======
 #include <BulletCollision/CollisionShapes/btCylinderShape.h>
->>>>>>> omw51
 
 #include <components/debug/debuglog.hpp>
 #include <components/misc/convert.hpp>
@@ -133,26 +127,6 @@ namespace MWPhysics
         updateCollisionObjectPositionUnsafe();
     }
 
-<<<<<<< HEAD
-    mShape.reset(new btBoxShape(Misc::Convert::toBullet(mHalfExtents)));
-    mRotationallyInvariant = (mMeshTranslation.x() == 0.0 && mMeshTranslation.y() == 0.0) && std::fabs(mHalfExtents.x() - mHalfExtents.y()) < 2.2;
-
-    mConvexShape = static_cast<btConvexShape*>(mShape.get());
-
-    mCollisionObject = std::make_unique<btCollisionObject>();
-    mCollisionObject->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-    mCollisionObject->setActivationState(DISABLE_DEACTIVATION);
-    mCollisionObject->setCollisionShape(mShape.get());
-    mCollisionObject->setUserPointer(this);
-
-    updateScale();
-
-    if(!mRotationallyInvariant)
-        updateRotation();
-
-    updatePosition();
-    addCollisionMask(getCollisionMask());
-
     /*
         Start of tes3mp addition
 
@@ -173,26 +147,7 @@ namespace MWPhysics
     /*
         End of tes3mp addition
     */
-
-    updateCollisionObjectPosition();
-}
-
-Actor::~Actor()
-{
-    mTaskScheduler->removeCollisionObject(mCollisionObject.get());
-}
-
-void Actor::enableCollisionMode(bool collision)
-{
-    mInternalCollisionMode.store(collision, std::memory_order_release);
-}
-
-void Actor::enableCollisionBody(bool collision)
-{
-    if (mExternalCollisionMode != collision)
-=======
     Actor::~Actor()
->>>>>>> omw51
     {
         mTaskScheduler->removeCollisionObject(mCollisionObject.get());
     }

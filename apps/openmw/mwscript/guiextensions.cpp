@@ -65,9 +65,6 @@ namespace MWScript
             {
                 MWWorld::Ptr bed = R()(runtime, false);
 
-<<<<<<< HEAD
-                if (bed.isEmpty() || !MWBase::Environment::get().getMechanicsManager()->sleepInBed(MWMechanics::getPlayer(),
-                                                                             bed))
                 /*
                     Start of tes3mp change (minor)
 
@@ -85,11 +82,9 @@ namespace MWScript
                 /*
                     End of tes3mp change (minor)
                 */
-=======
                 if (bed.isEmpty()
                     || !MWBase::Environment::get().getMechanicsManager()->sleepInBed(MWMechanics::getPlayer(), bed))
                     MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Rest, bed);
->>>>>>> omw51
             }
         };
 

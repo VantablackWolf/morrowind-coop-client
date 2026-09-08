@@ -1,6 +1,5 @@
 #include "repair.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -12,15 +11,11 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadrepa.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
 #include <components/esm3/loadnpc.hpp>
 #include <components/esm3/loadrepa.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -55,9 +50,6 @@ namespace MWClass
 
     std::string_view Repair::getModel(const MWWorld::ConstPtr& ptr) const
     {
-<<<<<<< HEAD
-        // TODO: add option somewhere to enable collision for placeable objects
-
         /*
             Start of tes3mp addition
 
@@ -78,9 +70,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         return getClassModel<ESM::Repair>(ptr);
->>>>>>> omw51
     }
 
     std::string_view Repair::getName(const MWWorld::ConstPtr& ptr) const

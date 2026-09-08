@@ -75,11 +75,6 @@ namespace MWScript
             {
                 bool enabled = MWBase::Environment::get().getWorld()->toggleCollisionMode();
 
-<<<<<<< HEAD
-                void execute (Interpreter::Runtime& runtime) override
-                {
-                    bool enabled = MWBase::Environment::get().getWorld()->toggleCollisionMode();
-
                     /*
                         Start of tes3mp addition
 
@@ -89,13 +84,8 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-
-                    runtime.getContext().report (enabled ? "Collision -> On" : "Collision -> Off");
-                }
-=======
                 runtime.getContext().report(enabled ? "Collision -> On" : "Collision -> Off");
             }
->>>>>>> omw51
         };
 
         template <class R>

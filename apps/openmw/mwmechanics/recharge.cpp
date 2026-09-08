@@ -5,7 +5,6 @@
 #include <components/misc/rng.hpp>
 #include <components/misc/strings/format.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -18,10 +17,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/world.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
 #include "../mwbase/world.hpp"
@@ -92,7 +87,6 @@ namespace MWMechanics
             item.getCellRef().setEnchantmentCharge(
                 std::min(item.getCellRef().getEnchantmentCharge() + restored, static_cast<float>(maxCharge)));
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (minor)
 
@@ -111,11 +105,6 @@ namespace MWMechanics
         /*
             End of tes3mp change (minor)
         */
-
-        MWBase::Environment::get().getWindowManager()->playSound("Enchant Success");
-
-        player.getClass().getContainerStore(player).restack(item);
-
         /*
             Start of tes3mp addition
 
@@ -129,11 +118,6 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-    }
-    else
-    {
-        MWBase::Environment::get().getWindowManager()->playSound("Enchant Fail");
-
         /*
             Start of tes3mp addition
 
@@ -147,26 +131,6 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-    }
-
-    player.getClass().skillUsageSucceeded (player, ESM::Skill::Enchant, 0);
-    gem.getContainerStore()->remove(gem, 1, player);
-
-    if (gem.getRefData().getCount() == 0)
-    {
-        std::string message = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>().find("sNotifyMessage51")->mValue.getString();
-        message = Misc::StringUtils::format(message, gem.getClass().getName(gem));
-
-        MWBase::Environment::get().getWindowManager()->messageBox(message);
-
-        // special case: readd Azura's Star
-        if (Misc::StringUtils::ciEqual(gem.get<ESM::Miscellaneous>()->mBase->mId, "Misc_SoulGem_Azura"))
-            player.getClass().getContainerStore(player).add("Misc_SoulGem_Azura", 1, player);
-    }
-
-    return true;
-}
-=======
             MWBase::Environment::get().getWindowManager()->playSound(ESM::RefId::stringRefId("Enchant Success"));
 
             player.getClass().getContainerStore(player).restack(item);
@@ -198,6 +162,5 @@ namespace MWMechanics
 
         return true;
     }
->>>>>>> omw51
 
 }

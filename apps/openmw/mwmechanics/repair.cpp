@@ -3,7 +3,6 @@
 #include <components/misc/rng.hpp>
 #include <components/misc/strings/format.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -16,10 +15,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/world.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
 #include "../mwbase/world.hpp"
@@ -39,11 +34,6 @@ namespace MWMechanics
         MWWorld::Ptr player = getPlayer();
         MWWorld::LiveCellRef<ESM::Repair>* ref = mTool.get<ESM::Repair>();
 
-<<<<<<< HEAD
-        // repair by 'y' points
-        int charge = itemToRepair.getClass().getItemHealth(itemToRepair);
-        charge = std::min(charge + y, itemToRepair.getClass().getItemMaxHealth(itemToRepair));
-
         /*
             Start of tes3mp change (minor)
 
@@ -61,15 +51,10 @@ namespace MWMechanics
         /*
             End of tes3mp change (minor)
         */
-
-        // attempt to re-stack item, in case it was fully repaired
-        MWWorld::ContainerStoreIterator stacked = player.getClass().getContainerStore(player).restack(itemToRepair);
-=======
         MWBase::Environment::get().getWorld()->breakInvisibility(player);
 
         // unstack tool if required
         player.getClass().getContainerStore(player).unstack(mTool);
->>>>>>> omw51
 
         // reduce number of uses left
         int uses = mTool.getClass().getItemHealth(mTool);
@@ -77,10 +62,6 @@ namespace MWMechanics
         mTool.getCellRef().setCharge(uses);
 
         MWMechanics::CreatureStats& stats = player.getClass().getCreatureStats(player);
-
-<<<<<<< HEAD
-        MWBase::Environment::get().getWindowManager()->playSound("Repair");
-        MWBase::Environment::get().getWindowManager()->messageBox("#{sRepairSuccess}");
 
         /*
             Start of tes3mp addition
@@ -95,12 +76,6 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-    }
-    else
-    {
-        MWBase::Environment::get().getWindowManager()->playSound("Repair Fail");
-        MWBase::Environment::get().getWindowManager()->messageBox("#{sRepairFailed}");
-
         /*
             Start of tes3mp addition
 
@@ -114,13 +89,10 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-    }
-=======
         float fatigueTerm = stats.getFatigueTerm();
         float pcStrength = stats.getAttribute(ESM::Attribute::Strength).getModified();
         float pcLuck = stats.getAttribute(ESM::Attribute::Luck).getModified();
         float armorerSkill = player.getClass().getSkill(player, ESM::Skill::Armorer);
->>>>>>> omw51
 
         float fRepairAmountMult = MWBase::Environment::get()
                                       .getESMStore()

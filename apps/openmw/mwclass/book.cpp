@@ -1,6 +1,5 @@
 #include "book.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -12,15 +11,11 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadbook.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
 #include <components/esm3/loadbook.hpp>
 #include <components/esm3/loadsoun.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -60,9 +55,6 @@ namespace MWClass
 
     std::string_view Book::getModel(const MWWorld::ConstPtr& ptr) const
     {
-<<<<<<< HEAD
-        // TODO: add option somewhere to enable collision for placeable objects
-
         /*
             Start of tes3mp addition
 
@@ -83,9 +75,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         return getClassModel<ESM::Book>(ptr);
->>>>>>> omw51
     }
 
     std::string_view Book::getName(const MWWorld::ConstPtr& ptr) const
@@ -187,10 +177,6 @@ namespace MWClass
         newItem.mId = ESM::RefId();
         newItem.mName = newName;
         newItem.mData.mIsScroll = 1;
-<<<<<<< HEAD
-        newItem.mData.mEnchant=enchCharge;
-        newItem.mEnchant=enchId;
-
         /*
             Start of tes3mp addition
 
@@ -201,13 +187,9 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-
-        const ESM::Book *record = MWBase::Environment::get().getWorld()->createRecord (newItem);
-=======
         newItem.mData.mEnchant = enchCharge;
         newItem.mEnchant = enchId;
         const ESM::Book* record = MWBase::Environment::get().getESMStore()->insert(newItem);
->>>>>>> omw51
         return record->mId;
     }
 

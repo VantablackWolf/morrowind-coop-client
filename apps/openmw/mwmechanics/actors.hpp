@@ -161,16 +161,6 @@ namespace MWMechanics
         bool isReadyToBlock(const MWWorld::Ptr& ptr) const;
         bool isAttackingOrSpell(const MWWorld::Ptr& ptr) const;
 
-<<<<<<< HEAD
-            int getHoursToRest(const MWWorld::Ptr& ptr) const;
-            ///< Calculate how many hours the given actor needs to rest in order to be fully healed
-
-            void fastForwardAi();
-            ///< Simulate the passing of time
-
-            int countDeaths (const std::string& id) const;
-            ///< Return the number of deaths for actors with the given ID.
-
             /*
                 Start of tes3mp addition
 
@@ -180,57 +170,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            bool isAttackPreparing(const MWWorld::Ptr& ptr);
-            bool isRunning(const MWWorld::Ptr& ptr);
-            bool isSneaking(const MWWorld::Ptr& ptr);
-
-            void forceStateUpdate(const MWWorld::Ptr &ptr);
-
-            bool playAnimationGroup(const MWWorld::Ptr& ptr, const std::string& groupName, int mode, int number, bool persist=false);
-            void skipAnimation(const MWWorld::Ptr& ptr);
-            bool checkAnimationPlaying(const MWWorld::Ptr& ptr, const std::string& groupName);
-            void persistAnimationStates();
-
-            void getObjectsInRange(const osg::Vec3f& position, float radius, std::vector<MWWorld::Ptr>& out);
-
-            bool isAnyObjectInRange(const osg::Vec3f& position, float radius);
-
-            void cleanupSummonedCreature (CreatureStats& casterStats, int creatureActorId);
-
-            ///Returns the list of actors which are siding with the given actor in fights
-            /**ie AiFollow or AiEscort is active and the target is the actor **/
-            std::list<MWWorld::Ptr> getActorsSidingWith(const MWWorld::Ptr& actor);
-            std::list<MWWorld::Ptr> getActorsFollowing(const MWWorld::Ptr& actor);
-
-            /// Recursive version of getActorsFollowing
-            void getActorsFollowing(const MWWorld::Ptr &actor, std::set<MWWorld::Ptr>& out);
-            /// Recursive version of getActorsSidingWith
-            void getActorsSidingWith(const MWWorld::Ptr &actor, std::set<MWWorld::Ptr>& out);
-            /// Recursive version of getActorsSidingWith that takes, adds to and returns a cache of actors mapped to their allies
-            void getActorsSidingWith(const MWWorld::Ptr &actor, std::set<MWWorld::Ptr>& out, std::map<const MWWorld::Ptr, const std::set<MWWorld::Ptr> >& cachedAllies);
-
-            /// Get the list of AiFollow::mFollowIndex for all actors following this target
-            std::list<int> getActorsFollowingIndices(const MWWorld::Ptr& actor);
-            std::map<int, MWWorld::Ptr> getActorsFollowingByIndex(const MWWorld::Ptr& actor);
-
-            ///Returns the list of actors which are fighting the given actor
-            /**ie AiCombat is active and the target is the actor **/
-            std::list<MWWorld::Ptr> getActorsFighting(const MWWorld::Ptr& actor);
-
-            /// Unlike getActorsFighting, also returns actors that *would* fight the given actor if they saw him.
-            std::list<MWWorld::Ptr> getEnemiesNearby(const MWWorld::Ptr& actor);
-
-            void write (ESM::ESMWriter& writer, Loading::Listener& listener) const;
-
-            void readRecord (ESM::ESMReader& reader, uint32_t type);
-
-            void clear(); // Clear death counter
-
-            bool isCastingSpell(const MWWorld::Ptr& ptr) const;
-            bool isReadyToBlock(const MWWorld::Ptr& ptr) const;
-            bool isAttackingOrSpell(const MWWorld::Ptr& ptr) const;
-
             /*
                 Start of tes3mp addition
 
@@ -240,16 +179,9 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            int getGreetingTimer(const MWWorld::Ptr& ptr) const;
-            float getAngleToPlayer(const MWWorld::Ptr& ptr) const;
-            GreetingState getGreetingState(const MWWorld::Ptr& ptr) const;
-            bool isTurningToPlayer(const MWWorld::Ptr& ptr) const;
-=======
         int getGreetingTimer(const MWWorld::Ptr& ptr) const;
         float getAngleToPlayer(const MWWorld::Ptr& ptr) const;
         GreetingState getGreetingState(const MWWorld::Ptr& ptr) const;
->>>>>>> omw51
 
     private:
         std::map<ESM::RefId, int> mDeathCount;

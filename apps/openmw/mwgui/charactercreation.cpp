@@ -20,7 +20,6 @@
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/player.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -31,12 +30,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "textinput.hpp"
-#include "race.hpp"
-#include "class.hpp"
-=======
->>>>>>> omw51
 #include "birth.hpp"
 #include "class.hpp"
 #include "inventorywindow.hpp"

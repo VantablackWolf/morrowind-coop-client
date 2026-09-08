@@ -329,11 +329,6 @@ namespace MWScript
                 runtime.pop();
                 if (ptr.getClass().isActor())
                 {
-<<<<<<< HEAD
-                    MWWorld::Ptr ptr = R()(runtime);
-                    Interpreter::Type_Integer value = runtime[0].mInteger;
-                    runtime.pop();
-
                     /*
                         Start of tes3mp addition
 
@@ -346,9 +341,6 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-
-=======
->>>>>>> omw51
                     ptr.getClass().getCreatureStats(ptr).setAiSetting(mIndex, value);
                     ptr.getClass().setBaseAISetting(ptr.getCellRef().getRefId(), mIndex, value);
 
@@ -408,21 +400,6 @@ namespace MWScript
                 MWMechanics::AiFollow followPackage(actorID, {}, duration, x, y, z, repeat);
                 ptr.getClass().getCreatureStats(ptr).getAiSequence().stack(followPackage, ptr);
 
-<<<<<<< HEAD
-                    Interpreter::Type_Float y = runtime[0].mFloat;
-                    runtime.pop();
-
-                    Interpreter::Type_Float z = runtime[0].mFloat;
-                    runtime.pop();
-
-                    // discard additional arguments (reset), because we have no idea what they mean.
-                    for (unsigned int i=0; i<arg0; ++i) runtime.pop();
-
-                    MWMechanics::AiFollow followPackage(actorID, duration, x, y ,z);
-                    ptr.getClass().getCreatureStats (ptr).getAiSequence().stack(followPackage, ptr);
-
-                    Log(Debug::Info) << "AiFollow: " << actorID << ", " << x << ", " << y << ", " << z << ", " << duration;
-
                     /*
                         Start of tes3mp addition
 
@@ -443,11 +420,8 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-                }
-=======
                 Log(Debug::Info) << "AiFollow: " << actorID << ", " << x << ", " << y << ", " << z << ", " << duration;
             }
->>>>>>> omw51
         };
 
         template <class R>
@@ -596,9 +570,6 @@ namespace MWScript
                 ESM::RefId targetID = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                 runtime.pop();
 
-<<<<<<< HEAD
-                    MWWorld::Ptr target = MWBase::Environment::get().getWorld()->searchPtr(targetID, true, false);
-
                     /*
                         Start of tes3mp addition
 
@@ -609,10 +580,6 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-
-                    if (!target.isEmpty())
-                        MWBase::Environment::get().getMechanicsManager()->startCombat(actor, target);
-
                     /*
                         Start of tes3mp addition
 
@@ -631,14 +598,11 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-                }
-=======
                 MWWorld::Ptr target = MWBase::Environment::get().getWorld()->searchPtr(targetID, true, false);
                 if (!target.isEmpty() && !target.getBase()->isDeleted()
                     && !target.getClass().getCreatureStats(target).isDead())
                     MWBase::Environment::get().getMechanicsManager()->startCombat(actor, target, nullptr);
             }
->>>>>>> omw51
         };
 
         template <class R>

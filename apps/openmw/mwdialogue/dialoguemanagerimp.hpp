@@ -89,7 +89,6 @@ namespace MWDialogue
 
         bool startDialogue(const MWWorld::Ptr& actor, ResponseCallback* callback) override;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -100,13 +99,8 @@ namespace MWDialogue
             /*
                 End of tes3mp addition
             */
-
-            void addChoice (const std::string& text,int choice) override;
-            const std::vector<std::pair<std::string, int> >& getChoices() override;
-=======
         std::list<std::string> getAvailableTopics() override;
         int getTopicFlag(const ESM::RefId& topicId) const override;
->>>>>>> omw51
 
         bool inJournal(const ESM::RefId& topicId, const ESM::RefId& infoId) const override;
 
@@ -139,10 +133,6 @@ namespace MWDialogue
 
         void readRecord(ESM::ESMReader& reader, uint32_t type) override;
 
-<<<<<<< HEAD
-            /// Removes the last added topic response for the given actor from the journal
-            void clearInfoActor(const MWWorld::Ptr & actor) const override;
-
             /*
                 Start of tes3mp addition
 
@@ -152,7 +142,6 @@ namespace MWDialogue
             /*
                 End of tes3mp addition
             */
-=======
         /// Changes faction1's opinion of faction2 by \a diff.
         void modFactionReaction(const ESM::RefId& faction1, const ESM::RefId& faction2, int diff) override;
 
@@ -165,7 +154,6 @@ namespace MWDialogue
 
         /// Removes the last added topic response for the given actor from the journal
         void clearInfoActor(const MWWorld::Ptr& actor) const override;
->>>>>>> omw51
     };
 }
 

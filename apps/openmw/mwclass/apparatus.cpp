@@ -1,6 +1,5 @@
 #include "apparatus.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -12,12 +11,8 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadappa.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -54,9 +49,6 @@ namespace MWClass
 
     std::string_view Apparatus::getModel(const MWWorld::ConstPtr& ptr) const
     {
-<<<<<<< HEAD
-        // TODO: add option somewhere to enable collision for placeable objects
-
         /*
             Start of tes3mp addition
 
@@ -77,9 +69,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         return getClassModel<ESM::Apparatus>(ptr);
->>>>>>> omw51
     }
 
     std::string_view Apparatus::getName(const MWWorld::ConstPtr& ptr) const

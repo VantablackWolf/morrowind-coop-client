@@ -227,29 +227,6 @@ namespace MWWorld
                 if (!includeDeleted && !isAccessible(mergedRef->mData, mergedRef->mRef))
                     continue;
 
-<<<<<<< HEAD
-            /// @note If you get a linker error here, this means the given type can not be stored in a cell. The supported types are
-            /// defined at the bottom of this file.
-            template <class T>
-            CellRefList<T>& get();
-
-        public:
-
-            /// Should this reference be accessible to the outside world (i.e. to scripts / game logic)?
-            /// Determined based on the deletion flags. By default, objects deleted by content files are never accessible;
-            /// objects deleted by setCount(0) are still accessible *if* they came from a content file (needed for vanilla
-            /// scripting compatibility, and the fact that objects may be "un-deleted" in the original game).
-            static bool isAccessible(const MWWorld::RefData& refdata, const MWWorld::CellRef& cref)
-            {
-                return !refdata.isDeletedByContentFile() && (cref.hasContentFile() || refdata.getCount() > 0);
-            }
-
-            /// Moves object from this cell to the given cell.
-            /// @note automatically updates given cell by calling cellToMoveTo->moveFrom(...)
-            /// @note throws exception if cellToMoveTo == this
-            /// @return updated MWWorld::Ptr with the new CellStore pointer set.
-            MWWorld::Ptr moveTo(const MWWorld::Ptr& object, MWWorld::CellStore* cellToMoveTo);
-
             /*
                 Start of tes3mp addition
 
@@ -260,61 +237,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            void rest(double hours);
-            void recharge(float duration);
-
-            /// Make a copy of the given object and insert it into this cell.
-            /// @note If you get a linker error here, this means the given type can not be inserted into a cell.
-            /// The supported types are defined at the bottom of this file.
-            template <typename T>
-            LiveCellRefBase* insert(const LiveCellRef<T>* ref)
-            {
-                mHasState = true;
-                CellRefList<T>& list = get<T>();
-                LiveCellRefBase* ret = &list.insert(*ref);
-                updateMergedRefs();
-                return ret;
-            }
-
-            /// @param readerList The readers to use for loading of the cell on-demand.
-            CellStore (const ESM::Cell *cell_,
-                       const MWWorld::ESMStore& store,
-                       std::vector<ESM::ESMReader>& readerList);
-
-            const ESM::Cell *getCell() const;
-
-            State getState() const;
-
-            const std::vector<std::string>& getPreloadedIds() const;
-            ///< Get Ids of objects in this cell, only valid in State_Preloaded
-
-            bool hasState() const;
-            ///< Does this cell have state that needs to be stored in a saved game file?
-
-            bool hasId (const std::string& id) const;
-            ///< May return true for deleted IDs when in preload state. Will return false, if cell is
-            /// unloaded.
-            /// @note Will not account for moved references which may exist in Loaded state. Use search() instead if the cell is loaded.
-
-            Ptr search (const std::string& id);
-            ///< Will return an empty Ptr if cell is not loaded. Does not check references in
-            /// containers.
-            /// @note Triggers CellStore hasState flag.
-
-            ConstPtr searchConst (const std::string& id) const;
-            ///< Will return an empty Ptr if cell is not loaded. Does not check references in
-            /// containers.
-            /// @note Does not trigger CellStore hasState flag.
-
-            Ptr searchViaActorId (int id);
-            ///< Will return an empty Ptr if cell is not loaded.
-
-            Ptr searchViaRefNum (const ESM::RefNum& refNum);
-            ///< Will return an empty Ptr if cell is not loaded. Does not check references in
-            /// containers.
-            /// @note Triggers CellStore hasState flag.
-
             /*
                 Start of tes3mp addition
 
@@ -325,7 +247,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -335,7 +256,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -345,7 +265,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -355,7 +274,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -365,7 +283,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -375,40 +292,7 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            float getWaterLevel() const;
-
-            bool movedHere(const MWWorld::Ptr& ptr) const;
-
-            void setWaterLevel (float level);
-
-            void setFog (ESM::FogState* fog);
-            ///< \note Takes ownership of the pointer
-
-            ESM::FogState* getFog () const;
-
-            std::size_t count() const;
-            ///< Return total number of references, including deleted ones.
-
-            void load ();
-            ///< Load references from content file.
-
-            void preload ();
-            ///< Build ID list from content file.
-
-            /// Call visitor (MWWorld::Ptr) for each reference. visitor must return a bool. Returning
-            /// false will abort the iteration.
-            /// \note Prefer using forEachConst when possible.
-            /// \note Do not modify this cell (i.e. remove/add objects) during the forEach, doing this may result in unintended behaviour.
-            /// \attention This function also lists deleted (count 0) objects!
-            /// \return Iteration completed?
-            template<class Visitor>
-            bool forEach (Visitor&& visitor)
-            {
-                if (mState != State_Loaded)
-=======
                 if (!visitor(MWWorld::Ptr(mergedRef, this)))
->>>>>>> omw51
                     return false;
             }
             return true;

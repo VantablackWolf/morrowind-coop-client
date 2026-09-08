@@ -46,7 +46,6 @@ namespace MWMechanics
         mTargetActor = actor;
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -57,14 +56,6 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    const osg::Vec3f actorPos(actor.getRefData().getPosition().asVec3());
-    const osg::Vec3f targetPos(target.getRefData().getPosition().asVec3());
-    const osg::Vec3f targetDir = targetPos - actorPos;
-
-    // AiFollow requires the target to be in range and within sight for the initial activation
-    if (!mActive)
-=======
     AiFollow::AiFollow(
         const ESM::RefId& actorId, std::string_view cellId, float duration, float x, float y, float z, bool repeat)
         : TypedAiPackage<AiFollow>(repeat)
@@ -77,7 +68,6 @@ namespace MWMechanics
         , mCellId(cellId)
         , mActive(false)
         , mFollowIndex(mFollowIndexCounter++)
->>>>>>> omw51
     {
         mTargetActorRefId = actorId;
     }
@@ -294,84 +284,6 @@ namespace MWMechanics
             mRemainingDuration--;
     }
 
-<<<<<<< HEAD
-
-    short baseFollowDistance = followDistance;
-    short threshold = 30; // to avoid constant switching between moving/stopping
-    if (storage.mMoving)
-        followDistance -= threshold;
-    else
-        followDistance += threshold;
-
-    if (targetDir.length2() <= followDistance * followDistance)
-    {
-        float faceAngleRadians = std::atan2(targetDir.x(), targetDir.y());
-
-        if (!zTurn(actor, faceAngleRadians, osg::DegreesToRadians(45.f)))
-        {
-            storage.mTargetAngleRadians = faceAngleRadians;
-            storage.mTurnActorToTarget = true;
-        }
-
-        return false;
-    }
-
-    storage.mMoving = !pathTo(actor, targetPos, duration, baseFollowDistance); // Go to the destination
-
-    if (storage.mMoving)
-    {
-        //Check if you're far away
-        if (targetDir.length2() > 450 * 450)
-            actor.getClass().getCreatureStats(actor).setMovementFlag(MWMechanics::CreatureStats::Flag_Run, true); //Make NPC run
-        else if (targetDir.length2() < 325 * 325) //Have a bit of a dead zone, otherwise npc will constantly flip between running and not when right on the edge of the running threshold
-            actor.getClass().getCreatureStats(actor).setMovementFlag(MWMechanics::CreatureStats::Flag_Run, false); //make NPC walk
-    }
-
-    return false;
-}
-
-std::string AiFollow::getFollowedActor()
-{
-    return mTargetActorRefId;
-}
-
-bool AiFollow::isCommanded() const
-{
-    return !mOptions.mShouldCancelPreviousAi;
-}
-
-void AiFollow::writeState(ESM::AiSequence::AiSequence &sequence) const
-{
-    std::unique_ptr<ESM::AiSequence::AiFollow> follow(new ESM::AiSequence::AiFollow());
-    follow->mData.mX = mX;
-    follow->mData.mY = mY;
-    follow->mData.mZ = mZ;
-    follow->mTargetId = mTargetActorRefId;
-    follow->mTargetActorId = mTargetActorId;
-    follow->mRemainingDuration = mRemainingDuration;
-    follow->mCellId = mCellId;
-    follow->mAlwaysFollow = mAlwaysFollow;
-    follow->mCommanded = isCommanded();
-    follow->mActive = mActive;
-
-    ESM::AiSequence::AiPackageContainer package;
-    package.mType = ESM::AiSequence::Ai_Follow;
-    package.mPackage = follow.release();
-    sequence.mPackages.push_back(package);
-}
-
-int AiFollow::getFollowIndex() const
-{
-    return mFollowIndex;
-}
-
-void AiFollow::fastForward(const MWWorld::Ptr& actor, AiState &state)
-{
-    // Update duration counter if this package has a duration
-    if (mDuration > 0)
-        mRemainingDuration--;
-}
-
 /*
     Start of tes3mp addition
 
@@ -384,7 +296,4 @@ void AiFollow::allowAnyDistance(bool state)
 /*
     End of tes3mp addition
 */
-
-=======
->>>>>>> omw51
 }

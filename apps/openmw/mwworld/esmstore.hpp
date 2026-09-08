@@ -314,7 +314,6 @@ namespace MWWorld
     {
     };
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -328,7 +327,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -342,18 +340,8 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    template <>
-    inline const ESM::Cell *ESMStore::insert<ESM::Cell>(const ESM::Cell &cell) {
-        return mCells.insert(cell);
-    }
-
-    template <>
-    inline const ESM::NPC *ESMStore::insert<ESM::NPC>(const ESM::NPC &npc)
-=======
     template <class T>
     struct HasRecordId<T, std::void_t<decltype(T::sRecordId)>> : std::true_type
->>>>>>> omw51
     {
     };
 }

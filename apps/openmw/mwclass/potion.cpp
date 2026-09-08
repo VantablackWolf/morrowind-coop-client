@@ -1,6 +1,5 @@
 #include "potion.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -12,12 +11,8 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadalch.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
@@ -58,9 +53,6 @@ namespace MWClass
 
     std::string_view Potion::getModel(const MWWorld::ConstPtr& ptr) const
     {
-<<<<<<< HEAD
-        // TODO: add option somewhere to enable collision for placeable objects
-
         /*
             Start of tes3mp addition
 
@@ -81,9 +73,7 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         return getClassModel<ESM::Potion>(ptr);
->>>>>>> omw51
     }
 
     std::string_view Potion::getName(const MWWorld::ConstPtr& ptr) const

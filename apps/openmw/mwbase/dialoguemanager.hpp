@@ -62,7 +62,6 @@ namespace MWBase
         virtual void addChoice(std::string_view text, int choice) = 0;
         virtual const std::vector<std::pair<std::string, int>>& getChoices() const = 0;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -73,12 +72,7 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
-            virtual void addChoice (const std::string& text,int choice) = 0;
-            virtual const std::vector<std::pair<std::string, int> >& getChoices() = 0;
-=======
         virtual bool isGoodbye() const = 0;
->>>>>>> omw51
 
         virtual void goodbye() = 0;
 
@@ -134,10 +128,6 @@ namespace MWBase
         /// @return all faction's opinion overrides
         virtual const std::map<ESM::RefId, int>* getFactionReactionOverrides(const ESM::RefId& faction) const = 0;
 
-<<<<<<< HEAD
-            /// Removes the last added topic response for the given actor from the journal
-            virtual void clearInfoActor (const MWWorld::Ptr& actor) const = 0;
-
             /*
                 Start of tes3mp addition
 
@@ -147,7 +137,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp addition
 
@@ -157,10 +146,8 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-=======
         /// Removes the last added topic response for the given actor from the journal
         virtual void clearInfoActor(const MWWorld::Ptr& actor) const = 0;
->>>>>>> omw51
     };
 }
 

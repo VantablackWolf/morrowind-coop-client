@@ -55,7 +55,6 @@ namespace MWBase
         ///< Add a journal entry.
         /// @param actor Used as context for replacing of escape sequences (%name, etc).
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -65,7 +64,6 @@ namespace MWBase
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp change (minor)
 
@@ -78,10 +76,8 @@ namespace MWBase
             /*
                 End of tes3mp change (major)
             */
-=======
         virtual void setJournalIndex(const ESM::RefId& id, int index) = 0;
         ///< Set the journal index without adding an entry.
->>>>>>> omw51
 
         virtual int getJournalIndex(const ESM::RefId& id) const = 0;
         ///< Get the journal index.

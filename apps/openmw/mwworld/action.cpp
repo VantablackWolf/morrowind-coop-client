@@ -52,13 +52,6 @@ void MWWorld::Action::execute(const Ptr& actor, bool noSound)
             envType = MWSound::PlayMode::NoEnv;
         }
 
-<<<<<<< HEAD
-        if(mKeepSound && actor == MWMechanics::getPlayer())
-        {
-            MWBase::Environment::get().getSoundManager()->playSound(mSoundId, 1.0, 1.0,
-                MWSound::Type::Sfx, envType, mSoundOffset
-            );
-
             /*
                 Start of tes3mp addition
 
@@ -72,17 +65,6 @@ void MWWorld::Action::execute(const Ptr& actor, bool noSound)
             /*
                 End of tes3mp addition
             */
-        }
-        else
-        {
-            bool local = mTarget.isEmpty() || !mTarget.isInCell(); // no usable target
-            if(mKeepSound)
-            {
-                MWBase::Environment::get().getSoundManager()->playSound3D(
-                    (local ? actor : mTarget).getRefData().getPosition().asVec3(),
-                    mSoundId, 1.0, 1.0, MWSound::Type::Sfx, envType, mSoundOffset
-                );
-
                 /*
                     Start of tes3mp addition
 
@@ -99,13 +81,6 @@ void MWWorld::Action::execute(const Ptr& actor, bool noSound)
                 /*
                     End of tes3mp addition
                 */
-            }
-            else
-            {
-                MWBase::Environment::get().getSoundManager()->playSound3D(local ? actor : mTarget,
-                    mSoundId, 1.0, 1.0, MWSound::Type::Sfx, envType, mSoundOffset
-                );
-
                 /*
                     Start of tes3mp addition
 
@@ -122,8 +97,6 @@ void MWWorld::Action::execute(const Ptr& actor, bool noSound)
                 /*
                     End of tes3mp addition
                 */
-            }
-=======
         if (mKeepSound && actor == MWMechanics::getPlayer())
             MWBase::Environment::get().getSoundManager()->playSound(
                 mSoundId, 1.0, 1.0, MWSound::Type::Sfx, envType, mSoundOffset);
@@ -137,7 +110,6 @@ void MWWorld::Action::execute(const Ptr& actor, bool noSound)
             else
                 MWBase::Environment::get().getSoundManager()->playSound3D(
                     local ? actor : mTarget, mSoundId, 1.0, 1.0, MWSound::Type::Sfx, envType, mSoundOffset);
->>>>>>> omw51
         }
     }
 

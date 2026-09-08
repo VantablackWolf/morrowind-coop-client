@@ -123,7 +123,6 @@ namespace MWGui
         if (targetView)
             targetView->update();
 
-<<<<<<< HEAD
 /*
     Start of tes3mp change (minor)
 
@@ -138,10 +137,6 @@ void DragAndDrop::finish(bool deleteDragItems)
 /*
     End of tes3mp change (minor)
 */
-{
-    mIsOnDragAndDrop = false;
-    mSourceSortModel->clearDragItems();
-
     /*
         Start of tes3mp addition
 
@@ -152,12 +147,7 @@ void DragAndDrop::finish(bool deleteDragItems)
     /*
         End of tes3mp addition
     */
-
-    // since mSourceView doesn't get updated in drag()
-    MWBase::Environment::get().getWindowManager()->getInventoryWindow()->updateItemView();
-=======
         MWBase::Environment::get().getWindowManager()->getInventoryWindow()->updateItemView();
->>>>>>> omw51
 
         // We need to update the view since an other item could be auto-equipped.
         mSourceView->update();

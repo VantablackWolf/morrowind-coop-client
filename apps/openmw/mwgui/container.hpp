@@ -37,7 +37,6 @@ namespace MWGui
 
         void resetReference() override;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -48,7 +47,6 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
         /*
             Start of tes3mp addition
 
@@ -60,7 +58,6 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-=======
         void onDeleteCustomData(const MWWorld::Ptr& ptr) override;
 
         void treatNextOpenAsLoot() { mTreatNextOpenAsLoot = true; }
@@ -75,7 +72,6 @@ namespace MWGui
 
         MWGui::ItemView* getItemView() { return mItemView; }
         ItemModel* getModel() { return mModel; }
->>>>>>> omw51
 
     private:
         Misc::NotNullPtr<DragAndDrop> mDragAndDrop;

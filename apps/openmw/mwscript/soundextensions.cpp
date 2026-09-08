@@ -79,12 +79,6 @@ namespace MWScript
                 const VFS::Path::Normalized music(runtime.getStringLiteral(runtime[0].mInteger));
                 runtime.pop();
 
-<<<<<<< HEAD
-                void execute (Interpreter::Runtime& runtime) override
-                {
-                    std::string sound = runtime.getStringLiteral (runtime[0].mInteger);
-                    runtime.pop();
-
                     /*
                         Start of tes3mp addition
 
@@ -100,14 +94,9 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-
-                    MWBase::Environment::get().getSoundManager()->streamMusic (sound);
-                }
-=======
                 MWBase::Environment::get().getSoundManager()->streamMusic(
                     Misc::ResourceHelpers::correctMusicPath(music), MWSound::MusicType::MWScript);
             }
->>>>>>> omw51
         };
 
         class OpPlaySound : public Interpreter::Opcode0

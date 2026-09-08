@@ -9,7 +9,6 @@
 
 #include "../mwworld/class.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -22,46 +21,13 @@
 /*
     End of tes3mp addition
 */
-
-#include "movement.hpp"
-=======
 #include "actorutil.hpp"
 #include "character.hpp"
->>>>>>> omw51
 #include "creaturestats.hpp"
 #include "npcstats.hpp"
 
 namespace MWMechanics
 {
-
-<<<<<<< HEAD
-AiPursue::AiPursue(const MWWorld::Ptr& actor)
-{
-    mTargetActorId = actor.getClass().getCreatureStats(actor).getActorId();
-}
-
-AiPursue::AiPursue(const ESM::AiSequence::AiPursue *pursue)
-{
-    mTargetActorId = pursue->mTargetActorId;
-}
-
-bool AiPursue::execute (const MWWorld::Ptr& actor, CharacterController& characterController, AiState& state, float duration)
-{
-    if(actor.getClass().getCreatureStats(actor).isDead())
-        return true;
-
-    const MWWorld::Ptr target = MWBase::Environment::get().getWorld()->searchPtrViaActorId(mTargetActorId); //The target to follow
-
-    // Stop if the target doesn't exist
-    // Really we should be checking whether the target is currently registered with the MechanicsManager
-    if (target == MWWorld::Ptr() || !target.getRefData().getCount() || !target.getRefData().isEnabled())
-        return true;
-
-    if (isTargetMagicallyHidden(target) && !MWBase::Environment::get().getMechanicsManager()->awarenessCheck(target, actor))
-        return false;
-
-    if (target.getClass().getCreatureStats(target).isDead())
-        return true;
 
     /*
         Start of tes3mp addition
@@ -82,24 +48,6 @@ bool AiPursue::execute (const MWWorld::Ptr& actor, CharacterController& characte
     /*
         End of tes3mp addition
     */
-
-    actor.getClass().getCreatureStats(actor).setDrawState(DrawState_Nothing);
-
-    //Set the target destination
-    const osg::Vec3f dest = target.getRefData().getPosition().asVec3();
-    const osg::Vec3f actorPos = actor.getRefData().getPosition().asVec3();
-
-    const float pathTolerance = 100.f;
-
-    // check the true distance in case the target is far away in Z-direction
-    bool reached = pathTo(actor, dest, duration, pathTolerance) &&
-                   std::abs(dest.z() - actorPos.z()) < pathTolerance;
-
-    if (reached)
-    {
-        if (!MWBase::Environment::get().getWorld()->getLOS(target, actor))
-            return false;
-
         /*
             Start of tes3mp addition
 
@@ -113,14 +61,9 @@ bool AiPursue::execute (const MWWorld::Ptr& actor, CharacterController& characte
         /*
             End of tes3mp addition
         */
-
-        MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Dialogue, actor); //Arrest player when reached
-        return true;
-=======
     AiPursue::AiPursue(const MWWorld::Ptr& actor)
     {
         mTargetActor = actor.getCellRef().getRefNum();
->>>>>>> omw51
     }
 
     AiPursue::AiPursue(const ESM::AiSequence::AiPursue* pursue)

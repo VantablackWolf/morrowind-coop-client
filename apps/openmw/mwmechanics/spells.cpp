@@ -158,7 +158,6 @@ namespace MWMechanics
             const ESM::Spell* spell = *iter;
             if (filter(spell))
             {
-<<<<<<< HEAD
                 /*
                     Start of tes3mp addition
 
@@ -168,11 +167,7 @@ namespace MWMechanics
                 /*
                     End of tes3mp addition
                 */
-
-                mSpells.erase(iter++);
-=======
                 iter = mSpells.erase(iter);
->>>>>>> omw51
                 purged.push_back(spell->mId);
             }
             else
@@ -223,9 +218,6 @@ namespace MWMechanics
 
     void Spells::usePower(const ESM::Spell* spell)
     {
-<<<<<<< HEAD
-        mUsedPowers[spell] = MWBase::Environment::get().getWorld()->getTimeStamp();
-
         /*
             Start of tes3mp addition
 
@@ -236,8 +228,6 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-    }
-
     /*
         Start of tes3mp addition
 
@@ -254,9 +244,6 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    void Spells::readState(const ESM::SpellState &state, CreatureStats* creatureStats)
-=======
         // Updates or inserts a new entry with the current timestamp.
         const auto it = std::find_if(
             std::begin(mUsedPowers), std::end(mUsedPowers), [&](auto& pair) { return pair.first == spell; });
@@ -268,7 +255,6 @@ namespace MWMechanics
     }
 
     void Spells::readState(const ESM::SpellState& state, CreatureStats* creatureStats)
->>>>>>> omw51
     {
         const auto& baseSpells = mSpellList->getSpells();
 

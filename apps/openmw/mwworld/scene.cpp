@@ -379,7 +379,6 @@ namespace MWWorld
 
         ListAndResetObjectsVisitor visitor;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -390,12 +389,7 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-
-        (*iter)->forEach(visitor);
-        const auto world = MWBase::Environment::get().getWorld();
-=======
         cell->forEach(visitor, true); // Include objects being teleported by Lua
->>>>>>> omw51
         for (const auto& ptr : visitor.mObjects)
         {
             if (const auto object = mPhysics->getObject(ptr))
@@ -443,12 +437,6 @@ namespace MWWorld
 
         mWorld.getLocalScripts().clearCell(cell);
 
-<<<<<<< HEAD
-        MWBase::Environment::get().getWorld()->getLocalScripts().clearCell (*iter);
-
-        MWBase::Environment::get().getSoundManager()->stopSound (*iter);
-        mActiveCells.erase(*iter);
-
         /*
             Start of tes3mp addition
 
@@ -458,13 +446,11 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-=======
         MWBase::Environment::get().getSoundManager()->stopSound(cell);
         mActiveCells.erase(cell);
         // Clean up any effects that may have been spawned while unloading all cells
         if (mActiveCells.empty())
             mRendering.notifyWorldSpaceChanged();
->>>>>>> omw51
     }
 
     void Scene::loadCell(CellStore& cell, Loading::Listener* loadingListener, bool respawn, const osg::Vec3f& position,
@@ -518,20 +504,6 @@ namespace MWWorld
                         heights.mMaxHeight = data->getMaxHeight();
                         return heights;
                     }
-<<<<<<< HEAD
-                }
-                else
-                    mPhysics->disableWater();
-
-                const auto player = MWBase::Environment::get().getWorld()->getPlayerPtr();
-
-                navigator->update(player.getRefData().getPosition().asVec3());
-
-                if (!cell->isExterior() && !(cell->getCell()->mData.mFlags & ESM::Cell::QuasiEx))
-                {
-                    mRendering.configureAmbient(cell->getCell());
-                }
-
                 /*
                     Start of tes3mp addition
 
@@ -541,10 +513,8 @@ namespace MWWorld
                 /*
                     End of tes3mp addition
                 */
-=======
                 }();
                 mNavigator.addHeightfield(cellPosition, worldsize, shape, navigatorUpdateGuard);
->>>>>>> omw51
             }
         }
 
@@ -755,7 +725,6 @@ namespace MWWorld
             }
         }
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -770,17 +739,12 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-
-        CellStore* current = MWBase::Environment::get().getWorld()->getExterior(playerCellX, playerCellY);
-        MWBase::Environment::get().getWindowManager()->changeCell(current);
-=======
         mNavigator.update(pos, navigatorUpdateGuard.get());
 
         navigatorUpdateGuard.reset();
 
         CellStore& current = mWorld.getWorldModel().getExterior(playerCellIndex);
         MWBase::Environment::get().getWindowManager()->changeCell(&current);
->>>>>>> omw51
 
         if (changeEvent)
             mCellChanged = true;

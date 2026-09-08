@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <type_traits>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -14,17 +13,11 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/creaturestats.hpp>
-#include <components/esm/esmreader.hpp>
-#include <components/esm/esmwriter.hpp>
-=======
 #include <components/esm3/actoridconverter.hpp>
 #include <components/esm3/creaturestats.hpp>
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
 #include <components/esm3/loadmgef.hpp>
->>>>>>> omw51
 
 #include "../mwworld/class.hpp"
 #include "../mwworld/esmstore.hpp"
@@ -695,10 +688,6 @@ namespace MWMechanics
 
     void CreatureStats::updateAwareness(float duration)
     {
-<<<<<<< HEAD
-        return mSummonGraveyard;
-    }
-
     /*
         Start of tes3mp addition
 
@@ -721,26 +710,9 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    std::map<std::string, CorprusStats> &CreatureStats::getCorprusSpells()
-    {
-        return mCorprusSpells;
-    }
-
-    void CreatureStats::addCorprusSpell(const std::string& sourceId, CorprusStats& stats)
-    {
-        mCorprusSpells[sourceId] = stats;
-    }
-
-    void CreatureStats::removeCorprusSpell(const std::string& sourceId)
-    {
-        auto corprusIt = mCorprusSpells.find(sourceId);
-        if (corprusIt != mCorprusSpells.end())
-=======
         mAwarenessTimer += duration;
         // Only reroll for awareness every 5 seconds
         if (mAwarenessTimer >= 5.f)
->>>>>>> omw51
         {
             mAwarenessTimer = 0.f;
             mAwarenessRoll = -1;

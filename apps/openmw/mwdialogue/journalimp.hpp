@@ -34,7 +34,6 @@ namespace MWDialogue
         ///< Add a journal entry.
         /// @param actor Used as context for replacing of escape sequences (%name, etc).
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -44,7 +43,6 @@ namespace MWDialogue
             /*
                 End of tes3mp addition
             */
-
             /*
                 Start of tes3mp change (minor)
 
@@ -57,10 +55,8 @@ namespace MWDialogue
             /*
                 End of tes3mp change (major)
             */
-=======
         void setJournalIndex(const ESM::RefId& id, int index) override;
         ///< Set the journal index without adding an entry.
->>>>>>> omw51
 
         int getJournalIndex(const ESM::RefId& id) const override;
         ///< Get the journal index.

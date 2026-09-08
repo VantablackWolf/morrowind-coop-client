@@ -80,7 +80,6 @@ namespace MWWorld
 
     MWMechanics::CreatureStats& Class::getCreatureStats(const Ptr& ptr) const
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -92,11 +91,7 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-
-        throw std::runtime_error ("class does not have creature stats");
-=======
         throw std::runtime_error("class does not have creature stats");
->>>>>>> omw51
     }
 
     MWMechanics::NpcStats& Class::getNpcStats(const Ptr& ptr) const
@@ -171,7 +166,6 @@ namespace MWWorld
         throw std::runtime_error("class does not have an inventory store");
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -184,16 +178,11 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    bool Class::hasInventoryStore(const Ptr &ptr) const
-=======
     bool Class::hasInventoryStore(const ConstPtr& ptr) const
->>>>>>> omw51
     {
         return false;
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -206,11 +195,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    bool Class::canLock(const ConstPtr &ptr) const
-=======
     bool Class::canLock(const ConstPtr& ptr) const
->>>>>>> omw51
     {
         return false;
     }

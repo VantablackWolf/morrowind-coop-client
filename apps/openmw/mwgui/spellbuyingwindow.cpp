@@ -4,7 +4,6 @@
 #include <MyGUI_Gui.h>
 #include <MyGUI_ScrollView.h>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -17,11 +16,9 @@
 /*
     End of tes3mp addition
 */
-=======
 #include <components/esm3/loadgmst.hpp>
 #include <components/esm3/loadrace.hpp>
 #include <components/settings/values.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/inputmanager.hpp"
@@ -197,9 +194,6 @@ namespace MWGui
 
         MWMechanics::CreatureStats& stats = player.getClass().getCreatureStats(player);
         MWMechanics::Spells& spells = stats.getSpells();
-<<<<<<< HEAD
-        spells.add (mSpellsWidgetMap.find(_sender)->second);
-
         /*
             Start of tes3mp addition
 
@@ -209,15 +203,11 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-
-        player.getClass().getContainerStore(player).remove(MWWorld::ContainerStore::sGoldId, price, player);
-=======
         auto spell = mSpellsWidgetMap.find(sender);
         assert(spell != mSpellsWidgetMap.end());
 
         spells.add(spell->second);
         player.getClass().getContainerStore(player).remove(MWWorld::ContainerStore::sGoldId, price);
->>>>>>> omw51
 
         // add gold to NPC trading gold pool
         MWMechanics::CreatureStats& npcStats = mPtr.getClass().getCreatureStats(mPtr);
