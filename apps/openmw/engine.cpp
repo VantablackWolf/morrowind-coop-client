@@ -38,7 +38,6 @@
 
 #include <components/version/version.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -52,12 +51,10 @@
 */
 
 #include <components/detournavigator/navigator.hpp>
-=======
 #include <components/l10n/manager.hpp>
 
 #include <components/loadinglistener/asynclistener.hpp>
 #include <components/loadinglistener/loadinglistener.hpp>
->>>>>>> omw51
 
 #include <components/misc/frameratelimiter.hpp>
 
@@ -198,9 +195,7 @@ void OMW::Engine::executeLocalScripts()
     std::pair<ESM::RefId, MWWorld::Ptr> script;
     while (localScripts.getNext(script))
     {
-<<<<<<< HEAD
-        MWScript::InterpreterContext interpreterContext (
-            &script.second.getRefData().getLocals(), script.second);
+        MWScript::InterpreterContext interpreterContext(&script.second.getRefData().getLocals(), script.second);
 
         /*
             Start of tes3mp addition
@@ -232,11 +227,7 @@ void OMW::Engine::executeLocalScripts()
             End of tes3mp addition
         */
 
-        mEnvironment.getScriptManager()->run (script.first, interpreterContext);
-=======
-        MWScript::InterpreterContext interpreterContext(&script.second.getRefData().getLocals(), script.second);
         mScriptManager->run(script.first, interpreterContext);
->>>>>>> omw51
     }
 }
 
@@ -265,21 +256,17 @@ bool OMW::Engine::frame(unsigned frameNumber, float frametime)
 
             if (!mWindowManager->isWindowVisible())
             {
-<<<<<<< HEAD
-                mEnvironment.getSoundManager()->pausePlayback();
-                /*
-                    Start of tes3mp change (major)
-
-                    The game cannot be paused in multiplayer, so prevent that from happening even here
-                */
-                //return false;
-                /*
-                    End of tes3mp change (major)
-                */
-=======
                 mSoundManager->pausePlayback();
-                return false;
->>>>>>> omw51
+                /*
+                    Start of tes3mp change (minor)
+
+                    A multiplayer client keeps simulating while unfocused, so it must not
+                    bail out of the frame here the way single-player does.
+                */
+                // return false;
+                /*
+                    End of tes3mp change (minor)
+                */
             }
             else
                 mSoundManager->resumePlayback();
@@ -289,7 +276,6 @@ bool OMW::Engine::frame(unsigned frameNumber, float frametime)
                 mSoundManager->update(frametime);
         }
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -300,27 +286,12 @@ bool OMW::Engine::frame(unsigned frameNumber, float frametime)
             End of tes3mp addition
         */
 
-        // Main menu opened? Then scripts are also paused.
-        bool paused = mEnvironment.getWindowManager()->containsMode(MWGui::GM_MainMenu);
-        
-        /*
-            Start of tes3mp change (major)
-
-            Time should not be frozen in multiplayer, so the paused boolean is always set to
-            false instead
-        */
-        paused = false;
-        /*
-            End of tes3mp change (major)
-        */
-=======
         {
             ScopedProfile<UserStatsType::LuaSyncUpdate> profile(frameStart, frameNumber, *timer, *stats);
             // Should be called after input manager update and before any change to the game world.
             // It applies to the game world queued changes from the previous frame.
             mLuaManager->synchronizedUpdate();
         }
->>>>>>> omw51
 
         // update game state
         {
@@ -328,21 +299,18 @@ bool OMW::Engine::frame(unsigned frameNumber, float frametime)
             mStateManager->update(frametime);
         }
 
-<<<<<<< HEAD
-        /*
-            Start of tes3mp change (major)
-
-            Whether the GUI is active should have no relevance in multiplayer, so the guiActive
-            boolean is always set to false instead
-        */
-        //bool guiActive = mEnvironment.getWindowManager()->isGuiMode();
-        bool guiActive = false;
-        /*
-            End of tes3mp change (major)
-        */
-=======
         bool paused = mWorld->getTimeManager()->isPaused();
->>>>>>> omw51
+        /*
+            Start of tes3mp change (minor)
+
+            Time never freezes in multiplayer. 0.51 funnels every pause check in this
+            frame through this single value, so one override here covers all of them --
+            it replaces the separate guiActive and paused hooks the 0.47 port needed.
+        */
+        paused = false;
+        /*
+            End of tes3mp change (minor)
+        */
 
         {
             ScopedProfile<UserStatsType::Script> profile(frameStart, frameNumber, *timer, *stats);
@@ -383,24 +351,19 @@ bool OMW::Engine::frame(unsigned frameNumber, float frametime)
 
             if (mStateManager->getState() == MWBase::StateManager::State_Running)
             {
-<<<<<<< HEAD
-                MWWorld::Ptr player = mEnvironment.getWorld()->getPlayerPtr();
+                MWWorld::Ptr player = mWorld->getPlayerPtr();
                 /*
                     Start of tes3mp change (major)
 
-                    In multiplayer, the game should not end when the player dies,
-                    so the code here has been commented out
+                    Dying must not end the session in multiplayer -- the server decides what
+                    happens to a dead player, and ending the game here would drop the
+                    connection for everyone sharing the cell.
                 */
-                //if(!guiActive && player.getClass().getCreatureStats(player).isDead())
-                //    mEnvironment.getStateManager()->endGame();
+                // if (!paused && player.getClass().getCreatureStats(player).isDead())
+                //     mStateManager->endGame();
                 /*
                     End of tes3mp change (major)
                 */
-=======
-                MWWorld::Ptr player = mWorld->getPlayerPtr();
-                if (!paused && player.getClass().getCreatureStats(player).isDead())
-                    mStateManager->endGame();
->>>>>>> omw51
             }
         }
 
@@ -519,12 +482,14 @@ OMW::Engine::Engine(Files::ConfigurationManager& configurationManager)
 
 OMW::Engine::~Engine()
 {
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
         Free up memory allocated by multiplayer's GUIController, but make sure
-        mwmp::Main has actually been initialized
+        mwmp::Main has actually been initialized.
+
+        This runs before the engine subsystems below are released, since the
+        GUIController still touches the window manager.
     */
     if (mwmp::Main::isInitialized())
         mwmp::Main::get().getGUIController()->cleanUp();
@@ -532,20 +497,6 @@ OMW::Engine::~Engine()
         End of tes3mp addition
     */
 
-    mEnvironment.cleanup();
-
-    /*
-        Start of tes3mp addition
-
-        Free up memory allocated by multiplayer's Main class
-    */
-    mwmp::Main::destroy();
-    /*
-        End of tes3mp addition
-    */
-
-    delete mScriptContext;
-=======
     if (mScreenCaptureOperation != nullptr)
     {
         mScreenCaptureOperation->stop();
@@ -567,7 +518,16 @@ OMW::Engine::~Engine()
     mLuaManager = nullptr;
     mL10nManager = nullptr;
 
->>>>>>> omw51
+    /*
+        Start of tes3mp addition
+
+        Free up memory allocated by multiplayer's Main class
+    */
+    mwmp::Main::destroy();
+    /*
+        End of tes3mp addition
+    */
+
     mScriptContext = nullptr;
 
     mUnrefQueue = nullptr;
@@ -586,7 +546,6 @@ OMW::Engine::~Engine()
     }
 
     SDL_Quit();
-<<<<<<< HEAD
 
     /*
         Start of tes3mp addition
@@ -598,8 +557,6 @@ OMW::Engine::~Engine()
         End of tes3mp addition
     */
 }
-=======
->>>>>>> omw51
 
     Log(Debug::Info) << "Quitting peacefully.";
 }
@@ -703,19 +660,15 @@ void OMW::Engine::createWindow()
     {
         while (!mWindow)
         {
-<<<<<<< HEAD
             /*
-                Start of tes3mp change (major)
+                Start of tes3mp change (minor)
 
-                Rename the window into TES3MP
+                Name the window TES3MP
             */
-            mWindow = SDL_CreateWindow("TES3MP", pos_x, pos_y, width, height, flags);
+            mWindow = SDL_CreateWindow("TES3MP", posX, posY, width, height, flags);
             /*
-                End of tes3mp change (major)
+                End of tes3mp change (minor)
             */
-=======
-            mWindow = SDL_CreateWindow("OpenMW", posX, posY, width, height, flags);
->>>>>>> omw51
             if (!mWindow)
             {
                 // Try with a lower AA
@@ -872,21 +825,16 @@ void OMW::Engine::createWindow()
 
 void OMW::Engine::setWindowIcon()
 {
-<<<<<<< HEAD
-    boost::filesystem::ifstream windowIconStream;
+    std::ifstream windowIconStream;
     /*
-        Start of tes3mp change (major)
+        Start of tes3mp change (minor)
 
         Use TES3MP's logo for the window icon
     */
-    std::string windowIcon = (mResDir / "mygui" / "tes3mp_logo.png").string();
+    const auto windowIcon = mResDir / "mygui" / "tes3mp_logo.png";
     /*
-        End of tes3mp change (major)
+        End of tes3mp change (minor)
     */
-=======
-    std::ifstream windowIconStream;
-    const auto windowIcon = mResDir / "openmw.png";
->>>>>>> omw51
     windowIconStream.open(windowIcon, std::ios_base::in | std::ios_base::binary);
     if (windowIconStream.fail())
         Log(Debug::Error) << "Error: Failed to open " << windowIcon;
@@ -1265,33 +1213,15 @@ void OMW::Engine::go()
         timeManager.updateIsPaused();
         if (!timeManager.isPaused())
         {
-<<<<<<< HEAD
-            mViewer->eventTraversal();
-            mViewer->updateTraversal();
-
-            mEnvironment.getWorld()->updateWindowManager();
-
-            mViewer->renderingTraversals();
-
-            bool guiActive = mEnvironment.getWindowManager()->isGuiMode();
-
             /*
                 Start of tes3mp change (major)
 
-                Whether the GUI is active should have no relevance in multiplayer, so the guiActive
-                boolean is always set to false instead
+                0.51 advances simulation time unconditionally via the time manager, so the
+                guiActive override this hook used to need is gone -- upstream now does what
+                multiplayer wanted anyway. Nothing to re-apply here.
             */
-            guiActive = false;
-            /*
-                End of tes3mp change (major)
-            */
-
-            if (!guiActive)
-                simulationTime += dt;
-=======
             timeManager.setSimulationTime(timeManager.getSimulationTime() + dt);
             timeManager.setRenderingSimulationTime(timeManager.getRenderingSimulationTime() + dt);
->>>>>>> omw51
         }
 
         if (stats)
