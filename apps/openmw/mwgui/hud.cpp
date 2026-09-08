@@ -44,73 +44,15 @@
 
 namespace MWGui
 {
-<<<<<<< HEAD
+    /*
+        Start of tes3mp change (major)
 
-    /**
-     * Makes it possible to use ItemModel::moveItem to move an item from an inventory to the world.
-     */
-    class WorldItemModel : public ItemModel
-    {
-    public:
-        WorldItemModel(float left, float top) : mLeft(left), mTop(top) {}
-        virtual ~WorldItemModel() override {}
-        MWWorld::Ptr copyItem (const ItemStack& item, size_t count, bool /*allowAutoEquip*/) override
-        {
-            MWBase::World* world = MWBase::Environment::get().getWorld();
-
-            MWWorld::Ptr dropped;
-            if (world->canPlaceObject(mLeft, mTop))
-                dropped = world->placeObject(item.mBase, mLeft, mTop, count);
-            else
-                dropped = world->dropObjectOnGround(world->getPlayerPtr(), item.mBase, count);
-            dropped.getCellRef().setOwner("");
-
-            /*
-                Start of tes3mp addition
-
-                Send an ID_OBJECT_PLACE packet every time an object is dropped into the world from
-                the inventory screen
-            */
-            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-            objectList->reset();
-            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-            objectList->addObjectPlace(dropped, true);
-            objectList->sendObjectPlace();
-            /*
-                End of tes3mp addition
-            */
-
-            /*
-                Start of tes3mp change (major)
-
-                Instead of actually keeping this object as is, delete it after sending the packet
-                and wait for the server to send it back with a unique mpNum of its own
-            */
-            MWBase::Environment::get().getWorld()->deleteObject(dropped);
-            /*
-                End of tes3mp change (major)
-            */
-
-            return dropped;
-        }
-
-        void removeItem (const ItemStack& item, size_t count) override { throw std::runtime_error("removeItem not implemented"); }
-        ModelIndex getIndex (ItemStack item) override { throw std::runtime_error("getIndex not implemented"); }
-        void update() override {}
-        size_t getItemCount() override { return 0; }
-        ItemStack getItem (ModelIndex index) override { throw std::runtime_error("getItem not implemented"); }
-
-    private:
-        // Where to drop the item
-        float mLeft;
-        float mTop;
-    };
-
-
-    HUD::HUD(CustomMarkerCollection &customMarkers, DragAndDrop* dragAndDrop, MWRender::LocalMap* localMapRender)
-=======
+        0.51 moved WorldItemModel into mwgui/worlditemmodel.hpp. The two hooks 0.8.1 kept in
+        the copy that used to live here -- the ID_OBJECT_PLACE packet on dropping an item
+        into the world, and deleting the local copy so the server can send it back with its
+        own mpNum -- were migrated there.
+    */
     HUD::HUD(CustomMarkerCollection& customMarkers, DragAndDrop* dragAndDrop, MWRender::LocalMap* localMapRender)
->>>>>>> omw51
         : WindowBase("openmw_hud.layout")
         , LocalMapBase(customMarkers, localMapRender, Settings::map().mLocalMapHudFogOfWar)
         , mDragAndDrop(dragAndDrop)

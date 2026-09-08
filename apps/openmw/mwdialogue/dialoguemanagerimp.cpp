@@ -22,15 +22,12 @@
 #include <components/compiler/scriptparser.hpp>
 
 #include <components/interpreter/defines.hpp>
-<<<<<<< HEAD
-#include <components/settings/settings.hpp>
-=======
 #include <components/interpreter/interpreter.hpp>
 
 #include <components/misc/resourcehelpers.hpp>
 
 #include <components/settings/values.hpp>
->>>>>>> omw51
+#include <components/settings/settings.hpp>
 
 /*
     Start of tes3mp addition
