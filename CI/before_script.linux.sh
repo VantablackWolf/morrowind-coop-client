@@ -16,14 +16,13 @@ declare -a CMAKE_CONF_OPTS=(
     -DCMAKE_INSTALL_PREFIX=install
     -DBUILD_SHARED_LIBS="${BUILD_SHARED_LIBS:-OFF}"
     -DUSE_SYSTEM_TINYXML=ON
-<<<<<<< HEAD
     -DCMAKE_INSTALL_PREFIX=install
-    -DRakNet_LIBRARY_RELEASE=~/CrabNet/lib/libRakNetLibStatic.a
-    -DRakNet_LIBRARY_DEBUG=~/CrabNet/lib/libRakNetLibStatic.a
-=======
     -DOPENMW_USE_SYSTEM_RECASTNAVIGATION=ON
     -DOPENMW_CXX_FLAGS="${OPENMW_CXX_FLAGS}"  # flags specific to OpenMW project
->>>>>>> omw51
+    # Start of tes3mp addition: CrabNet is built by CI/before_install.linux.sh
+    -DRakNet_LIBRARY_RELEASE=~/CrabNet/lib/libRakNetLibStatic.a
+    -DRakNet_LIBRARY_DEBUG=~/CrabNet/lib/libRakNetLibStatic.a
+    # End of tes3mp addition
 )
 
 if [[ "${CMAKE_EXE_LINKER_FLAGS}" ]]; then

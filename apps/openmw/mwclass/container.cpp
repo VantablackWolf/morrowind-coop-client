@@ -187,8 +187,7 @@ namespace MWClass
 
         if (isLocked && hasKey)
         {
-<<<<<<< HEAD
-            MWBase::Environment::get().getWindowManager ()->messageBox (keyName + " #{sKeyUsed}");
+            MWBase::Environment::get().getWindowManager()->messageBox(std::string{ keyName } + " #{sKeyUsed}");
 
             /*
                 Start of tes3mp change (major)
@@ -196,36 +195,25 @@ namespace MWClass
                 Disable unilateral unlocking on this client and expect the server's reply to our
                 packet to do it instead
             */
-            //ptr.getCellRef().unlock();
+            // ptr.getCellRef().unlock();
             /*
                 End of tes3mp change (major)
             */
 
-=======
-            MWBase::Environment::get().getWindowManager()->messageBox(std::string{ keyName } + " #{sKeyUsed}");
-            ptr.getCellRef().unlock();
->>>>>>> omw51
             // using a key disarms the trap
             if (isTrapped)
             {
-<<<<<<< HEAD
                 /*
                     Start of tes3mp change (major)
 
                     Disable unilateral trap disarming on this client and expect the server's reply to our
                     packet to do it instead
                 */
-                //ptr.getCellRef().setTrap("");
-                //MWBase::Environment::get().getSoundManager()->playSound3D(ptr, "Disarm Trap", 1.0f, 1.0f);
+                // ptr.getCellRef().setTrap(ESM::RefId());
                 /*
                     End of tes3mp change (major)
                 */
 
-=======
-                ptr.getCellRef().setTrap(ESM::RefId());
-                MWBase::Environment::get().getSoundManager()->playSound3D(
-                    ptr, ESM::RefId::stringRefId("Disarm Trap"), 1.0f, 1.0f);
->>>>>>> omw51
                 isTrapped = false;
 
                 /*

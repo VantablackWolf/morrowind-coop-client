@@ -43,7 +43,6 @@ namespace MWWorld
             cast.mHitPosition = actorPosition;
             cast.cast(mSpellId);
         }
-<<<<<<< HEAD
 
         /*
             Start of tes3mp change (major)
@@ -51,7 +50,7 @@ namespace MWWorld
             Disable unilateral trap disarming on this client and expect the server's reply to our
             packet to do it instead
         */
-        //mTrapSource.getCellRef().setTrap("");
+        // mTrapSource.getCellRef().setTrap(ESM::RefId());
         /*
             End of tes3mp change (major)
         */
@@ -61,13 +60,14 @@ namespace MWWorld
 
             Send an ID_OBJECT_TRAP packet every time a trap is triggered
         */
-        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+        mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
         objectList->reset();
         objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        
+
         ESM::Position pos;
 
-        if (actor == MWBase::Environment::get().getWorld()->getPlayerPtr() && MWBase::Environment::get().getWorld()->getDistanceToFacedObject() > trapRange)
+        if (actor == MWBase::Environment::get().getWorld()->getPlayerPtr()
+            && MWBase::Environment::get().getWorld()->getDistanceToFacedObject() > trapRange)
             pos = mTrapSource.getRefData().getPosition();
         else
             pos = actor.getRefData().getPosition();
@@ -77,8 +77,5 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-=======
-        mTrapSource.getCellRef().setTrap(ESM::RefId());
->>>>>>> omw51
     }
 }

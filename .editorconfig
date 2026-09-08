@@ -10,12 +10,6 @@ indent_style = space
 indent_size = 4
 insert_final_newline = true
 
-<<<<<<< HEAD
-[*.glsl]
-indent_style = space
-indent_size = 4
-insert_final_newline = false
-=======
 [*.{glsl,vert,tesc,tese,geom,frag,comp}]
 indent_style = space
 indent_size = 4
@@ -25,4 +19,3 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 insert_final_newline = true
->>>>>>> omw51

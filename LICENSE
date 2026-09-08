@@ -620,7 +620,6 @@ copy of the Program in return for a fee.
 
                      END OF TERMS AND CONDITIONS
 
-<<<<<<< HEAD
 
 
 ADDITIONAL TERMS APPLICABLE TO THE TES3MP GPL Source Code.
@@ -680,7 +679,6 @@ AND AUTHORS OF THAT COVERED WORK FOR ANY DAMAEGS, DEMANDS, CLAIMS, LOSSES,
 CAUSES OF ACTION, LAWSUITS, JUDGMENTS EXPENSES (INCLUDING WITHOUT LIMITATION
 REASONABLE ATTORNEYS' FEES AND EXPENSES) OR ANY OTHER LIABLITY ARISING FROM,
 RELATED TO OR IN CONNECTION WITH YOUR ASSUMPTIONS OF LIABILITY.
-=======
             How to Apply These Terms to Your New Programs
 
   If you develop a new program, and you want it to be of the greatest
@@ -733,4 +731,3 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/philosophy/why-not-lgpl.html>.
->>>>>>> omw51

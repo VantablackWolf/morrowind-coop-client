@@ -150,28 +150,27 @@ namespace MWMechanics
             auto& prng = MWBase::Environment::get().getWorld()->getPrng();
             if (Misc::Rng::roll0to99(prng) <= x)
             {
-<<<<<<< HEAD
                 /*
                     Start of tes3mp change (major)
 
                     Disable unilateral trap disarming on this client and expect the server's reply to our
                     packet to do it instead
                 */
-                //trap.getCellRef().setTrap("");
+                // trap.getCellRef().setTrap(ESM::RefId());
                 /*
                     End of tes3mp change (major)
                 */
 
                 resultSound = "Disarm Trap";
                 resultMessage = "#{sTrapSuccess}";
-                mActor.getClass().skillUsageSucceeded(mActor, ESM::Skill::Security, 0);
+                mActor.getClass().skillUsageSucceeded(mActor, ESM::Skill::Security, ESM::Skill::Security_DisarmTrap);
 
                 /*
                     Start of tes3mp addition
 
                     Send an ID_OBJECT_TRAP packet every time a trap is disarmed
                 */
-                mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
                 objectList->reset();
                 objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
                 objectList->addObjectTrap(trap, trap.getRefData().getPosition(), true);
@@ -179,13 +178,6 @@ namespace MWMechanics
                 /*
                     End of tes3mp addition
                 */
-=======
-                trap.getCellRef().setTrap(ESM::RefId());
-
-                resultSound = "Disarm Trap";
-                resultMessage = "#{sTrapSuccess}";
-                mActor.getClass().skillUsageSucceeded(mActor, ESM::Skill::Security, ESM::Skill::Security_DisarmTrap);
->>>>>>> omw51
             }
             else
                 resultMessage = "#{sTrapFail}";

@@ -644,17 +644,17 @@ namespace MWClass
         if (victim.isEmpty()) // Didn't hit anything
             return;
 
-<<<<<<< HEAD
-        const MWWorld::Class &othercls = victim.getClass();
+        const MWWorld::Class& othercls = victim.getClass();
+
         /*
             Start of tes3mp change (major)
 
             Send an ID_OBJECT_HIT packet when hitting non-actors instead of
             just returning
         */
-        if(!othercls.isActor())
+        if (!othercls.isActor())
         {
-            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
             objectList->reset();
             objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
             objectList->addObjectHit(victim, ptr);
@@ -664,13 +664,9 @@ namespace MWClass
         /*
             End of tes3mp change (major)
         */
-        MWMechanics::CreatureStats &otherstats = othercls.getCreatureStats(victim);
-        if(otherstats.isDead()) // Can't hit dead actors
-=======
-        const MWWorld::Class& othercls = victim.getClass();
+
         MWMechanics::CreatureStats& otherstats = othercls.getCreatureStats(victim);
         if (otherstats.isDead()) // Can't hit dead actors
->>>>>>> omw51
             return;
 
         if (!MWMechanics::isInMeleeReach(ptr, victim, MWMechanics::getMeleeWeaponReach(ptr, weapon)))
@@ -850,35 +846,30 @@ namespace MWClass
             */
 
             // First handle the attacked actor
-<<<<<<< HEAD
-            if ((stats.getHitAttemptActorId() == -1)
-                && (statsAttacker.getAiSequence().isInCombat(ptr)
-                    || attacker == MWMechanics::getPlayer()
+            /*
+                Start of tes3mp change (minor)
+
+                Also track hit attempts from dedicated players, and never track them between
+                team members.
+
+                0.51 identifies the attacker by ESM::RefNum instead of the old integer actor
+                id, so the "unset" test is isSet() rather than a comparison against -1.
+            */
+            if (!stats.getHitAttemptActor().isSet()
+                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()
                     || mwmp::PlayerList::isDedicatedPlayer(attacker))
                 && !MechanicsHelper::isTeamMember(attacker, ptr))
-                stats.setHitAttemptActorId(statsAttacker.getActorId());
-
-            // Next handle the attacking actor
-            if ((statsAttacker.getHitAttemptActorId() == -1)
-                && (statsAttacker.getAiSequence().isInCombat(ptr)
-                    || attacker == MWMechanics::getPlayer()
-                    || mwmp::PlayerList::isDedicatedPlayer(attacker))
-                && !MechanicsHelper::isTeamMember(ptr, attacker))
-                statsAttacker.setHitAttemptActorId(stats.getActorId());
-
-            /*
-                End of tes3mp change (minor)
-            */
-=======
-            if (!stats.getHitAttemptActor().isSet()
-                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()))
                 stats.setHitAttemptActor(attacker.getCellRef().getRefNum());
 
             // Next handle the attacking actor
             if (!statsAttacker.getHitAttemptActor().isSet()
-                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()))
+                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()
+                    || mwmp::PlayerList::isDedicatedPlayer(attacker))
+                && !MechanicsHelper::isTeamMember(ptr, attacker))
                 statsAttacker.setHitAttemptActor(ptr.getCellRef().getRefNum());
->>>>>>> omw51
+            /*
+                End of tes3mp change (minor)
+            */
         }
 
         if (!object.empty())
@@ -952,8 +943,8 @@ namespace MWClass
             float agilityTerm
                 = stats.getAttribute(ESM::Attribute::Agility).getModified() * gmst.fKnockDownMult->mValue.getFloat();
             float knockdownTerm = stats.getAttribute(ESM::Attribute::Agility).getModified()
-<<<<<<< HEAD
-                    * gmst.iKnockDownOddsMult->mValue.getInteger() * 0.01f + gmst.iKnockDownOddsBase->mValue.getInteger();
+                    * gmst.iKnockDownOddsMult->mValue.getInteger() * 0.01f
+                + gmst.iKnockDownOddsBase->mValue.getInteger();
 
             /*
                 Start of tes3mp change (major)
@@ -965,111 +956,20 @@ namespace MWClass
 
                 Default to hit recovery if no knockdown has taken place, like in regular OpenMW
             */
-            mwmp::Attack *dedicatedAttack = MechanicsHelper::getDedicatedAttack(attacker);
+            mwmp::Attack* dedicatedAttack = MechanicsHelper::getDedicatedAttack(attacker);
 
             if (dedicatedAttack)
             {
                 if (dedicatedAttack->knockdown)
                     stats.setKnockedDown(true);
             }
-=======
-                    * gmst.iKnockDownOddsMult->mValue.getInteger() * 0.01f
-                + gmst.iKnockDownOddsBase->mValue.getInteger();
-            if (hasHealthDamage && agilityTerm <= healthDamage && knockdownTerm <= Misc::Rng::roll0to99(prng))
+            else if (hasHealthDamage && agilityTerm <= healthDamage && knockdownTerm <= Misc::Rng::roll0to99(prng))
                 stats.setKnockedDown(true);
->>>>>>> omw51
             else
-            {
-                if (ishealth && agilityTerm <= damage && knockdownTerm <= Misc::Rng::roll0to99())
-                    stats.setKnockedDown(true);
-            }
-
-            if (!stats.getKnockedDown())
                 stats.setHitRecovery(true); // Is this supposed to always occur?
-<<<<<<< HEAD
             /*
                 End of tes3mp change (major)
             */
-
-            if (damage > 0 && ishealth)
-            {
-                // Hit percentages:
-                // cuirass = 30%
-                // shield, helmet, greaves, boots, pauldrons = 10% each
-                // guantlets = 5% each
-                static const int hitslots[20] = {
-                    MWWorld::InventoryStore::Slot_Cuirass, MWWorld::InventoryStore::Slot_Cuirass,
-                    MWWorld::InventoryStore::Slot_Cuirass, MWWorld::InventoryStore::Slot_Cuirass,
-                    MWWorld::InventoryStore::Slot_Cuirass, MWWorld::InventoryStore::Slot_Cuirass,
-                    MWWorld::InventoryStore::Slot_CarriedLeft, MWWorld::InventoryStore::Slot_CarriedLeft,
-                    MWWorld::InventoryStore::Slot_Helmet, MWWorld::InventoryStore::Slot_Helmet,
-                    MWWorld::InventoryStore::Slot_Greaves, MWWorld::InventoryStore::Slot_Greaves,
-                    MWWorld::InventoryStore::Slot_Boots, MWWorld::InventoryStore::Slot_Boots,
-                    MWWorld::InventoryStore::Slot_LeftPauldron, MWWorld::InventoryStore::Slot_LeftPauldron,
-                    MWWorld::InventoryStore::Slot_RightPauldron, MWWorld::InventoryStore::Slot_RightPauldron,
-                    MWWorld::InventoryStore::Slot_LeftGauntlet, MWWorld::InventoryStore::Slot_RightGauntlet
-                };
-                int hitslot = hitslots[Misc::Rng::rollDice(20)];
-
-                float unmitigatedDamage = damage;
-                float x = damage / (damage + getArmorRating(ptr));
-                damage *= std::max(gmst.fCombatArmorMinMult->mValue.getFloat(), x);
-                int damageDiff = static_cast<int>(unmitigatedDamage - damage);
-                damage = std::max(1.f, damage);
-                damageDiff = std::max(1, damageDiff);
-
-                MWWorld::InventoryStore &inv = getInventoryStore(ptr);
-                MWWorld::ContainerStoreIterator armorslot = inv.getSlot(hitslot);
-                MWWorld::Ptr armor = ((armorslot != inv.end()) ? *armorslot : MWWorld::Ptr());
-                bool hasArmor = !armor.isEmpty() && armor.getTypeName() == typeid(ESM::Armor).name();
-                // If there's no item in the carried left slot or if it is not a shield redistribute the hit.
-                if (!hasArmor && hitslot == MWWorld::InventoryStore::Slot_CarriedLeft)
-                {
-                    if (Misc::Rng::rollDice(2) == 0)
-                        hitslot = MWWorld::InventoryStore::Slot_Cuirass;
-                    else
-                        hitslot = MWWorld::InventoryStore::Slot_LeftPauldron;
-                    armorslot = inv.getSlot(hitslot);
-                    if (armorslot != inv.end())
-                    {
-                        armor = *armorslot;
-                        hasArmor = !armor.isEmpty() && armor.getTypeName() == typeid(ESM::Armor).name();
-                    }
-                }
-                if (hasArmor)
-                {
-                    if (!object.isEmpty() || attacker.isEmpty() || attacker.getClass().isNpc()) // Unarmed creature attacks don't affect armor condition
-                    {
-                        int armorhealth = armor.getClass().getItemHealth(armor);
-                        armorhealth -= std::min(damageDiff, armorhealth);
-                        armor.getCellRef().setCharge(armorhealth);
-
-                        // Armor broken? unequip it
-                        if (armorhealth == 0)
-                            armor = *inv.unequipItem(armor, ptr);
-                    }
-
-                    if (ptr == MWMechanics::getPlayer())
-                        skillUsageSucceeded(ptr, armor.getClass().getEquipmentSkill(armor), 0);
-
-                    switch(armor.getClass().getEquipmentSkill(armor))
-                    {
-                        case ESM::Skill::LightArmor:
-                            sndMgr->playSound3D(ptr, "Light Armor Hit", 1.0f, 1.0f);
-                            break;
-                        case ESM::Skill::MediumArmor:
-                            sndMgr->playSound3D(ptr, "Medium Armor Hit", 1.0f, 1.0f);
-                            break;
-                        case ESM::Skill::HeavyArmor:
-                            sndMgr->playSound3D(ptr, "Heavy Armor Hit", 1.0f, 1.0f);
-                            break;
-                    }
-                }
-                else if(ptr == MWMechanics::getPlayer())
-                    skillUsageSucceeded(ptr, ESM::Skill::Unarmored, 0);
-            }
-=======
->>>>>>> omw51
         }
 
         if (hasHealthDamage && healthDamage > 0.0f)
