@@ -83,11 +83,12 @@ namespace MWDialogue
 
         Make it possible to check whether a journal entry already exists from elsewhere in the code
     */
-    bool Journal::hasEntry(const std::string& id, int index)
+    bool Journal::hasEntry(const ESM::RefId& id, int index)
     {
-        std::string infoId = JournalEntry::idFromIndex(id, index);
-        for (TEntryIter i = mJournal.begin(); i != mJournal.end(); ++i)
-            if (i->mTopic == id && i->mInfoId == infoId)
+        const ESM::RefId& infoId = JournalEntry::idFromIndex(id, index);
+        // 0.51 dropped the TEntryIter typedef; the neighbouring code iterates by value.
+        for (const JournalEntry& entry : mJournal)
+            if (entry.mTopic == id && entry.mInfoId == infoId)
                 return true;
 
         return false;
@@ -101,11 +102,10 @@ namespace MWDialogue
         Make it possible to override current time when adding journal entries, by adding
         optional timestamp override arguments
     */
-    void Journal::addEntry (const std::string& id, int index, const MWWorld::Ptr& actor, int daysPassed, int month, int day)
+    void Journal::addEntry (const ESM::RefId& id, int index, const MWWorld::Ptr& actor, int daysPassed, int month, int day)
     /*
-        End of tes3mp change (major)
+        End of tes3mp change (minor)
     */
-    void Journal::addEntry(const ESM::RefId& id, int index, const MWWorld::Ptr& actor)
     {
         // bail out if we already have heard this...
         const ESM::RefId& infoId = JournalEntry::idFromIndex(id, index);

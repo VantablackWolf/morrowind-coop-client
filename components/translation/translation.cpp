@@ -109,6 +109,12 @@ namespace Translation
 
         Get the localized version of an English topic ID
     */
+    bool Storage::hasTranslation() const
+    {
+        // mTopicIDs is called mKeywords in 0.51.
+        return !mCellNamesTranslations.empty() || !mKeywords.empty() || !mPhraseForms.empty();
+    }
+
     std::string Storage::getLocalizedTopicId(const std::string& englishTopicId) const
     {
         // 0.51 renamed this container from mTopicIDs to mKeywords

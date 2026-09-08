@@ -11,6 +11,8 @@
 #include "../mwworld/player.hpp"
 #include "../mwworld/worldimp.hpp"
 
+#include "RecordConvertPlayer.hpp"
+
 #include "PlayerList.hpp"
 #include "Main.hpp"
 #include "DedicatedPlayer.hpp"
@@ -133,7 +135,7 @@ bool PlayerList::isDedicatedPlayer(const MWWorld::Ptr &ptr)
     return (getPlayer(ptr) != nullptr);
 }
 
-void PlayerList::enableMarkers(const ESM::Cell& cell)
+void PlayerList::enableMarkers(const mwmp::records::Cell& cell)
 {
     for (auto &playerEntry : playerList)
     {
@@ -145,6 +147,16 @@ void PlayerList::enableMarkers(const ESM::Cell& cell)
             playerEntry.second->enableMarker();
         }
     }
+}
+
+void PlayerList::enableMarkers(const ESM::Cell& cell)
+{
+    enableMarkers(mwmp::RecordConvert::toMirror(cell));
+}
+
+void PlayerList::enableMarkers(const MWWorld::Cell& cell)
+{
+    enableMarkers(mwmp::RecordConvert::toMirror(cell));
 }
 
 /*

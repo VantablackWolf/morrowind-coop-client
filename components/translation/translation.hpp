@@ -32,6 +32,13 @@ namespace Translation
             Get the localized version of an English topic ID
         */
         std::string getLocalizedTopicId(const std::string& englishTopicId) const;
+
+        /*
+            Reinstated: upstream had this in 0.47 and dropped it in 0.51 when its last
+            caller went away. tes3mp still needs it -- it only translates an incoming
+            topic id when the install is actually a localised one.
+        */
+        bool hasTranslation() const;
         /*
             End of tes3mp addition
         */

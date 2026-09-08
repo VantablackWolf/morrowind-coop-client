@@ -30,7 +30,6 @@ namespace MWDialogue
         Quest& getOrStartQuest(const ESM::RefId& id) override;
         ///< Gets the quest requested. Attempts to create it and inserts it in quests if it is not yet started.
 
-        void addEntry(const ESM::RefId& id, int index, const MWWorld::Ptr& actor) override;
         ///< Add a journal entry.
         /// @param actor Used as context for replacing of escape sequences (%name, etc).
 
@@ -39,7 +38,7 @@ namespace MWDialogue
 
                 Make it possible to check whether a journal entry already exists from elsewhere in the code
             */
-            virtual bool hasEntry(const std::string& id, int index);
+            virtual bool hasEntry(const ESM::RefId& id, int index);
             /*
                 End of tes3mp addition
             */
@@ -49,7 +48,7 @@ namespace MWDialogue
                 Make it possible to override current time when adding journal entries, by adding
                 optional timestamp override arguments
             */
-            void addEntry (const std::string& id, int index, const MWWorld::Ptr& actor, int daysPassed = -1, int month = -1, int day = -1) override;
+            void addEntry (const ESM::RefId& id, int index, const MWWorld::Ptr& actor, int daysPassed = -1, int month = -1, int day = -1) override;
             ///< Add a journal entry.
             /// @param actor Used as context for replacing of escape sequences (%name, etc).
             /*

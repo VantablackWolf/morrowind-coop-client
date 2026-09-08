@@ -42,7 +42,14 @@
 #include "../mwworld/player.hpp"
 #include "../mwworld/worldimp.hpp"
 
+#include <components/settings/values.hpp>
+#include <components/translation/translation.hpp>
+#include <components/vfs/pathutil.hpp>
+
+#include "../mwworld/worldmodel.hpp"
+
 #include "LocalPlayer.hpp"
+#include "RecordConvert.hpp"
 #include "Main.hpp"
 #include "Networking.hpp"
 #include "PlayerList.hpp"
@@ -283,16 +290,16 @@ void LocalPlayer::updateAttributes(bool forceUpdate)
         if (ptrNpcStats.getAttribute(attributeId).getBase() != creatureStats.mAttributes[i].mBase ||
             ptrNpcStats.getAttribute(attributeId).getModifier() != creatureStats.mAttributes[i].mMod ||
             ptrNpcStats.getAttribute(attributeId).getDamage() != creatureStats.mAttributes[i].mDamage ||
-            ptrNpcStats.getSkillIncrease(attributeId) != npcStats.mSkillIncrease[i] ||
+            ptrNpcStats.getSkillIncrease(i) != npcStats.mSkillIncrease[i] ||
             forceUpdate)
         {
             attributeIndexChanges.push_back(i);
 
-            ESM::StatState<int> attributeState;
+            ESM::StatState<float> attributeState;
             ptrNpcStats.getAttribute(attributeId).writeState(attributeState);
             mwmp::RecordConvert::fromEngine(attributeState, creatureStats.mAttributes[i]);
 
-            npcStats.mSkillIncrease[i] = ptrNpcStats.getSkillIncrease(attributeId);
+            npcStats.mSkillIncrease[i] = ptrNpcStats.getSkillIncrease(i);
         }
     }
 
@@ -316,17 +323,23 @@ void LocalPlayer::updateSkills(bool forceUpdate)
     MWWorld::Ptr ptrPlayer = getPlayerPtr();
     const MWMechanics::NpcStats &ptrNpcStats = ptrPlayer.getClass().getNpcStats(ptrPlayer);
 
-    for (int i = 0; i < 27; ++i)
+    for (int i = 0; i < ESM::Skill::Length; ++i)
     {
+        const ESM::RefId skillId = ESM::Skill::indexToRefId(i);
+        const MWMechanics::SkillValue& skill = ptrNpcStats.getSkill(skillId);
+
         // Update a skill if its base value has changed at all or its progress has changed enough
-        if (ptrNpcStats.getSkill(i).getBase() != npcStats.mSkills[i].mBase ||
-            ptrNpcStats.getSkill(i).getModifier() != npcStats.mSkills[i].mMod ||
-            ptrNpcStats.getSkill(i).getDamage() != npcStats.mSkills[i].mDamage ||
-            abs(ptrNpcStats.getSkill(i).getProgress() - npcStats.mSkills[i].mProgress) > 0.75 ||
+        if (skill.getBase() != npcStats.mSkills[i].mBase ||
+            skill.getModifier() != npcStats.mSkills[i].mMod ||
+            skill.getDamage() != npcStats.mSkills[i].mDamage ||
+            abs(skill.getProgress() - npcStats.mSkills[i].mProgress) > 0.75 ||
             forceUpdate)
         {
             skillIndexChanges.push_back(i);
-            ptrNpcStats.getSkill(i).writeState(npcStats.mSkills[i]);
+
+            ESM::StatState<float> skillState;
+            skill.writeState(skillState);
+            mwmp::RecordConvert::fromEngine(skillState, npcStats.mSkills[i]);
         }
     }
 
@@ -390,7 +403,7 @@ void LocalPlayer::updatePosition(bool forceUpdate)
     static bool sentJumpEnd = true;
     static float oldRot[2] = {0};
 
-    position = ptrPlayer.getRefData().getPosition();
+    position = mwmp::RecordConvert::toMirror(ptrPlayer.getRefData().getPosition());
 
     bool posIsChanging = (direction.pos[0] != 0 || direction.pos[1] != 0 ||
         direction.rot[0] != 0 || direction.rot[1] != 0 || direction.rot[2] != 0);
@@ -427,7 +440,7 @@ void LocalPlayer::updatePosition(bool forceUpdate)
     else if (!sentJumpEnd)
     {
         sentJumpEnd = true;
-        position = ptrPlayer.getRefData().getPosition();
+        position = mwmp::RecordConvert::toMirror(ptrPlayer.getRefData().getPosition());
         getNetworking()->getPlayerPacket(ID_PLAYER_POSITION)->setPlayer(this);
         getNetworking()->getPlayerPacket(ID_PLAYER_POSITION)->Send();
     }
@@ -435,7 +448,7 @@ void LocalPlayer::updatePosition(bool forceUpdate)
 
 void LocalPlayer::updateCell(bool forceUpdate)
 {
-    const ESM::Cell *ptrCell = MWBase::Environment::get().getWorld()->getPlayerPtr().getCell()->getCell();
+    const MWWorld::Cell *ptrCell = MWBase::Environment::get().getWorld()->getPlayerPtr().getCell()->getCell();
 
     // If the LocalPlayer's Ptr cell is different from the LocalPlayer's packet cell, proceed
     if (forceUpdate || !Main::get().getCellController()->isSameCell(*ptrCell, cell))
@@ -445,16 +458,20 @@ void LocalPlayer::updateCell(bool forceUpdate)
         LOG_APPEND(TimedLog::LOG_INFO, "- Moved from %s to %s", cell.getShortDescription().c_str(),
                    ptrCell->getShortDescription().c_str());
 
-        if (!Misc::StringUtils::ciEqual(cell.mRegion, ptrCell->mRegion))
+        // MWWorld::Cell keeps mRegion private behind getRegion(); the mirror keeps a
+        // string, and RefId interning already carries ciEqual's case-insensitivity.
+        const std::string ptrRegion = mwmp::RefIdCompat::toWire(ptrCell->getRegion());
+
+        if (cell.mRegion != ptrRegion)
         {
             LOG_APPEND(TimedLog::LOG_INFO, "- Changed region from %s to %s",
                 cell.mRegion.empty() ? "none" : cell.mRegion.c_str(),
-                ptrCell->mRegion.empty() ? "none" : ptrCell->mRegion.c_str());
+                ptrRegion.empty() ? "none" : ptrRegion.c_str());
 
             isChangingRegion = true;
         }
 
-        cell = *ptrCell;
+        cell = mwmp::RecordConvert::toMirror(*ptrCell);
         previousCellPosition = position;
 
         // Make sure the position is updated before a cell packet is sent, or else
@@ -492,7 +509,7 @@ void LocalPlayer::updateEquipment(bool forceUpdate)
         {
             MWWorld::CellRef &cellRef = it->getCellRef();
 
-            if (Misc::StringUtils::ciEqual(cellRef.getRefId(), item.refId) == false ||
+            if (mwmp::RefIdCompat::toWire(cellRef.getRefId()) != item.refId ||
                 cellRef.getCharge() != item.charge ||
                 Utils::compareFloats(cellRef.getEnchantmentCharge(), item.enchantmentCharge, 1.0f) == false ||
                 it->getCellRef().getCount() != item.count ||
@@ -500,7 +517,7 @@ void LocalPlayer::updateEquipment(bool forceUpdate)
             {
                 equipmentIndexChanges.push_back(slot);
 
-                item.refId = it->getCellRef().getRefId();
+                item.refId = mwmp::RefIdCompat::toWire(it->getCellRef().getRefId());
                 item.count = it->getCellRef().getCount();
                 item.charge = it->getCellRef().getCharge();
                 item.enchantmentCharge = it->getCellRef().getEnchantmentCharge();
@@ -536,13 +553,13 @@ void LocalPlayer::updateInventory(bool forceUpdate)
     mwmp::Item item;
 
     auto setItem = [](Item &item, const MWWorld::Ptr &iter) {
-        item.refId = iter.getCellRef().getRefId();
+        item.refId = mwmp::RefIdCompat::toWire(iter.getCellRef().getRefId());
         if (item.refId.find("$dynamic") != std::string::npos)
             return true;
         item.count = iter.getCellRef().getCount();
         item.charge = iter.getCellRef().getCharge();
         item.enchantmentCharge = iter.getCellRef().getEnchantmentCharge();
-        item.soul = iter.getCellRef().getSoul();
+        item.soul = mwmp::RefIdCompat::toWire(iter.getCellRef().getSoul());
 
         return false;
     };
@@ -639,8 +656,8 @@ void LocalPlayer::updateAnimFlags(bool forceUpdate)
     static bool wasFlying = false;
     static bool hadTcl = false;
 
-    drawState = ptrPlayer.getClass().getNpcStats(ptrPlayer).getDrawState();
-    static char lastDrawState = ptrPlayer.getClass().getNpcStats(ptrPlayer).getDrawState();
+    drawState = static_cast<char>(ptrPlayer.getClass().getNpcStats(ptrPlayer).getDrawState());
+    static char lastDrawState = static_cast<char>(ptrPlayer.getClass().getNpcStats(ptrPlayer).getDrawState());
 
     if (wasRunning != isRunning ||
         wasSneaking != isSneaking || wasForceJumping != isForceJumping ||
@@ -687,12 +704,13 @@ void LocalPlayer::addItems()
     for (const auto &item : inventoryChanges.items)
     {
         // Skip bound items
-        if (MWBase::Environment::get().getMechanicsManager()->isBoundItem(item.refId))
+        if (MWBase::Environment::get().getMechanicsManager()->isBoundItem(
+                mwmp::RefIdCompat::toWire(mwmp::RefIdCompat::fromWireCreate(item.refId))))
             continue;
 
         try
         {
-            MWWorld::ManualRef itemRef(esmStore, item.refId, item.count);
+            MWWorld::ManualRef itemRef(esmStore, mwmp::RefIdCompat::fromWireCreate(item.refId), item.count);
             MWWorld::Ptr itemPtr = itemRef.getPtr();
 
             if (item.charge != -1)
@@ -702,11 +720,11 @@ void LocalPlayer::addItems()
                 itemPtr.getCellRef().setEnchantmentCharge(item.enchantmentCharge);
 
             if (!item.soul.empty())
-                itemPtr.getCellRef().setSoul(item.soul);
+                itemPtr.getCellRef().setSoul(mwmp::RefIdCompat::fromWireCreate(item.soul));
 
             LOG_APPEND(TimedLog::LOG_INFO, "- Adding inventory item %s with count %i", item.refId.c_str(), item.count);
 
-            ptrStore.add(itemPtr, item.count, ptrPlayer);
+            ptrStore.add(itemPtr, item.count);
         }
         catch (std::exception&)
         {
@@ -724,8 +742,9 @@ void LocalPlayer::addSpells()
 
     for (const auto &spell : spellbookChanges.spells)
         // Only add spells that are ensured to exist
-        if (MWBase::Environment::get().getWorld()->getStore().get<ESM::Spell>().search(spell.mId))
-            ptrSpells.add(spell.mId);
+        if (MWBase::Environment::get().getWorld()->getStore().get<ESM::Spell>().search(
+                mwmp::RefIdCompat::fromWireCreate(spell.mId)))
+            ptrSpells.add(mwmp::RefIdCompat::fromWireCreate(spell.mId));
         else
             LOG_APPEND(TimedLog::LOG_INFO, "- Ignored addition of invalid spell %s", spell.mId.c_str());
 }
@@ -755,9 +774,10 @@ void LocalPlayer::addJournalItems()
             LOG_APPEND(TimedLog::LOG_VERBOSE, "- type: ENTRY, quest: %s, index: %i, actorRefId: %s",
                 journalItem.quest.c_str(), journalItem.index, journalItem.actorRefId.c_str());
 
-            ptrFound = MWBase::Environment::get().getWorld()->searchPtr(journalItem.actorRefId, false);
+            ptrFound = MWBase::Environment::get().getWorld()->searchPtr(
+                mwmp::RefIdCompat::fromWireCreate(journalItem.actorRefId), false);
 
-            if (!ptrFound)
+            if (ptrFound.isEmpty())
                 ptrFound = getPlayerPtr();
         }
         else
@@ -772,16 +792,16 @@ void LocalPlayer::addJournalItems()
             {
                 if (journalItem.hasTimestamp)
                 {
-                    MWBase::Environment::get().getJournal()->addEntry(journalItem.quest, journalItem.index, ptrFound,
+                    MWBase::Environment::get().getJournal()->addEntry(mwmp::RefIdCompat::fromWireCreate(journalItem.quest), journalItem.index, ptrFound,
                         journalItem.timestamp.daysPassed, journalItem.timestamp.month, journalItem.timestamp.day);
                 }
                 else
                 {
-                    MWBase::Environment::get().getJournal()->addEntry(journalItem.quest, journalItem.index, ptrFound);
+                    MWBase::Environment::get().getJournal()->addEntry(mwmp::RefIdCompat::fromWireCreate(journalItem.quest), journalItem.index, ptrFound);
                 }
             }
             else
-                MWBase::Environment::get().getJournal()->setJournalIndex(journalItem.quest, journalItem.index);
+                MWBase::Environment::get().getJournal()->setJournalIndex(mwmp::RefIdCompat::fromWireCreate(journalItem.quest), journalItem.index);
         }
         catch (std::exception&)
         {
@@ -801,7 +821,7 @@ void LocalPlayer::addTopics()
         if (env.getWindowManager()->getTranslationDataStorage().hasTranslation())
             topicId = env.getWindowManager()->getTranslationDataStorage().getLocalizedTopicId(topicId);
 
-        env.getDialogueManager()->addTopic(topicId);
+        env.getDialogueManager()->addTopic(mwmp::RefIdCompat::fromWireCreate(topicId));
 
         if (env.getWindowManager()->containsMode(MWGui::GM_Dialogue))
             env.getDialogueManager()->updateActorKnownTopics();
@@ -815,7 +835,7 @@ void LocalPlayer::removeItems()
 
     for (const auto &item : inventoryChanges.items)
     {
-        ptrStore.remove(item.refId, item.count, ptrPlayer);
+        ptrStore.remove(mwmp::RefIdCompat::fromWireCreate(item.refId), item.count);
 
         LOG_APPEND(TimedLog::LOG_INFO, "- Removing inventory item %s with count %i", item.refId.c_str(), item.count);
     }
@@ -829,8 +849,8 @@ void LocalPlayer::removeSpells()
     MWBase::WindowManager *wm = MWBase::Environment::get().getWindowManager();
     for (const auto &spell : spellbookChanges.spells)
     {
-        ptrSpells.remove(spell.mId);
-        if (spell.mId == wm->getSelectedSpell())
+        ptrSpells.remove(mwmp::RefIdCompat::fromWireCreate(spell.mId));
+        if (spell.mId == mwmp::RefIdCompat::toWire(wm->getSelectedSpell()))
             wm->unsetSelectedSpell();
     }
 }
@@ -884,9 +904,9 @@ void LocalPlayer::resurrect()
     MWWorld::Ptr ptrPlayer = getPlayerPtr();
 
     if (resurrectType == mwmp::RESURRECT_TYPE::IMPERIAL_SHRINE)
-        MWBase::Environment::get().getWorld()->teleportToClosestMarker(ptrPlayer, "divinemarker");
+        MWBase::Environment::get().getWorld()->teleportToClosestMarker(ptrPlayer, ESM::RefId::stringRefId("divinemarker"));
     else if (resurrectType == mwmp::RESURRECT_TYPE::TRIBUNAL_TEMPLE)
-        MWBase::Environment::get().getWorld()->teleportToClosestMarker(ptrPlayer, "templemarker");
+        MWBase::Environment::get().getWorld()->teleportToClosestMarker(ptrPlayer, ESM::RefId::stringRefId("templemarker"));
 
     MWBase::Environment::get().getMechanicsManager()->resurrect(ptrPlayer);
 
@@ -897,7 +917,10 @@ void LocalPlayer::resurrect()
 
     creatureStats.mDynamic[2].mCurrent = creatureStats.mDynamic[2].mMod;
     MWMechanics::DynamicStat<float> fatigue;
-    fatigue.readState(creatureStats.mDynamic[2]);
+
+    ESM::StatState<float> fatigueState;
+    mwmp::RecordConvert::toEngine(creatureStats.mDynamic[2], fatigueState);
+    fatigue.readState(fatigueState);
     ptrPlayer.getClass().getCreatureStats(ptrPlayer).setFatigue(fatigue);
 
     // If this player had a weapon or spell readied when dying, they will still have it
@@ -913,11 +936,12 @@ void LocalPlayer::resurrect()
     LOG_APPEND(TimedLog::LOG_INFO, "- diedSinceArrestAttempt is now true");
 
     // Record that we are no longer a known werewolf, to avoid being attacked infinitely
-    MWBase::Environment::get().getWorld()->setGlobalInt("pcknownwerewolf", 0);
+    MWBase::Environment::get().getWorld()->setGlobalInt(MWWorld::GlobalVariableName(std::string_view("pcknownwerewolf")), 0);
 
     // Ensure we unequip any items with constant effects that can put us into an infinite
     // death loop
-    static const int damageEffects[5] = { ESM::MagicEffect::DrainHealth, ESM::MagicEffect::FireDamage,
+    // 0.51 names magic effects by RefId; these constants are ESM::StringRefId already.
+    static const ESM::RefId damageEffects[5] = { ESM::MagicEffect::DrainHealth, ESM::MagicEffect::FireDamage,
         ESM::MagicEffect::FrostDamage, ESM::MagicEffect::ShockDamage, ESM::MagicEffect::SunDamage };
 
     for (const auto &damageEffect : damageEffects)
@@ -950,25 +974,27 @@ void LocalPlayer::setCharacter()
     MWBase::World *world = MWBase::Environment::get().getWorld();
 
     // Ignore invalid races
-    if (world->getStore().get<ESM::Race>().search(npc.mRace) != 0)
+    if (world->getStore().get<ESM::Race>().search(mwmp::RefIdCompat::fromWireCreate(npc.mRace)) != nullptr)
     {
-        MWBase::Environment::get().getWorld()->getPlayer().setBirthSign(birthsign);
+        MWBase::Environment::get().getWorld()->getPlayer().setBirthSign(mwmp::RefIdCompat::fromWireCreate(birthsign));
 
         if (resetStats)
         {
-            MWBase::Environment::get().getMechanicsManager()->setPlayerRace(npc.mRace, npc.isMale(), npc.mHead, npc.mHair);
+            MWBase::Environment::get().getMechanicsManager()->setPlayerRace(
+                mwmp::RefIdCompat::fromWireCreate(npc.mRace), npc.isMale(),
+                mwmp::RefIdCompat::fromWireCreate(npc.mHead), mwmp::RefIdCompat::fromWireCreate(npc.mHair));
             setEquipment();
         }
         else
         {
             ESM::NPC player = *world->getPlayerPtr().get<ESM::NPC>()->mBase;
 
-            player.mRace = npc.mRace;
-            player.mHead = npc.mHead;
-            player.mHair = npc.mHair;
+            player.mRace = mwmp::RefIdCompat::fromWireCreate(npc.mRace);
+            player.mHead = mwmp::RefIdCompat::fromWireCreate(npc.mHead);
+            player.mHair = mwmp::RefIdCompat::fromWireCreate(npc.mHair);
             player.mModel = npc.mModel;
             player.setIsMale(npc.isMale());
-            world->createRecord(player);
+            world->getModifiableStore().insert(player);
 
             MWBase::Environment::get().getMechanicsManager()->playerLoaded();
 
@@ -1383,9 +1409,12 @@ void LocalPlayer::setQuickKeys()
         {
             MWWorld::InventoryStore &ptrInventory = ptrPlayer.getClass().getInventoryStore(ptrPlayer);
 
-            auto it = find_if(ptrInventory.begin(), ptrInventory.end(), [&quickKey](const MWWorld::Ptr &inventoryItem) {
-                return Misc::StringUtils::ciEqual(inventoryItem.getCellRef().getRefId(), quickKey.itemId);
-            });
+            const ESM::RefId quickKeyItemId = mwmp::RefIdCompat::fromWireCreate(quickKey.itemId);
+
+            auto it = std::find_if(ptrInventory.begin(), ptrInventory.end(),
+                [&quickKeyItemId](const MWWorld::Ptr &inventoryItem) {
+                    return inventoryItem.getCellRef().getRefId() == quickKeyItemId;
+                });
 
             if (it != ptrInventory.end())
                 MWBase::Environment::get().getWindowManager()->setQuickKey(quickKey.slot, quickKey.type, (*it));
@@ -1395,11 +1424,12 @@ void LocalPlayer::setQuickKeys()
             MWMechanics::Spells &ptrSpells = ptrPlayer.getClass().getCreatureStats(ptrPlayer).getSpells();
             bool hasSpell = false;
 
-            MWMechanics::Spells::TIterator iter = ptrSpells.begin();
-            for (; iter != ptrSpells.end(); iter++)
+            // 0.51's Spells is a vector of records, not a map keyed by id.
+            const ESM::RefId quickKeySpellId = mwmp::RefIdCompat::fromWireCreate(quickKey.itemId);
+
+            for (const ESM::Spell* spell : ptrSpells)
             {
-                const ESM::Spell *spell = iter->first;
-                if (Misc::StringUtils::ciEqual(spell->mId, quickKey.itemId))
+                if (spell->mId == quickKeySpellId)
                 {
                     hasSpell = true;
                     break;
@@ -1424,7 +1454,7 @@ void LocalPlayer::setFactions()
     for (const auto &faction : factionChanges.factions)
     {
         LOG_APPEND(TimedLog::LOG_VERBOSE, " - processing faction: %s", faction.factionId.c_str());
-        const ESM::Faction *esmFaction = MWBase::Environment::get().getWorld()->getStore().get<ESM::Faction>().search(faction.factionId);
+        const ESM::Faction *esmFaction = MWBase::Environment::get().getWorld()->getStore().get<ESM::Faction>().search(mwmp::RefIdCompat::fromWireCreate(faction.factionId));
 
         if (!esmFaction)
         {
@@ -1435,39 +1465,44 @@ void LocalPlayer::setFactions()
         if (factionChanges.action == mwmp::FactionChanges::RANK)
         {
 
-            if (!ptrNpcStats.isInFaction(faction.factionId))
+            const ESM::RefId factionId = mwmp::RefIdCompat::fromWireCreate(faction.factionId);
+
+            if (!ptrNpcStats.isInFaction(factionId))
             {
                 // If the player isn't in this faction, make them join it
-                ptrNpcStats.joinFaction(faction.factionId);
-                LOG_APPEND(TimedLog::LOG_VERBOSE, "\t>JOINED FACTION: %s on rank change to: %d.",
+                ptrNpcStats.joinFaction(factionId);
+                LOG_APPEND(TimedLog::LOG_VERBOSE, ">JOINED FACTION: %s on rank change to: %d.",
                     faction.factionId.c_str(), faction.rank);
             }
 
-            // While the faction rank is different in the packet than in the NpcStats,
-            // adjust the NpcStats accordingly
-            while (faction.rank != ptrNpcStats.getFactionRanks().at(faction.factionId))
-            {
-                if (faction.rank > ptrNpcStats.getFactionRanks().at(faction.factionId))
-                    ptrNpcStats.raiseRank(faction.factionId);
-                else
-                    ptrNpcStats.lowerRank(faction.factionId);
-            }
+            /*
+                0.8.1 stepped the rank one notch at a time with raiseRank()/lowerRank(),
+                both of which 0.51 removed in favour of setFactionRank(). The loop existed
+                only to reach the target rank, so it becomes the assignment it was
+                emulating -- which also drops 0.8.1's infinite loop when a packet named a
+                rank the faction does not actually have.
+            */
+            ptrNpcStats.setFactionRank(factionId, faction.rank);
         }
         else if (factionChanges.action == mwmp::FactionChanges::EXPULSION)
         {
             // If the expelled state is different in the packet than in the NpcStats,
             // adjust the NpcStats accordingly
-            if (faction.isExpelled != ptrNpcStats.getExpelled(faction.factionId))
+            const ESM::RefId factionId = mwmp::RefIdCompat::fromWireCreate(faction.factionId);
+
+            if (faction.isExpelled != ptrNpcStats.getExpelled(factionId))
             {
                 if (faction.isExpelled)
-                    ptrNpcStats.expell(faction.factionId);
+                    // 0.51 asks whether to show the expulsion message; the server has
+                    // already told this client, so it is suppressed.
+                    ptrNpcStats.expell(factionId, false);
                 else
-                    ptrNpcStats.clearExpelled(faction.factionId);
+                    ptrNpcStats.clearExpelled(factionId);
             }
         }
 
         else if (factionChanges.action == mwmp::FactionChanges::REPUTATION)
-            ptrNpcStats.setFactionReputation(faction.factionId, faction.reputation);
+            ptrNpcStats.setFactionReputation(mwmp::RefIdCompat::fromWireCreate(faction.factionId), faction.reputation);
     }
 }
 
@@ -1477,7 +1512,7 @@ void LocalPlayer::setBooks()
     MWMechanics::NpcStats &ptrNpcStats = ptrPlayer.getClass().getNpcStats(ptrPlayer);
 
     for (const auto &book : bookChanges)
-        ptrNpcStats.flagAsUsed(book.bookId);
+        ptrNpcStats.flagAsUsed(mwmp::RefIdCompat::fromWireCreate(book.bookId));
 }
 
 void LocalPlayer::setShapeshift()
@@ -1493,7 +1528,11 @@ void LocalPlayer::setMarkLocation()
     MWWorld::CellStore *ptrCellStore = Main::get().getCellController()->getCellStore(markCell);
 
     if (ptrCellStore)
-        MWBase::Environment::get().getWorld()->getPlayer().markPosition(ptrCellStore, markPosition);
+    {
+        ESM::Position enginePosition;
+        mwmp::RecordConvert::toEngine(markPosition, enginePosition);
+        MWBase::Environment::get().getWorld()->getPlayer().markPosition(ptrCellStore, enginePosition);
+    }
 }
 
 void LocalPlayer::setSelectedSpell()
@@ -1503,11 +1542,13 @@ void LocalPlayer::setSelectedSpell()
     MWMechanics::CreatureStats& stats = ptrPlayer.getClass().getCreatureStats(ptrPlayer);
     MWMechanics::Spells& spells = stats.getSpells();
 
-    if (!spells.hasSpell(selectedSpellId))
+    const ESM::RefId spellId = mwmp::RefIdCompat::fromWireCreate(selectedSpellId);
+
+    if (!spells.hasSpell(spellId))
         return;
- 
-    MWBase::Environment::get().getWindowManager()->setSelectedSpell(selectedSpellId,
-        int(MWMechanics::getSpellSuccessChance(selectedSpellId, ptrPlayer)));
+
+    MWBase::Environment::get().getWindowManager()->setSelectedSpell(
+        spellId, int(MWMechanics::getSpellSuccessChance(spellId, ptrPlayer)));
 }
 
 void LocalPlayer::sendDeath(char newDeathState)
@@ -1530,15 +1571,14 @@ void LocalPlayer::sendClass()
     const ESM::NPC *npcBase = world->getPlayerPtr().get<ESM::NPC>()->mBase;
     const ESM::Class *esmClass = world->getStore().get<ESM::Class>().find(npcBase->mClass);
 
-    if (npcBase->mClass.find("$dynamic") != std::string::npos) // custom class
+    // RefId has no find(); its serialized form is what the "$dynamic" marker lives in.
+    if (mwmp::RefIdCompat::toWire(npcBase->mClass).find("$dynamic") != std::string::npos) // custom class
     {
+        mwmp::RecordConvert::fromEngine(*esmClass, charClass);
         charClass.mId = "";
-        charClass.mName = esmClass->mName;
-        charClass.mDescription = esmClass->mDescription;
-        charClass.mData = esmClass->mData;
     }
     else
-        charClass.mId = esmClass->mId;
+        charClass.mId = mwmp::RefIdCompat::toWire(esmClass->mId);
 
     getNetworking()->getPlayerPacket(ID_PLAYER_CHARCLASS)->setPlayer(this);
     getNetworking()->getPlayerPacket(ID_PLAYER_CHARCLASS)->Send();
@@ -1556,20 +1596,20 @@ void LocalPlayer::sendInventory()
 
     for (const auto &iter : ptrInventory)
     {
-        item.refId = iter.getCellRef().getRefId();
+        item.refId = mwmp::RefIdCompat::toWire(iter.getCellRef().getRefId());
 
         // Skip any items that somehow have clientside-only dynamic IDs
         if (item.refId.find("$dynamic") != std::string::npos)
             continue;
 
         // Skip bound items
-        if (MWBase::Environment::get().getMechanicsManager()->isBoundItem(item.refId))
+        if (MWBase::Environment::get().getMechanicsManager()->isBoundItem(iter))
             continue;
 
         item.count = iter.getCellRef().getCount();
         item.charge = iter.getCellRef().getCharge();
         item.enchantmentCharge = iter.getCellRef().getEnchantmentCharge();
-        item.soul = iter.getCellRef().getSoul();
+        item.soul = mwmp::RefIdCompat::toWire(iter.getCellRef().getSoul());
 
         inventoryChanges.items.push_back(item);
     }
@@ -1653,10 +1693,15 @@ void LocalPlayer::sendSpellbook()
     spellbookChanges.spells.clear();
 
     // Send spells in spellbook, while ignoring abilities, powers, etc.
-    for (const auto &spell : ptrSpells)
+    // 0.51's Spells is a vector of records, not a map keyed by id.
+    for (const ESM::Spell* spell : ptrSpells)
     {
-        if (spell.first->mData.mType == ESM::Spell::ST_Spell)
-            spellbookChanges.spells.push_back(*spell.first);
+        if (spell->mData.mType == ESM::Spell::ST_Spell)
+        {
+            mwmp::records::Spell mirror;
+            mwmp::RecordConvert::fromEngine(*spell, mirror);
+            spellbookChanges.spells.push_back(mirror);
+        }
     }
 
     spellbookChanges.action = SpellbookChanges::SET;
@@ -1672,7 +1717,8 @@ void LocalPlayer::sendSpellChange(std::string id, unsigned int action)
 
     spellbookChanges.spells.clear();
 
-    ESM::Spell spell;
+    // The packet carries the protocol mirror, not the engine record.
+    mwmp::records::Spell spell;
     spell.mId = id;
     spellbookChanges.spells.push_back(spell);
 
@@ -1692,9 +1738,9 @@ void LocalPlayer::sendSpellsActive()
     for (const auto& ptrSpell : activeSpells)
     {
         mwmp::ActiveSpell packetSpell;
-        packetSpell.id = ptrSpell.first;
-        packetSpell.params.mDisplayName = ptrSpell.second.mDisplayName;
-        packetSpell.params.mEffects = ptrSpell.second.mEffects;
+        packetSpell.id = mwmp::RefIdCompat::toWire(ptrSpell.getSourceSpellId());
+        packetSpell.params.mDisplayName = ptrSpell.getDisplayName();
+        mwmp::RecordConvert::fromEngine(ptrSpell.getEffects(), packetSpell.params.mEffects);
         spellsActiveChanges.activeSpells.push_back(packetSpell);
     }
 
@@ -1712,16 +1758,17 @@ void LocalPlayer::sendSpellsActiveAddition(const std::string id, bool isStacking
     spellsActiveChanges.activeSpells.clear();
 
 
-    MWWorld::Ptr caster = MWBase::Environment::get().getWorld()->searchPtrViaActorId(params.mCasterActorId);
+    // 0.51 identifies the caster by ESM::RefNum; WorldModel resolves it to a Ptr.
+    MWWorld::Ptr caster = MWBase::Environment::get().getWorldModel()->getPtr(params.getCaster());
 
     mwmp::ActiveSpell spell;
     spell.id = id;
     spell.isStackingSpell = isStackingSpell;
     spell.caster = MechanicsHelper::getTarget(caster);
-    spell.timestampDay = params.mTimeStamp.getDay();
-    spell.timestampHour = params.mTimeStamp.getHour();
-    spell.params.mEffects = params.mEffects;
-    spell.params.mDisplayName = params.mDisplayName;
+    spell.timestampDay = params.getTimeStamp().getDay();
+    spell.timestampHour = params.getTimeStamp().getHour();
+    mwmp::RecordConvert::fromEngine(params.getEffects(), spell.params.mEffects);
+    spell.params.mDisplayName = params.getDisplayName();
     spellsActiveChanges.activeSpells.push_back(spell);
 
     LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Sending active spell addition with stacking %s, timestamp %i %f",
@@ -1800,7 +1847,7 @@ void LocalPlayer::sendJournalEntry(const std::string& quest, int index, const MW
     journalItem.type = JournalItem::ENTRY;
     journalItem.quest = quest;
     journalItem.index = index;
-    journalItem.actorRefId = actor.getCellRef().getRefId();
+    journalItem.actorRefId = mwmp::RefIdCompat::toWire(actor.getCellRef().getRefId());
     journalItem.hasTimestamp = false;
 
     journalChanges.push_back(journalItem);
@@ -1877,7 +1924,17 @@ void LocalPlayer::sendTopic(const std::string& topicId)
 
     // For translated versions of the game, make sure we translate the topic back into English first
     if (MWBase::Environment::get().getWindowManager()->getTranslationDataStorage().hasTranslation())
-        topic.topicId = MWBase::Environment::get().getWindowManager()->getTranslationDataStorage().topicID(topicId);
+    {
+        /*
+            0.51 split 0.8.1's topicID() into its two halves -- topicStandardForm() resolves
+            a phrase form, topicKeyword() then maps it to the topic id. Composing them here
+            reproduces topicID() exactly, without reinstating a function.
+        */
+        const Translation::Storage& storage
+            = MWBase::Environment::get().getWindowManager()->getTranslationDataStorage();
+
+        topic.topicId = std::string(storage.topicKeyword(storage.topicStandardForm(topicId)));
+    }
     else
         topic.topicId = topicId;
 
@@ -1917,8 +1974,8 @@ void LocalPlayer::sendWerewolfState(bool werewolfState)
 void LocalPlayer::sendMarkLocation(const ESM::Cell& newMarkCell, const ESM::Position& newMarkPosition)
 {
     miscellaneousChangeType = mwmp::MISCELLANEOUS_CHANGE_TYPE::MARK_LOCATION;
-    markCell = newMarkCell;
-    markPosition = newMarkPosition;
+    markCell = mwmp::RecordConvert::toMirror(newMarkCell);
+    markPosition = mwmp::RecordConvert::toMirror(newMarkPosition);
 
     getNetworking()->getPlayerPacket(ID_PLAYER_MISCELLANEOUS)->setPlayer(this);
     getNetworking()->getPlayerPacket(ID_PLAYER_MISCELLANEOUS)->Send();
@@ -1935,11 +1992,11 @@ void LocalPlayer::sendSelectedSpell(const std::string& newSelectedSpellId)
 
 void LocalPlayer::sendItemUse(const MWWorld::Ptr& itemPtr, bool itemMagicState, char currentDrawState)
 {
-    usedItem.refId = itemPtr.getCellRef().getRefId();
+    usedItem.refId = mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getRefId());
     usedItem.count = itemPtr.getCellRef().getCount();
     usedItem.charge = itemPtr.getCellRef().getCharge();
     usedItem.enchantmentCharge = itemPtr.getCellRef().getEnchantmentCharge();
-    usedItem.soul = itemPtr.getCellRef().getSoul();
+    usedItem.soul = mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getSoul());
 
     usingItemMagic = itemMagicState;
     itemUseDrawState = currentDrawState;
@@ -1982,7 +2039,7 @@ void LocalPlayer::storeCellState(const ESM::Cell& storedCell, int stateType)
     }
 
     CellState cellState;
-    cellState.cell = storedCell;
+    cellState.cell = mwmp::RecordConvert::toMirror(storedCell);
     cellState.type = stateType;
 
     cellStateChanges.push_back(cellState);
@@ -1990,7 +2047,7 @@ void LocalPlayer::storeCellState(const ESM::Cell& storedCell, int stateType)
 
 void LocalPlayer::storeCurrentContainer(const MWWorld::Ptr &container)
 {
-    currentContainer.refId = container.getCellRef().getRefId();
+    currentContainer.refId = mwmp::RefIdCompat::toWire(container.getCellRef().getRefId());
     currentContainer.refNum = container.getCellRef().getRefNum().mIndex;
     currentContainer.mpNum = container.getCellRef().getMpNum();
 }
@@ -2015,9 +2072,10 @@ void LocalPlayer::playAnimation()
 
 void LocalPlayer::playSpeech()
 {
-    MWBase::Environment::get().getSoundManager()->say(getPlayerPtr(), sound);
+    MWBase::Environment::get().getSoundManager()->say(getPlayerPtr(), VFS::Path::Normalized(sound));
 
     MWBase::WindowManager *winMgr = MWBase::Environment::get().getWindowManager();
-    if (winMgr->getSubtitlesEnabled())
+    // 0.51 reads subtitles straight from the settings index.
+    if (Settings::gui().mSubtitles)
         winMgr->messageBox(MWBase::Environment::get().getDialogueManager()->getVoiceCaption(sound), MWGui::ShowInDialogueMode_Never);
 }

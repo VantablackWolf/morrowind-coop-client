@@ -383,6 +383,15 @@ namespace mwmp
                 NPC_DEFAULT = 52,
             };
 
+            bool isMale() const { return (mFlags & Female) == 0; }
+
+            void setIsMale(bool value)
+            {
+                mFlags |= Female;
+                if (value)
+                    mFlags ^= Female;
+            }
+
             void blank() { *this = NPC{}; }
             /*
                 End of tes3mp addition

@@ -51,7 +51,14 @@ namespace mwmp
 
         static bool isDedicatedPlayer(const MWWorld::Ptr &ptr);
 
+        /*
+            The mirror form is canonical, as in CellController: it is what BasePlayer holds
+            and what arrives from the server. The engine forms convert into it.
+        */
+        static void enableMarkers(const mwmp::records::Cell& cell);
         static void enableMarkers(const ESM::Cell& cell);
+        // CellStore::getCell() returns MWWorld::Cell in 0.51.
+        static void enableMarkers(const MWWorld::Cell& cell);
 
         static void clearHitAttemptActor(ESM::RefNum actorRefNum);
 
