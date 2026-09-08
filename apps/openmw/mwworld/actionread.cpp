@@ -62,16 +62,22 @@ namespace MWWorld
         {
             MWBase::Environment::get().getLuaManager()->skillLevelUp(player, skill, "book");
 
+            npcStats.flagAsUsed(ref->mBase->mId);
+
             /*
                 Start of tes3mp addition
 
                 Send an ID_PLAYER_BOOK packet every time a player reads a skill book
+
+                After flagAsUsed, as in 0.8.1: finish the local state change, then report it.
+                The merge had the packet going out first, which leaves a window where the
+                server has been told the book was read while this client still says it was
+                not.
             */
             mwmp::Main::get().getLocalPlayer()->sendBook(ref->mBase->mId);
             /*
                 End of tes3mp addition
             */
-            npcStats.flagAsUsed(ref->mBase->mId);
         }
     }
 }

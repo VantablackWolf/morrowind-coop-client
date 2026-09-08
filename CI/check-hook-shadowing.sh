@@ -39,7 +39,10 @@
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
-paths=("${@:-apps components}")
+# NB: ("${@:-apps components}") would collapse the default into ONE array
+# element, "apps components", which is not a directory -- the scan then walks
+# nothing and reports a clean tree. Set the default as a real two-element array.
+if [ $# -eq 0 ]; then paths=(apps components); else paths=("$@"); fi
 
 python - "${paths[@]}" <<'PY'
 import os, re, sys

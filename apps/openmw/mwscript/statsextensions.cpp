@@ -521,21 +521,6 @@ namespace MWScript
                 const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->get<ESM::Spell>().find(id);
 
                 MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
-                creatureStats.getSpells().add(spell);
-                ESM::Spell::SpellType type = static_cast<ESM::Spell::SpellType>(spell->mData.mType);
-                if (type != ESM::Spell::ST_Spell && type != ESM::Spell::ST_Power)
-                {
-                MWWorld::Ptr ptr = R()(runtime);
-
-                ESM::RefId id = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
-                runtime.pop();
-
-                if (!ptr.getClass().isActor())
-                    return;
-
-                const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->get<ESM::Spell>().find(id);
-
-                MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
 
                 /*
                     Start of tes3mp change (major)
@@ -543,10 +528,17 @@ namespace MWScript
                     Only add the spell if the target doesn't already have it
 
                     Send an ID_PLAYER_SPELLBOOK packet every time a player gains a spell here
+
+                    This replaces upstream's unconditional creatureStats.getSpells().add(spell).
+
+                    hasSpell takes the ESM::Spell* rather than the RefId deliberately: the
+                    RefId overload forwards to SpellList::getSpell, which calls Store::find,
+                    which THROWS on an id it does not have. We already hold a valid pointer
+                    from the find above, so the pointer overload is both cheaper and total.
                 */
                 MWMechanics::Spells& spells = creatureStats.getSpells();
 
-                if (!spells.hasSpell(id))
+                if (!spells.hasSpell(spell))
                 {
                     spells.add(spell);
 
@@ -565,7 +557,6 @@ namespace MWScript
                     creatureStats.getActiveSpells().addSpell(spell, ptr);
                     // Apply looping particles immediately for constant effects
                     MWBase::Environment::get().getWorld()->applyLoopingParticles(ptr);
-                }
                 }
             }
         };
@@ -586,37 +577,23 @@ namespace MWScript
 
                 MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
                 const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->get<ESM::Spell>().find(id);
-                creatureStats.getSpells().remove(spell);
-                if (spell->mData.mType == ESM::Spell::ST_Ability || spell->mData.mType == ESM::Spell::ST_Blight
-                    || spell->mData.mType == ESM::Spell::ST_Curse || spell->mData.mType == ESM::Spell::ST_Disease)
-                    creatureStats.getActiveSpells().removeEffectsBySourceSpellId(ptr, id);
-
-                MWBase::WindowManager* wm = MWBase::Environment::get().getWindowManager();
-
-                if (ptr == MWMechanics::getPlayer() && id == wm->getSelectedSpell())
-                {
-                MWWorld::Ptr ptr = R()(runtime);
-
-                ESM::RefId id = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
-                runtime.pop();
-
-                if (!ptr.getClass().isActor())
-                    return;
-
-                MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
 
                 /*
                     Start of tes3mp change (major)
 
                     Only remove the spell if the target has it
+
+                    Moved below the find() so the ESM::Spell* overload of hasSpell can be
+                    used; the RefId overload goes through Store::find and throws on an
+                    unknown id. Upstream calls find() first regardless, so nothing is
+                    reordered that a script could observe.
                 */
-                if (!creatureStats.getSpells().hasSpell(id))
+                if (!creatureStats.getSpells().hasSpell(spell))
                     return;
                 /*
                     End of tes3mp change (major)
                 */
 
-                const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->get<ESM::Spell>().find(id);
                 creatureStats.getSpells().remove(spell);
                 if (spell->mData.mType == ESM::Spell::ST_Ability || spell->mData.mType == ESM::Spell::ST_Blight
                     || spell->mData.mType == ESM::Spell::ST_Curse || spell->mData.mType == ESM::Spell::ST_Disease)
@@ -644,7 +621,6 @@ namespace MWScript
                 /*
                     End of tes3mp change (major)
                 */
-                }
             }
         };
 
@@ -1180,16 +1156,6 @@ namespace MWScript
                 ESM::RefId factionID;
                 if (arg0 > 0)
                 {
-                    /*
-                        Start of tes3mp addition
-
-                        Send an ID_PLAYER_FACTION packet every time a player is no longer expelled from a faction
-                    */
-                    if (!factionID.empty())
-                        mwmp::Main::get().getLocalPlayer()->sendFactionExpulsionState(mwmp::RefIdCompat::toWire(factionID), false);
-                    /*
-                        End of tes3mp addition
-                    */
                     factionID = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                     runtime.pop();
                 }
@@ -1200,6 +1166,24 @@ namespace MWScript
                 MWWorld::Ptr player = MWMechanics::getPlayer();
                 if (!factionID.empty())
                     player.getClass().getNpcStats(player).clearExpelled(factionID);
+
+                /*
+                    Start of tes3mp addition
+
+                    Send an ID_PLAYER_FACTION packet every time a player is no longer expelled from a faction
+
+                    At the END of the function, as in 0.8.1. The merge had put this at the top
+                    of the "if (arg0 > 0)" branch, above the line that assigns factionID -- so
+                    the id was always still default-constructed, the !empty() guard was always
+                    false, and the packet was never sent at all. Clearing an expulsion simply
+                    did not synchronise.
+                */
+                if (!factionID.empty())
+                    mwmp::Main::get().getLocalPlayer()->sendFactionExpulsionState(
+                        mwmp::RefIdCompat::toWire(factionID), false);
+                /*
+                    End of tes3mp addition
+                */
             }
         };
 
