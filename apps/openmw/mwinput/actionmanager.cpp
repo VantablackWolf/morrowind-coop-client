@@ -262,16 +262,6 @@ namespace MWInput
         /*
             End of tes3mp addition
         */
-        /*
-            Start of tes3mp addition
-
-            Ignore attempts to open inventory if the player has not logged in on the server yet
-        */
-        if (!mwmp::Main::get().getLocalPlayer()->isLoggedIn())
-            return;
-        /*
-            End of tes3mp addition
-        */
         MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Rest); // Open rest GUI
     }
 

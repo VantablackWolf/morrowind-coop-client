@@ -506,15 +506,6 @@ namespace MWWorld
                         heights.mMaxHeight = data->getMaxHeight();
                         return heights;
                     }
-                /*
-                    Start of tes3mp addition
-
-                    Store a cell load for the LocalPlayer
-                */
-                mwmp::Main::get().getLocalPlayer()->storeCellState(*cell.getCell(), mwmp::CellState::LOAD);
-                /*
-                    End of tes3mp addition
-                */
                 }();
                 mNavigator.addHeightfield(cellPosition, worldsize, shape, navigatorUpdateGuard);
             }
@@ -566,6 +557,28 @@ namespace MWWorld
 
         if (!cell.isExterior() && !cellVariant.isQuasiExterior())
             mRendering.configureAmbient(cellVariant);
+
+        /*
+            Start of tes3mp addition
+
+            Store a cell load for the LocalPlayer
+
+            This has to run for EVERY cell and it has to run here, at the end of loadCell,
+            which is where 0.8.1 had it. The server keeps its own list of which cells each
+            player has loaded and refuses any packet about a cell that is not on it, so a
+            cell load that never gets reported makes everything in that cell inert.
+
+            The merge had moved this line inside the immediately-invoked lambda that builds
+            the HeightfieldShape a hundred lines above -- which is reached only for exterior
+            cells, and then only after both branches of that lambda have already returned.
+            It was unreachable. No cell load was ever reported, the server's list stayed
+            empty, and every activation came back "used impossible packetOrigin for unloaded
+            <cell>". The symptom in game was simply that nothing could be interacted with.
+        */
+        mwmp::Main::get().getLocalPlayer()->storeCellState(*cell.getCell(), mwmp::CellState::LOAD);
+        /*
+            End of tes3mp addition
+        */
 
         mPreloader->notifyLoaded(&cell);
     }

@@ -32,6 +32,7 @@
     Include additional headers for multiplayer purposes
 */
 #include <components/openmw-mp/TimedLog.hpp>
+#include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/Main.hpp"
 #include "../mwmp/GUIController.hpp"
 /*
@@ -1490,6 +1491,30 @@ namespace MWGui
     {
         if (mode == GM_Inventory && mAllowed == GW_None)
             return;
+
+        /*
+            Start of tes3mp change (major)
+
+            Ignore attempts to open the inventory if the player has not logged in on the
+            server yet.
+
+            In 0.8.1 this guard lived in ActionManager::toggleInventory. 0.51 deleted that
+            method outright -- along with toggleSpell, toggleWeapon, toggleJournal and
+            showQuickKeysMenu -- and moved opening the inventory into Lua, so the hook had
+            no function left to sit in and the merge dropped it into ActionManager::rest(),
+            where it did nothing but duplicate the guard already there.
+
+            Here instead, because it is the one choke point every route to the inventory
+            still passes through, whether the request comes from Lua, a script or the
+            engine. Scoped to GM_Inventory on purpose: TES3MP pushes its own modes for the
+            login and password dialogs, which by definition happen before login, and a
+            broader guard would make it impossible to log in at all.
+        */
+        if (mode == GM_Inventory && !mwmp::Main::get().getLocalPlayer()->isLoggedIn())
+            return;
+        /*
+            End of tes3mp change (major)
+        */
 
         if (mGuiModes.empty() || mGuiModes.back() != mode)
         {
