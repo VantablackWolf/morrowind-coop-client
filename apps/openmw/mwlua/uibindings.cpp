@@ -18,6 +18,16 @@
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
 
+/*
+    Start of tes3mp addition
+
+    For the GUI modes TES3MP adds past the end of MWGui::GuiMode.
+*/
+#include "../mwmp/GUIController.hpp"
+/*
+    End of tes3mp addition
+*/
+
 namespace MWLua
 {
     namespace
@@ -55,6 +65,30 @@ namespace MWLua
             { MWGui::GM_LoadingWallpaper, "LoadingWallpaper" },
             { MWGui::GM_Jail, "Jail" },
             { MWGui::GM_QuickKeysMenu, "QuickKeysMenu" },
+
+            /*
+                Start of tes3mp addition
+
+                TES3MP's own GUI modes, which it defines past the end of
+                MWGui::GuiMode in GUIController and casts into it when pushing.
+
+                They have to be named here because 0.51 hands the whole mode
+                stack to Lua: onUiModeChanged does modeToName.at(m) for every
+                entry, so a mode this map does not know throws out of a handler
+                that upstream scripts rely on. 0.47 had no Lua UI layer, so
+                nothing enumerated the stack and the omission cost nothing.
+
+                The symptom was scripts/omw/ui.lua reporting "invalid
+                unordered_map<K, T> key" the moment the server asked a new
+                player to choose a password -- the first time TES3MP pushes one
+                of its own modes, and long after everything else looked fine.
+            */
+            { static_cast<MWGui::GuiMode>(mwmp::GUIController::GM_VR_MetaMenu), "TES3MP_VRMetaMenu" },
+            { static_cast<MWGui::GuiMode>(mwmp::GUIController::GM_TES3MP_InputBox), "TES3MP_InputBox" },
+            { static_cast<MWGui::GuiMode>(mwmp::GUIController::GM_TES3MP_ListBox), "TES3MP_ListBox" },
+            /*
+                End of tes3mp addition
+            */
         };
 
         const auto nameToMode = [] {

@@ -1545,7 +1545,31 @@ void LocalPlayer::setSelectedSpell()
 
     const ESM::RefId spellId = mwmp::RefIdCompat::fromWireCreate(selectedSpellId);
 
-    if (!spells.hasSpell(spellId))
+    /*
+        An empty id is how the server says "nothing selected".
+    */
+    if (spellId.empty())
+    {
+        MWBase::Environment::get().getWindowManager()->unsetSelectedSpell();
+        return;
+    }
+
+    /*
+        Look the spell up before asking whether the player knows it.
+
+        Spells::hasSpell(const ESM::RefId&) is not the safe query it was in 0.47.
+        It now forwards to SpellList::getSpell, which calls Store::find -- and
+        find THROWS on an id it does not have. So the guard that was meant to
+        reject an unknown spell was itself the thing that threw, and because
+        packets are processed inside the frame the whole frame went down with
+        "Error in frame: Spell 'Empty{}' not found".
+
+        The ESM::Spell* overload of hasSpell does not go near the store, so
+        searching first and passing the pointer keeps the check total.
+    */
+    const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->get<ESM::Spell>().search(spellId);
+
+    if (spell == nullptr || !spells.hasSpell(spell))
         return;
 
     MWBase::Environment::get().getWindowManager()->setSelectedSpell(
