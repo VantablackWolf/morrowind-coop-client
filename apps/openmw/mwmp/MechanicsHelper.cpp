@@ -52,31 +52,42 @@ ESM::Position MechanicsHelper::getPositionFromVector(osg::Vec3f vector)
 // TODO: Add handling of scaling based on leveled list's assigned scale
 void MechanicsHelper::spawnLeveledCreatures(MWWorld::CellStore* cellStore)
 {
-    MWWorld::CellRefList<ESM::CreatureLevList> *creatureLevList = cellStore->getCreatureLists();
     mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
     objectList->reset();
     objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
 
     int spawnCount = 0;
 
-    for (auto &lref : creatureLevList->mList)
-    {
-        MWWorld::Ptr ptr(&lref, cellStore);
+    const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
+    auto& prng = MWBase::Environment::get().getWorld()->getPrng();
 
-        std::string id = MWMechanics::getLevelledItem(ptr.get<ESM::CreatureLevList>()->mBase, true);
+    /*
+        0.51 no longer exposes the per-type CellRefList; forEachType() is the supported
+        way in. It explicitly forbids adding to or removing from the cell while it runs,
+        and that is exactly what spawning does, so the resolution is done in a first pass
+        and the spawning in a second.
+    */
+    std::vector<std::pair<ESM::RefId, ESM::Position>> resolved;
+
+    cellStore->forEachType<ESM::CreatureLevList>([&](const MWWorld::Ptr& ptr) {
+        ESM::RefId id = MWMechanics::getLevelledItem(ptr.get<ESM::CreatureLevList>()->mBase, true, prng);
 
         if (!id.empty())
-        {
-            const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-            MWWorld::ManualRef manualRef(store, id);
-            manualRef.getPtr().getCellRef().setPosition(ptr.getCellRef().getPosition());
-            MWWorld::Ptr placed = MWBase::Environment::get().getWorld()->placeObject(manualRef.getPtr(), ptr.getCell(),
-                                                                                     ptr.getCellRef().getPosition());
-            objectList->addObjectSpawn(placed);
-            MWBase::Environment::get().getWorld()->deleteObject(placed);
+            resolved.emplace_back(id, ptr.getCellRef().getPosition());
 
-            spawnCount++;
-        }
+        return true;
+    });
+
+    for (const auto& [id, position] : resolved)
+    {
+        MWWorld::ManualRef manualRef(store, id);
+        manualRef.getPtr().getCellRef().setPosition(position);
+        MWWorld::Ptr placed = MWBase::Environment::get().getWorld()->placeObject(manualRef.getPtr(), cellStore,
+                                                                                position);
+        objectList->addObjectSpawn(placed);
+        MWBase::Environment::get().getWorld()->deleteObject(placed);
+
+        spawnCount++;
     }
 
     if (spawnCount > 0)
@@ -91,7 +102,7 @@ bool MechanicsHelper::isUsingRangedWeapon(const MWWorld::Ptr& ptr)
         MWWorld::ContainerStoreIterator weaponSlot = inventoryStore.getSlot(
             MWWorld::InventoryStore::Slot_CarriedRight);
 
-        if (weaponSlot != inventoryStore.end() && weaponSlot->getTypeName() == typeid(ESM::Weapon).name())
+        if (weaponSlot != inventoryStore.end() && weaponSlot->getType() == ESM::Weapon::sRecordId)
         {
             const ESM::Weapon* weaponRecord = weaponSlot->get<ESM::Weapon>()->mBase;
 
@@ -440,7 +451,7 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
                 }
             }
 
-            if (!weaponPtr.isEmpty() && weaponPtr.getTypeName() != typeid(ESM::Weapon).name())
+            if (!weaponPtr.isEmpty() && weaponPtr.getType() != ESM::Weapon::sRecordId)
                 weaponPtr = MWWorld::Ptr();
         }
 
@@ -644,7 +655,7 @@ MWWorld::Ptr MechanicsHelper::getItemPtrFromStore(const mwmp::Item& item, MWWorl
     {
         // Enchantment charges are often in the process of refilling themselves, so don't check for them here
         if (Misc::StringUtils::ciEqual(item.refId, storeIterator->getCellRef().getRefId()) &&
-            item.count == storeIterator->getRefData().getCount() &&
+            item.count == storeIterator->getCellRef().getCount() &&
             item.charge == storeIterator->getCellRef().getCharge() &&
             Misc::StringUtils::ciEqual(item.soul, storeIterator->getCellRef().getSoul()))
         {

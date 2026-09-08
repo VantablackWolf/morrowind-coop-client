@@ -159,7 +159,7 @@ void ObjectList::addEntireContainer(const MWWorld::Ptr& ptr)
 
     for (const auto itemPtr : containerStore)
     {
-        addContainerItem(baseObject, itemPtr, itemPtr.getRefData().getCount(), itemPtr.getRefData().getCount());
+        addContainerItem(baseObject, itemPtr, itemPtr.getCellRef().getCount(), itemPtr.getCellRef().getCount());
     }
 
     addBaseObject(baseObject);
@@ -231,7 +231,7 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
                     MWWorld::Ptr newPtr = ref.getPtr();
 
                     if (containerItem.count > 1)
-                        newPtr.getRefData().setCount(containerItem.count);
+                        newPtr.getCellRef().setCount(containerItem.count);
 
                     if (containerItem.charge > -1)
                         newPtr.getCellRef().setCharge(containerItem.charge);
@@ -429,7 +429,7 @@ void ObjectList::placeObjects(MWWorld::CellStore* cellStore)
                 MWWorld::Ptr newPtr = ref.getPtr();
 
                 if (baseObject.count > 1)
-                    newPtr.getRefData().setCount(baseObject.count);
+                    newPtr.getCellRef().setCount(baseObject.count);
 
                 if (baseObject.charge > -1)
                     newPtr.getCellRef().setCharge(baseObject.charge);
@@ -1266,7 +1266,7 @@ void ObjectList::addObjectPlace(const MWWorld::Ptr& ptr, bool droppedByPlayer)
 
     // We have to get the count from the dropped object because it gets changed
     // automatically for stacks of gold
-    baseObject.count = ptr.getRefData().getCount();
+    baseObject.count = ptr.getCellRef().getCount();
 
     // Get the real count of gold in a stack
     baseObject.goldValue = ptr.getCellRef().getGoldValue();

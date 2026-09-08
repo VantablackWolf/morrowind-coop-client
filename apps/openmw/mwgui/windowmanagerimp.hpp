@@ -213,13 +213,13 @@ namespace MWGui
 
         Keep a pointer to the container window because of its usefulness
         in multiplayer for container sync
+
+        0.51 added its own mContainerWindow member, so the member this hook used
+        to declare is gone; only getContainerWindow() above is still needed, and
+        it now returns upstream's. Nothing else about the hook changes.
         */
-        ContainerWindow* mContainerWindow;
         /*
         End of tes3mp addition
-        */
-        /*
-            End of tes3mp addition
         */
 
         typedef std::pair<std::string, int> Faction;

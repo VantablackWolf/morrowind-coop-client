@@ -172,7 +172,7 @@ void DedicatedPlayer::setBaseInfo()
     }
 
     // Only set equipment if the player isn't disguised as a creature
-    if (ptr.getTypeName() == typeid(ESM::NPC).name())
+    if (ptr.getType() == ESM::NPC::sRecordId)
         setEquipment();
 
     previousRace = npc.mRace;
@@ -248,7 +248,7 @@ void DedicatedPlayer::setAttributes()
 void DedicatedPlayer::setSkills()
 {
     // Go no further if the player is disguised as a creature
-    if (ptr.getTypeName() != typeid(ESM::NPC).name()) return;
+    if (ptr.getType() != ESM::NPC::sRecordId) return;
 
     MWMechanics::NpcStats *ptrNpcStats = &ptr.getClass().getNpcStats(ptr);
     MWMechanics::SkillValue skillValue;
@@ -327,7 +327,7 @@ void DedicatedPlayer::setShapeshift()
     bool isNpc = false;
 
     if (reference)
-        isNpc = ptr.getTypeName() == typeid(ESM::NPC).name();
+        isNpc = ptr.getType() == ESM::NPC::sRecordId;
 
     if (creatureRefId != previousCreatureRefId || displayCreatureName != previousDisplayCreatureName)
     {
@@ -376,7 +376,7 @@ void DedicatedPlayer::setShapeshift()
         previousDisplayCreatureName = displayCreatureName;
     }
 
-    if (ptr.getTypeName() == typeid(ESM::NPC).name())
+    if (ptr.getType() == ESM::NPC::sRecordId)
     {
         MWBase::Environment::get().getMechanicsManager()->setWerewolf(ptr, isWerewolf);
 

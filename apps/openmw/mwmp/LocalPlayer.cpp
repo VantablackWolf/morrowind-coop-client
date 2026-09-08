@@ -173,8 +173,8 @@ bool LocalPlayer::processCharGen()
     {
         MWBase::World *world = MWBase::Environment::get().getWorld();
         MWWorld::Ptr ptrPlayer = world->getPlayerPtr();
-        npc = *ptrPlayer.get<ESM::NPC>()->mBase;
-        birthsign = world->getPlayer().getBirthSign();
+        mwmp::RecordConvert::fromEngine(*ptrPlayer.get<ESM::NPC>()->mBase, npc);
+        birthsign = mwmp::RefIdCompat::toWire(world->getPlayer().getBirthSign());
 
         LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Sending ID_PLAYER_BASEINFO to server with my CharGen info");
         getNetworking()->getPlayerPacket(ID_PLAYER_BASEINFO)->setPlayer(this);
@@ -247,9 +247,14 @@ void LocalPlayer::updateStatsDynamic(bool forceUpdate)
         oldMagicka = magicka;
         oldFatigue = fatigue;
 
-        health.writeState(creatureStats.mDynamic[0]);
-        magicka.writeState(creatureStats.mDynamic[1]);
-        fatigue.writeState(creatureStats.mDynamic[2]);
+        // The engine writes into its own StatState; the mirror keeps the 0.47 layout.
+        ESM::StatState<float> dynamicState;
+        health.writeState(dynamicState);
+        mwmp::RecordConvert::fromEngine(dynamicState, creatureStats.mDynamic[0]);
+        magicka.writeState(dynamicState);
+        mwmp::RecordConvert::fromEngine(dynamicState, creatureStats.mDynamic[1]);
+        fatigue.writeState(dynamicState);
+        mwmp::RecordConvert::fromEngine(dynamicState, creatureStats.mDynamic[2]);
 
         creatureStats.mDead = ptrCreatureStats->isDead();
 
@@ -271,17 +276,23 @@ void LocalPlayer::updateAttributes(bool forceUpdate)
     MWWorld::Ptr ptrPlayer = getPlayerPtr();
     const MWMechanics::NpcStats &ptrNpcStats = ptrPlayer.getClass().getNpcStats(ptrPlayer);
 
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < ESM::Attribute::Length; ++i)
     {
-        if (ptrNpcStats.getAttribute(i).getBase() != creatureStats.mAttributes[i].mBase ||
-            ptrNpcStats.getAttribute(i).getModifier() != creatureStats.mAttributes[i].mMod ||
-            ptrNpcStats.getAttribute(i).getDamage() != creatureStats.mAttributes[i].mDamage ||
-            ptrNpcStats.getSkillIncrease(i) != npcStats.mSkillIncrease[i] ||
+        const ESM::RefId attributeId = ESM::Attribute::indexToRefId(i);
+
+        if (ptrNpcStats.getAttribute(attributeId).getBase() != creatureStats.mAttributes[i].mBase ||
+            ptrNpcStats.getAttribute(attributeId).getModifier() != creatureStats.mAttributes[i].mMod ||
+            ptrNpcStats.getAttribute(attributeId).getDamage() != creatureStats.mAttributes[i].mDamage ||
+            ptrNpcStats.getSkillIncrease(attributeId) != npcStats.mSkillIncrease[i] ||
             forceUpdate)
         {
             attributeIndexChanges.push_back(i);
-            ptrNpcStats.getAttribute(i).writeState(creatureStats.mAttributes[i]);
-            npcStats.mSkillIncrease[i] = ptrNpcStats.getSkillIncrease(i);
+
+            ESM::StatState<int> attributeState;
+            ptrNpcStats.getAttribute(attributeId).writeState(attributeState);
+            mwmp::RecordConvert::fromEngine(attributeState, creatureStats.mAttributes[i]);
+
+            npcStats.mSkillIncrease[i] = ptrNpcStats.getSkillIncrease(attributeId);
         }
     }
 
@@ -484,13 +495,13 @@ void LocalPlayer::updateEquipment(bool forceUpdate)
             if (Misc::StringUtils::ciEqual(cellRef.getRefId(), item.refId) == false ||
                 cellRef.getCharge() != item.charge ||
                 Utils::compareFloats(cellRef.getEnchantmentCharge(), item.enchantmentCharge, 1.0f) == false ||
-                it->getRefData().getCount() != item.count ||
+                it->getCellRef().getCount() != item.count ||
                 forceUpdate)
             {
                 equipmentIndexChanges.push_back(slot);
 
                 item.refId = it->getCellRef().getRefId();
-                item.count = it->getRefData().getCount();
+                item.count = it->getCellRef().getCount();
                 item.charge = it->getCellRef().getCharge();
                 item.enchantmentCharge = it->getCellRef().getEnchantmentCharge();
             }
@@ -528,7 +539,7 @@ void LocalPlayer::updateInventory(bool forceUpdate)
         item.refId = iter.getCellRef().getRefId();
         if (item.refId.find("$dynamic") != std::string::npos)
             return true;
-        item.count = iter.getRefData().getCount();
+        item.count = iter.getCellRef().getCount();
         item.charge = iter.getCellRef().getCharge();
         item.enchantmentCharge = iter.getCellRef().getEnchantmentCharge();
         item.soul = iter.getCellRef().getSoul();
@@ -1554,7 +1565,7 @@ void LocalPlayer::sendInventory()
         if (MWBase::Environment::get().getMechanicsManager()->isBoundItem(item.refId))
             continue;
 
-        item.count = iter.getRefData().getCount();
+        item.count = iter.getCellRef().getCount();
         item.charge = iter.getCellRef().getCharge();
         item.enchantmentCharge = iter.getCellRef().getEnchantmentCharge();
         item.soul = iter.getCellRef().getSoul();
@@ -1924,7 +1935,7 @@ void LocalPlayer::sendSelectedSpell(const std::string& newSelectedSpellId)
 void LocalPlayer::sendItemUse(const MWWorld::Ptr& itemPtr, bool itemMagicState, char currentDrawState)
 {
     usedItem.refId = itemPtr.getCellRef().getRefId();
-    usedItem.count = itemPtr.getRefData().getCount();
+    usedItem.count = itemPtr.getCellRef().getCount();
     usedItem.charge = itemPtr.getCellRef().getCharge();
     usedItem.enchantmentCharge = itemPtr.getCellRef().getEnchantmentCharge();
     usedItem.soul = itemPtr.getCellRef().getSoul();

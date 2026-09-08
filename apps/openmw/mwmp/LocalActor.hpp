@@ -2,6 +2,10 @@
 #define OPENMW_LOCALACTOR_HPP
 
 #include <components/openmw-mp/Base/BaseActor.hpp>
+
+// BaseActor reaches RakNet, which reaches <windows.h>; see the header for why.
+#include "WinAPIConflicts.hpp"
+
 #include "../mwmechanics/creaturestats.hpp"
 #include "../mwmechanics/activespells.hpp"
 #include "../mwworld/manualref.hpp"

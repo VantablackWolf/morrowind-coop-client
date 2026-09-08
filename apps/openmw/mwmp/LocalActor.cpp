@@ -239,7 +239,7 @@ void LocalActor::updateEquipment(bool forceUpdate, bool sendImmediately)
                 item.refId = cellRef.getRefId();
                 item.charge = cellRef.getCharge();
                 item.enchantmentCharge = it->getCellRef().getEnchantmentCharge();
-                item.count = it->getRefData().getCount();
+                item.count = it->getCellRef().getCount();
             }
         }
         else if (!item.refId.empty())

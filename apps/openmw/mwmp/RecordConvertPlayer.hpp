@@ -29,6 +29,8 @@
 
 #include <components/openmw-mp/Base/records/PlayerState.hpp>
 
+#include "../mwworld/cell.hpp"
+
 #include "RefIdCompat.hpp"
 
 namespace mwmp
@@ -63,6 +65,56 @@ namespace mwmp
             to.mData.mY = from.mData.mY;
             to.mName = from.mName;
             to.mRegion = RefIdCompat::toWire(from.mRegion);
+        }
+
+        /*
+            0.51 introduced MWWorld::Cell, a unified view over ESM3 and ESM4 cells, and
+            most engine code now hands that out rather than an ESM::Cell. The wire format
+            only ever carried the ESM3 subset -- name, region, grid position, interior
+            flag -- so it converts directly, and ESM4 cells simply have no ESM3 region.
+
+            The interior flag is rebuilt rather than copied: MWWorld::Cell exposes
+            isExterior() but not the raw ESM::Cell::DATAstruct flags, and Interior is the
+            only flag bit tes3mp puts on the wire.
+        */
+        inline void fromEngine(const MWWorld::Cell& from, records::Cell& to)
+        {
+            to.mData.mFlags = from.isExterior() ? 0 : records::Cell::Interior;
+            to.mData.mX = from.getGridX();
+            to.mData.mY = from.getGridY();
+            to.mName = std::string(from.getNameId());
+            to.mRegion = RefIdCompat::toWire(from.getRegion());
+        }
+
+        /*
+            By-value forms.
+
+            Ported call sites are overwhelmingly of the shape "mirror = engineValue", and
+            an out-parameter turns each of those into two statements plus a temporary. The
+            overload set is resolved on the engine type, so a mismatch is still a compile
+            error naming both types -- which is the property that matters here, because the
+            mirrors deliberately reuse the engine's member names and a wrong pairing would
+            otherwise assign happily.
+        */
+        inline records::Position toMirror(const ESM::Position& from)
+        {
+            records::Position to;
+            fromEngine(from, to);
+            return to;
+        }
+
+        inline records::Cell toMirror(const ESM::Cell& from)
+        {
+            records::Cell to;
+            fromEngine(from, to);
+            return to;
+        }
+
+        inline records::Cell toMirror(const MWWorld::Cell& from)
+        {
+            records::Cell to;
+            fromEngine(from, to);
+            return to;
         }
 
         template <class T>
