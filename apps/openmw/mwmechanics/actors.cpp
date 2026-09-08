@@ -1701,18 +1701,51 @@ namespace MWMechanics
                 /*
                     Start of tes3mp change (major)
 
-                    UNRESOLVED -- NEEDS REDESIGN, NOT ADAPTATION.
+                    Instead of merely updating the player character's attack state here,
+                    prepare an Attack packet for the LocalPlayer.
 
-                    0.47 prepared the outgoing Attack packet here by reading
-                    getAttackingOrSpell() together with the draw state. 0.51 replaced that
-                    input model entirely: attacks now arrive as controls.mUse against the
-                    AttackType enum, and this loop no longer exposes the state the old hook
-                    read. Mechanically porting the old code would compile against neither
-                    the old fields nor the new semantics.
+                    0.51 moved the player's attack input into Lua: a built-in script sets
+                    controls.mUse to an AttackType, and updateLuaControls() turns that into
+                    CreatureStats::setAttackingOrSpell plus a named attack type. What it did
+                    not do is remove the state. getAttackingOrSpell() still means exactly
+                    what it meant in 0.47 -- the attack button is down -- so this reads it
+                    from CreatureStats instead of from MWWorld::Player and is otherwise
+                    0.8.1's logic unchanged.
 
-                    Reinstating this needs someone to decide where in 0.51's attack pipeline
-                    the packet should be prepared. Until then MELEE/RANGED attacks are NOT
-                    sent to the server, so combat will not synchronise.
+                    0.8.1 also copied the flag into the CharacterController here. That is
+                    deliberately not repeated: updateLuaControls already does it, and doing
+                    it again would mean two owners for a control Lua now drives.
+
+                    The packet is prepared on the press/release EDGE, not while held, which
+                    is what keeps one swing to one packet.
+                */
+                if (isPlayer)
+                {
+                    const MWMechanics::CreatureStats& playerStats = player.getClass().getCreatureStats(player);
+                    const bool state = playerStats.getAttackingOrSpell();
+
+                    if (playerStats.getDrawState() == MWMechanics::DrawState::Weapon)
+                    {
+                        mwmp::Attack* localAttack = MechanicsHelper::getLocalAttack(player);
+
+                        if (localAttack->pressed != state)
+                        {
+                            MechanicsHelper::resetAttack(localAttack);
+                            localAttack->type = MechanicsHelper::isUsingRangedWeapon(player)
+                                ? mwmp::Attack::RANGED
+                                : mwmp::Attack::MELEE;
+                            localAttack->pressed = state;
+
+                            // Prepare this attack for sending as long as it's not a ranged attack that's
+                            // being released, because we need to get the final attackStrength for that
+                            // from WeaponAnimation to have the correct projectile speed
+                            if (localAttack->type == mwmp::Attack::MELEE || state)
+                                localAttack->shouldSend = true;
+                        }
+                    }
+                }
+                /*
+                    End of tes3mp change (major)
                 */
 
                 /*
