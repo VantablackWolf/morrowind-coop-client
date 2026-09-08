@@ -11,6 +11,7 @@
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/ObjectList.hpp"
+#include "../mwmp/RecordConvertPlayer.hpp"
 /*
     End of tes3mp addition
 */
@@ -135,7 +136,7 @@ namespace MWGui
         mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
         objectList->reset();
         objectList->packetOrigin = mwmp::PACKET_ORIGIN::CLIENT_GAMEPLAY;
-        objectList->cell = *source.first.getCell()->getCell();
+        objectList->cell = mwmp::RecordConvert::toMirror(*source.first.getCell()->getCell());
         objectList->action = mwmp::BaseObjectList::ADD;
         objectList->containerSubAction = mwmp::BaseObjectList::NONE;
         mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(source.first);
@@ -191,7 +192,7 @@ namespace MWGui
                     mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
                     objectList->reset();
                     objectList->packetOrigin = mwmp::PACKET_ORIGIN::CLIENT_GAMEPLAY;
-                    objectList->cell = *source.first.getCell()->getCell();
+                    objectList->cell = mwmp::RecordConvert::toMirror(*source.first.getCell()->getCell());
                     objectList->action = mwmp::BaseObjectList::REMOVE;
                     objectList->containerSubAction = mwmp::BaseObjectList::NONE;
                     mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(source.first);
@@ -225,7 +226,27 @@ namespace MWGui
             {
                 int refCount = source.getCellRef().getCount();
                 if (refCount - toRemove <= 0)
+                {
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_OBJECT_DELETE packet every time an item is removed from the world
+                        because it has been purchased from its owner
+
+                        The merge left this at the top of update(), where "source" is a
+                        different variable of a different type.
+                    */
+                    mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                    objectList->addObjectGeneric(source);
+                    objectList->sendObjectDelete();
+                    /*
+                        End of tes3mp addition
+                    */
+
                     MWBase::Environment::get().getWorld()->deleteObject(source);
+                }
                 else
                     source.getCellRef().setCount(std::max(0, refCount - toRemove));
                 toRemove -= refCount;
@@ -242,20 +263,6 @@ namespace MWGui
         mItems.clear();
         for (auto& source : mItemSources)
         {
-                /*
-                    Start of tes3mp addition
-
-                    Send an ID_OBJECT_DELETE packet every time an item is removed from the world
-                    because it has been purchased from its owner
-                */
-                mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-                objectList->reset();
-                objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-                objectList->addObjectGeneric(source);
-                objectList->sendObjectDelete();
-                /*
-                    End of tes3mp addition
-                */
             MWWorld::ContainerStore& store = source.first.getClass().getContainerStore(source.first);
 
             for (MWWorld::ContainerStoreIterator it = store.begin(); it != store.end(); ++it)

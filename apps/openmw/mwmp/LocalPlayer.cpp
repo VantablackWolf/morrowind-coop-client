@@ -1981,6 +1981,16 @@ void LocalPlayer::sendMarkLocation(const ESM::Cell& newMarkCell, const ESM::Posi
     getNetworking()->getPlayerPacket(ID_PLAYER_MISCELLANEOUS)->Send();
 }
 
+void LocalPlayer::sendMarkLocation(const MWWorld::Cell& newMarkCell, const ESM::Position& newMarkPosition)
+{
+    miscellaneousChangeType = mwmp::MISCELLANEOUS_CHANGE_TYPE::MARK_LOCATION;
+    markCell = mwmp::RecordConvert::toMirror(newMarkCell);
+    markPosition = mwmp::RecordConvert::toMirror(newMarkPosition);
+
+    getNetworking()->getPlayerPacket(ID_PLAYER_MISCELLANEOUS)->setPlayer(this);
+    getNetworking()->getPlayerPacket(ID_PLAYER_MISCELLANEOUS)->Send();
+}
+
 void LocalPlayer::sendSelectedSpell(const std::string& newSelectedSpellId)
 {
     miscellaneousChangeType = mwmp::MISCELLANEOUS_CHANGE_TYPE::SELECTED_SPELL;

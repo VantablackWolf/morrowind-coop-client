@@ -107,6 +107,8 @@ namespace mwmp
         void sendBook(const std::string& bookId);
         void sendWerewolfState(bool isWerewolf);
         void sendMarkLocation(const ESM::Cell& newMarkCell, const ESM::Position& newMarkPosition);
+        // CellStore::getCell() returns MWWorld::Cell in 0.51.
+        void sendMarkLocation(const MWWorld::Cell& newMarkCell, const ESM::Position& newMarkPosition);
         void sendSelectedSpell(const std::string& newSelectedSpellId);
         void sendItemUse(const MWWorld::Ptr& itemPtr, bool usingItemMagic = false, char currentDrawState = 0);
         void sendCellStates();

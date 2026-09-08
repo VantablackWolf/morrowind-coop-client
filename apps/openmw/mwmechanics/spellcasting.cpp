@@ -15,6 +15,7 @@
 */
 #include <components/openmw-mp/TimedLog.hpp>
 #include "../mwmp/Main.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/PlayerList.hpp"
 #include "../mwmp/LocalPlayer.hpp"
@@ -403,7 +404,11 @@ namespace MWMechanics
                     mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
                     objectList->reset();
                     objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-                    objectList->addObjectSound(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
+                    // 0.51 holds the failure sound on the school record; 0.8.1 composed the name.
+                    objectList->addObjectSound(mCaster,
+                        mwmp::RefIdCompat::toWire(MWBase::Environment::get().getESMStore()
+                                ->get<ESM::Skill>().find(school)->mSchool->mFailureSound),
+                        1.0f, 1.0f);
                     objectList->sendObjectSound();
                     /*
                         End of tes3mp addition
@@ -498,7 +503,7 @@ namespace MWMechanics
                 else
                 {
                     localCast = MechanicsHelper::getLocalCast(mCaster);
-                    localCast->success = MechanicsHelper::getSpellSuccess(mId, mCaster);
+                    localCast->success = MechanicsHelper::getSpellSuccess(mwmp::RefIdCompat::toWire(mId), mCaster);
                     localCast->pressed = false;
                     localCast->shouldSend = true;
                 }
@@ -539,7 +544,11 @@ namespace MWMechanics
                     mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
                     objectList->reset();
                     objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-                    objectList->addObjectSound(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
+                    // 0.51 holds the failure sound on the school record; 0.8.1 composed the name.
+                    objectList->addObjectSound(mCaster,
+                        mwmp::RefIdCompat::toWire(MWBase::Environment::get().getESMStore()
+                                ->get<ESM::Skill>().find(school)->mSchool->mFailureSound),
+                        1.0f, 1.0f);
                     objectList->sendObjectSound();
                     /*
                         End of tes3mp addition
@@ -711,9 +720,9 @@ namespace MWMechanics
             objectList->reset();
             objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
             objectList->addObjectSound(target,
-                magicEffect.mHitSound.empty()
-                    ? store->get<ESM::Skill>().find(magicEffect.mData.mSchool)->mSchool->mHitSound
-                    : magicEffect.mHitSound,
+                mwmp::RefIdCompat::toWire(magicEffect.mHitSound.empty()
+                        ? store->get<ESM::Skill>().find(magicEffect.mData.mSchool)->mSchool->mHitSound
+                        : magicEffect.mHitSound),
                 1.0f, 1.0f);
             objectList->sendObjectSound();
             /*
