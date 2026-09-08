@@ -60,16 +60,17 @@ for f in "${files[@]}"; do
     for i in "${!was[@]}"; do
         # Two signals, both learned from real damage on the 0.51 port:
         #
-        #   a hook that was at class or namespace scope (depth <= 1) and is now deeper
-        #   -- that is where DECLARATIONS live, and moving one inside a function is the
-        #   failure that costs the most to find; and
+        #   a hook that was at CLASS scope (depth 1) and is now deeper -- that is where
+        #   declarations live, and moving one inside a function is the failure that costs
+        #   the most to find; and
         #
         #   any jump of two or more levels.
         #
-        # A plain +1 from depth 2 or more is usually upstream nesting the code the hook
-        # wraps -- 0.51 did that to most of mwscript at once -- so it is not reported.
+        # A plain +1 is usually upstream nesting the code the hook wraps: 0.51 nested most
+        # of mwscript one level, and wrapped whole files in a namespace that 0.47 spelled
+        # with qualified names (0 -> 1). Neither is reported.
         jump=$(( now[i] - was[i] ))
-        if { [ "${was[$i]}" -le 1 ] && [ "$jump" -gt 0 ]; } || [ "$jump" -ge 2 ]; then
+        if { [ "${was[$i]}" -eq 1 ] && [ "$jump" -gt 0 ]; } || [ "$jump" -ge 2 ]; then
             echo "$f: hook #$((i + 1)) is at brace depth ${now[$i]}, was ${was[$i]}"
             grep -n 'Start of tes3mp' "$f" | sed -n "$((i + 1))p" | sed 's/^/    now: /'
             status=1
@@ -78,10 +79,18 @@ for f in "${files[@]}"; do
 done
 
 if [ "$status" -ne 0 ]; then
-    echo
-    echo "A hook that got DEEPER has probably been pulled inside a function body."
-    echo "Read the surrounding code before assuming it is a false positive: a few"
-    echo "are legitimate (upstream genuinely nested the code the hook wraps)."
+    cat <<'NOTE'
+
+Each line above is a LEAD, not a failure. A hook that got deeper has often been
+pulled inside a function body -- but upstream also legitimately nests code, and
+renesting a whole file (0.51 wrapped several in a namespace that 0.47 spelled
+with qualified names) moves some of its hooks and not others. Read the
+surrounding code before concluding anything.
+
+This deliberately exits 0. It is a tool for reading a port, not a gate: on the
+0.47 -> 0.51 port it produced six real finds and a handful of benign ones, and
+failing a build on the benign ones would only teach people to skip it.
+NOTE
 fi
 
-exit $status
+exit 0

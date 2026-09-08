@@ -1171,29 +1171,6 @@ namespace MWMechanics
             {
                 if (hitKey->second.starts_with(groupname))
                 {
-                    /*
-                        Start of tes3mp addition
-
-                        If this mPtr belongs to a LocalPlayer or LocalActor, get their Attack and prepare
-                        it for sending
-                    */
-                    mwmp::Cast *localCast = MechanicsHelper::getLocalCast(mPtr);
-
-                    if (localCast)
-                    {
-                        MechanicsHelper::resetCast(localCast);
-                        localCast->type = mwmp::Cast::REGULAR;
-                        localCast->spellId = spellid;
-                        localCast->pressed = true;
-                        localCast->shouldSend = true;
-
-                        // Mark the attack as instant if there is no spellcast animation
-                        if (!mAnimation->hasAnimation("spellcast"))
-                            localCast->instant = true;
-                    }
-                    /*
-                        End of tes3mp addition
-                    */
                     std::string_view suffix = std::string_view(hitKey->second).substr(groupname.size());
                     if (suffix == ": hit")
                     {
@@ -1671,6 +1648,10 @@ namespace MWMechanics
                         localCast->spellId = spellid;
                         localCast->pressed = true;
                         localCast->shouldSend = true;
+
+                        // Mark the attack as instant if there is no spellcast animation
+                        if (!mAnimation->hasAnimation("spellcast"))
+                            localCast->instant = true;
                     }
                     /*
                         End of tes3mp addition
