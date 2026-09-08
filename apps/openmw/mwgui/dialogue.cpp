@@ -741,27 +741,20 @@ namespace MWGui
             std::string topicId = Misc::StringUtils::lowerCase(keyword);
             mTopicsList->addItem(keyword, sVerticalPadding);
 
-<<<<<<< HEAD
-            Topic* t = new Topic(keyword);
+            auto t = std::make_unique<Topic>(keyword);
+            mKeywordSearch.seed(translationStorage.topicKeyword(keyword), topicId);
             /*
                 Start of tes3mp change (major)
 
-                Instead of running DialogueWindow::onSelectListItem() when clicking a highlighted topic, run
-                onSendDialoguePacket() so the server can approve or deny a dialogue choice
+                Instead of running DialogueWindow::onTopicActivated when clicking a highlighted
+                topic, send a dialogue packet so the server can approve or deny the choice
             */
-            //t->eventTopicActivated += MyGUI::newDelegate(this, &DialogueWindow::onTopicActivated);
+            // t->eventTopicActivated += MyGUI::newDelegate(this, &DialogueWindow::onTopicActivated);
             t->eventTopicActivated += MyGUI::newDelegate(this, &DialogueWindow::sendDialogueChoicePacket);
             /*
                 End of tes3mp change (major)
             */
-            
-            mTopicLinks[topicId] = t;
-=======
-            auto t = std::make_unique<Topic>(keyword);
-            mKeywordSearch.seed(translationStorage.topicKeyword(keyword), topicId);
-            t->eventTopicActivated += MyGUI::newDelegate(this, &DialogueWindow::onTopicActivated);
             mTopicLinks[topicId] = std::move(t);
->>>>>>> omw51
 
             if (keyword == focusedTopic)
                 mControllerFocus = mTopicsList->getItemCount() - 1;

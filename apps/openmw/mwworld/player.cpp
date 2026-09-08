@@ -215,14 +215,15 @@ namespace MWWorld
         if (!toActivate.getClass().hasToolTip(toActivate))
             return;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
             Disable unilateral activation on this client and expect the server's reply to our
-            packet to do it instead
+            packet to do it instead.
+
+            0.51 replaced World::activate() here with a Lua objectActivated() notification.
         */
-        //MWBase::Environment::get().getWorld()->activate(toActivate, player);
+        // MWBase::Environment::get().getLuaManager()->objectActivated(toActivate, player);
         /*
             End of tes3mp change (major)
         */
@@ -232,7 +233,7 @@ namespace MWWorld
 
             Send an ID_OBJECT_ACTIVATE packet every time an object is activated here
         */
-        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+        mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
         objectList->reset();
         objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
         objectList->addObjectActivate(toActivate, player);
@@ -240,9 +241,6 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-=======
-        MWBase::Environment::get().getLuaManager()->objectActivated(toActivate, player);
->>>>>>> omw51
     }
 
     bool Player::wasTeleported() const

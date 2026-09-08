@@ -833,7 +833,6 @@ namespace MWGui
             if (object == mPtr)
                 mPtr = MWWorld::Ptr();
             else
-<<<<<<< HEAD
             {
                 /*
                     Start of tes3mp change (major)
@@ -841,15 +840,14 @@ namespace MWGui
                     Display the selected object's refNum and mpNum alongside its refId in the
                     title of the console window, for easier debugging of almost everything
                 */
-                setTitle("#{sConsoleTitle} (" + object.getCellRef().getRefId() + ", " +
-                    std::to_string(object.getCellRef().getRefNum().mIndex) + "-" +
-                    std::to_string(object.getCellRef().getMpNum()) + ")");
+                setTitle("#{sConsoleTitle} (" + object.getCellRef().getRefId().toDebugString() + ", "
+                    + std::to_string(object.getCellRef().getRefNum().mIndex) + "-"
+                    + std::to_string(object.getCellRef().getMpNum()) + ")");
                 /*
                     End of tes3mp change (major)
                 */
-=======
->>>>>>> omw51
                 mPtr = object;
+            }
             // User clicked on an object. Restore focus to the console command line.
             MWBase::Environment::get().getWindowManager()->setKeyFocusWidget(mCommandLine);
         }

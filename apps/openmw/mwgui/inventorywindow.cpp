@@ -717,32 +717,19 @@ namespace MWGui
                     mDragAndDrop->mItem, mDragAndDrop->mDraggedCount, mTradeModel);
             }
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp change (major)
 
-                Instead of unilaterally using an item, send an ID_PLAYER_ITEM_USE packet and let the server
-                decide if the item actually gets used
+                Instead of unilaterally using an item, send an ID_PLAYER_ITEM_USE packet and let
+                the server decide whether the item actually gets used.
+
+                0.51 routes local item use through the Lua manager rather than useItem().
             */
-            //useItem(ptr);
+            // MWBase::Environment::get().getLuaManager()->useItem(ptr, MWMechanics::getPlayer(), false);
             mwmp::Main::get().getLocalPlayer()->sendItemUse(ptr);
             /*
                 End of tes3mp change (major)
             */
-
-            // If item is ingredient or potion don't stop drag and drop to simplify action of taking more than one 1 item
-            if ((ptr.getTypeName() == typeid(ESM::Potion).name() ||
-                 ptr.getTypeName() == typeid(ESM::Ingredient).name())
-                && mDragAndDrop->mDraggedCount > 1)
-            {
-                // Item can be provided from other window for example container.
-                // But after DragAndDrop::startDrag item automaticly always gets to player inventory.
-                mSelectedItem = getModel()->getIndex(mDragAndDrop->mItem);
-                dragItem(nullptr, mDragAndDrop->mDraggedCount - 1);
-            }
-=======
-            MWBase::Environment::get().getLuaManager()->useItem(ptr, MWMechanics::getPlayer(), false);
->>>>>>> omw51
         }
         else
         {
