@@ -141,79 +141,38 @@ namespace MWMechanics
                 MWRender::Animation* anim = world->getAnimation(placed);
                 if (anim)
                 {
-<<<<<<< HEAD
-                    int creatureActorId = -1;
+                /*
+                    Start of tes3mp change (major)
 
-                    /*
-                        Start of tes3mp change (major)
+                    Send an ID_OBJECT_SPAWN packet when a creature is summoned in a cell we
+                    hold authority over, then delete the local creature and wait for the
+                    server to send it back with an mpNum of its own.
 
-                        Send an ID_OBJECT_SPAWN packet every time a creature is summoned in a cell that we hold
-                        authority over, then delete the creature and wait for the server to send it back with a
-                        unique mpNum of its own
+                    PARTIALLY ADAPTED. 0.8.1 also sent the spell's source id and remaining
+                    duration, read by iterating ActiveSpells. 0.51 rebuilt ActiveSpells (see
+                    the note in activespells.cpp) and this function now receives only the
+                    effect id, so those two arguments have no source here. The spawn packet
+                    is sent without them; summons will not carry their originating spell or
+                    remaining duration to other clients until spell synchronisation is
+                    redesigned.
+                */
+                MWWorld::Ptr placed = world->safePlaceObject(ref.getPtr(), summoner, summoner.getCell(), 0, 120.f);
+                MWBase::Environment::get().getWorldModel()->registerPtr(placed);
+                creature = placed.getCellRef().getRefNum();
 
-                        Comment out most of the code here except for the actual placement of the Ptr and the
-                        creatureActorId insertion into the creatureMap
-                    */
-                    try
-                    {
-                        MWWorld::ManualRef ref(MWBase::Environment::get().getWorld()->getStore(), creatureID, 1);
+                if (mwmp::Main::get().getCellController()->hasLocalAuthority(*placed.getCell()->getCell()))
+                {
+                    mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+                    objectList->addObjectSpawn(placed, summoner);
+                    objectList->sendObjectSpawn();
+                }
 
-                        /*
-                        MWMechanics::CreatureStats& summonedCreatureStats = ref.getPtr().getClass().getCreatureStats(ref.getPtr());
-
-                        // Make the summoned creature follow its master and help in fights
-                        AiFollow package(mActor);
-                        summonedCreatureStats.getAiSequence().stack(package, ref.getPtr());
-                        creatureActorId = summonedCreatureStats.getActorId();
-                        */
-
-                        MWWorld::Ptr placed = MWBase::Environment::get().getWorld()->safePlaceObject(ref.getPtr(), mActor, mActor.getCell(), 0, 120.f);
-
-                        /*
-                        MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(placed);
-                        if (anim)
-                        {
-                            const ESM::Static* fx = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>()
-                                    .search("VFX_Summon_Start");
-                            if (fx)
-                                anim->addEffect("meshes\\" + fx->mModel, -1, false);
-                        }
-                        */
-
-                        if (mwmp::Main::get().getCellController()->hasLocalAuthority(*placed.getCell()->getCell()))
-                        {
-                            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-                            objectList->reset();
-                            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-
-                            MWMechanics::CreatureStats *actorCreatureStats = &mActor.getClass().getCreatureStats(mActor);
-                            int effectId = it->mEffectId;
-                            std::string sourceId = it->mSourceId;
-                            float duration = actorCreatureStats->getActiveSpells().getEffectDuration(effectId, sourceId);
-                            objectList->addObjectSpawn(placed, mActor, sourceId, effectId, duration);
-                            objectList->sendObjectSpawn();
-                        }
-
-                        MWBase::Environment::get().getWorld()->deleteObject(placed);
-                    }
-                    catch (std::exception& e)
-                    {
-                        Log(Debug::Error) << "Failed to spawn summoned creature: " << e.what();
-                        // still insert into creatureMap so we don't try to spawn again every frame, that would spam the warning log
-                    }
-
-                    creatureMap.emplace(*it, creatureActorId);
-                    /*
-                        End of tes3mp change (major)
-                    */
-=======
-                    const ESM::Static* fx
-                        = world->getStore().get<ESM::Static>().search(ESM::RefId::stringRefId("VFX_Summon_Start"));
-                    if (fx)
-                        anim->addEffect(
-                            Misc::ResourceHelpers::correctMeshPath(VFS::Path::Normalized(fx->mModel)).value(), "",
-                            false);
->>>>>>> omw51
+                MWBase::Environment::get().getWorld()->deleteObject(placed);
+                /*
+                    End of tes3mp change (major)
+                */
                 }
             }
             catch (std::exception& e)
