@@ -261,6 +261,37 @@ so the game kept running with the object silently un-disabled.
 
 ---
 
+### Dependencies the openmw-deps bundle does not ship
+
+Three things TES3MP needs are not in the prebuilt dependency bundle, and none
+of them fails in a way that names itself.
+
+**Lua-io2** (github.com/TES3MP/Lua-io2) is a *runtime* dependency of
+CoreScripts, not a build one, so nothing about it appears until the server is
+running. serverCore.lua does `jsonInterface.setLibrary(require("io2"))` on
+Windows, because Lua's own `io` cannot open Unicode filenames there. Build it
+against the same LuaJit as the server and drop `io2.dll` beside the server
+binary. Its bundled FindLuaJit resolves LuaJit through pkg-config, which is not
+available in this toolchain; point it at the vcpkg tree directly. It also needs
+its sol2 submodule, which a plain `--depth 1` clone will not fetch.
+
+Substituting plain `io` looks like it works and then does not: `jsonInterface`
+silently fails to write, and CoreScripts' error path calls SendMessage with a
+nil pid, which takes the whole server down with
+
+    json.lua:31: bad argument #1 to 'SendMessage' (number expected, got nil)
+    Server crash from script error!
+
+**Qt6** for tes3mp-browser. 0.51 requires it, and the browser's CMakeLists was
+still Qt5. aqtinstall fetches Qt's official prebuilt binaries in well under a
+minute, which is worth knowing before committing to a vcpkg source build.
+
+**Boost.Asio** for the master server. The bundle ships Boost complete except
+asio. It is header-only, so the matching version's headers dropped into the
+toolchain's include/boost are enough -- there is nothing to link.
+
+---
+
 ---
 
 ## The rule that keeps the server portable
