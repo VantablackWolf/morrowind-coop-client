@@ -149,16 +149,33 @@ private:
     std::ostream &out2;
 };
 
-boost::program_options::variables_map launchOptions(int argc, char *argv[], Files::ConfigurationManager cfgMgr)
+boost::program_options::variables_map launchOptions(int argc, char *argv[], Files::ConfigurationManager& cfgMgr)
 {
     namespace bpo = boost::program_options;
     bpo::variables_map variables;
     bpo::options_description desc;
 
+    /*
+        Start of tes3mp change (major)
+
+        0.51's ConfigurationManager::readConfiguration reads variables["user-data"]
+        unconditionally, along with the other options it manages. A description holding
+        only the server's own two options therefore leaves that lookup on an empty
+        boost::any and throws bad_any_cast before the server ever starts.
+
+        addCommonOptions() declares exactly the set the configuration manager expects, so
+        the server no longer has to know what that set is -- which is one less thing to
+        re-derive when upstream adds to it.
+    */
+    Files::ConfigurationManager::addCommonOptions(desc);
+
+    // addCommonOptions already declares "resources"; declaring it again makes it ambiguous.
     desc.add_options()
-            ("resources", bpo::value<Files::MaybeQuotedPath>()->default_value(Files::MaybeQuotedPath(), "resources"), "set resources directory")
             ("no-logs", bpo::value<bool>()->implicit_value(true)->default_value(false),
              "Do not write logs. Useful for daemonizing.");
+    /*
+        End of tes3mp change (major)
+    */
 
     cfgMgr.readConfiguration(variables, desc, true);
 
@@ -171,7 +188,19 @@ boost::program_options::variables_map launchOptions(int argc, char *argv[], File
 }
 
 int main(int argc, char *argv[])
+try
 {
+    /*
+        Start of tes3mp change (minor)
+
+        Wrap the whole of main, not just the networking section.
+
+        Everything before the original try -- settings loading, option parsing, log
+        redirection -- ran outside any handler, so a throw there reached terminate() and
+        the process fail-fasted with exit code 0xC0000409 and no message whatsoever. That
+        is a bad failure mode for a dedicated server, and it cost real time to diagnose
+        during the 0.51 port.
+    */
     Settings::Manager mgr;
     Files::ConfigurationManager cfgMgr;
 
@@ -364,3 +393,16 @@ int main(int argc, char *argv[])
     breakpad_close();
     return code;
 }
+catch (const std::exception& e)
+{
+    std::cerr << std::endl << "Fatal error during startup: " << e.what() << std::endl;
+    return 1;
+}
+catch (...)
+{
+    std::cerr << std::endl << "Fatal unknown error during startup." << std::endl;
+    return 1;
+}
+/*
+    End of tes3mp change (minor)
+*/
