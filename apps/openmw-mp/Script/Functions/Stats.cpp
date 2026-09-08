@@ -52,7 +52,12 @@ const char *StatsFunctions::GetAttributeName(unsigned short attributeId) noexcep
     if (attributeId >= mwmp::records::sAttributeCount)
         return "invalid";
 
-    return mwmp::records::sAttributeNames[attributeId].c_str();
+    /*
+        These are string_views over string literals, so data() is null-terminated and
+        stays valid for the life of the process -- which is what the Lua API needs from
+        a const char*.
+    */
+    return mwmp::records::sAttributeNames[attributeId].data();
 }
 
 const char *StatsFunctions::GetSkillName(unsigned short skillId) noexcept
@@ -60,7 +65,7 @@ const char *StatsFunctions::GetSkillName(unsigned short skillId) noexcept
     if (skillId >= mwmp::records::sSkillCount)
         return "invalid";
 
-    return mwmp::records::sSkillNames[skillId].c_str();
+    return mwmp::records::sSkillNames[skillId].data();
 }
 
 const char *StatsFunctions::GetName(unsigned short pid) noexcept

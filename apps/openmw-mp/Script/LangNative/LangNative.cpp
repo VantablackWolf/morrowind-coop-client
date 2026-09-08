@@ -28,7 +28,9 @@ void LangNative::LoadProgram(const char *filename)
     fclose(file);
 
 #ifdef _WIN32
-    lib = LoadLibrary(filename);
+    // LoadLibrary is a macro resolving to LoadLibraryW under UNICODE, which 0.51's build
+    // defines; the narrow form is what this char* path needs.
+    lib = LoadLibraryA(filename);
 #else
     lib = dlopen(filename, RTLD_LAZY);
 #endif

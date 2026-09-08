@@ -1,10 +1,27 @@
 #include <iostream>
 
-#include <boost/filesystem/fstream.hpp>
+#include <filesystem>
+#include <fstream>
+
+/*
+    Start of tes3mp change (major)
+
+    0.51 dropped boost::filesystem and no longer links it, and boost::program_options
+    used to arrive here through components/files/escape.hpp, which 0.51 removed. Both
+    are now spelled out.
+*/
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
+/*
+    End of tes3mp change (major)
+*/
+
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 
 #include <components/files/configurationmanager.hpp>
+#include <components/files/conversion.hpp>
 /*
     Start of tes3mp change (major)
 
@@ -89,21 +106,23 @@ std::string loadSettings (Settings::Manager & settings)
 {
     Files::ConfigurationManager mCfgMgr;
     // Create the settings manager and load default settings file
-    const std::string localdefault = (mCfgMgr.getLocalPath() / "tes3mp-server-default.cfg").string();
-    const std::string globaldefault = (mCfgMgr.getGlobalPath() / "tes3mp-server-default.cfg").string();
+    const std::filesystem::path localdefault = mCfgMgr.getLocalPath() / "tes3mp-server-default.cfg";
+    const std::filesystem::path globaldefault = mCfgMgr.getGlobalPath() / "tes3mp-server-default.cfg";
 
     // prefer local
-    if (boost::filesystem::exists(localdefault))
+    if (std::filesystem::exists(localdefault))
         settings.loadDefault(localdefault, false);
-    else if (boost::filesystem::exists(globaldefault))
+    else if (std::filesystem::exists(globaldefault))
         settings.loadDefault(globaldefault, false);
     else
         throw std::runtime_error ("No default settings file found! Make sure the file \"tes3mp-server-default.cfg\" was properly installed.");
 
     // load user settings if they exist
-    const std::string settingspath = (mCfgMgr.getUserConfigPath() / "tes3mp-server.cfg").string();
-    if (boost::filesystem::exists(settingspath))
-        settings.loadUser(settingspath);
+    const std::filesystem::path settingsFile = mCfgMgr.getUserConfigPath() / "tes3mp-server.cfg";
+    const std::string settingspath = Files::pathToUnicodeString(settingsFile);
+
+    if (std::filesystem::exists(settingsFile))
+        settings.loadUser(settingsFile);
 
     return settingspath;
 }
@@ -156,13 +175,18 @@ int main(int argc, char *argv[])
     Settings::Manager mgr;
     Files::ConfigurationManager cfgMgr;
 
-    breakpad(boost::filesystem::path(cfgMgr.getLogPath()).string());
+    breakpad(Files::pathToUnicodeString(cfgMgr.getLogPath()));
 
     loadSettings(mgr);
 
     auto variables = launchOptions(argc, argv, cfgMgr);
 
-    auto version = Version::getOpenmwVersion(Files::pathToUnicodeString(variables["resources"].as<Files::MaybeQuotedPath>()));
+    /*
+        0.51 removed Version::getOpenmwVersion(resDir) and the struct it returned; the
+        commit hash is compiled in and read with a free function, so the resources path
+        is no longer needed to find it.
+    */
+    std::string commitHash(Version::getCommitHash());
 
     int logLevel = mgr.getInt("logLevel", "General");
     if (logLevel < TimedLog::LOG_VERBOSE || logLevel > TimedLog::LOG_FATAL)
@@ -179,14 +203,14 @@ int main(int argc, char *argv[])
     std::ostream oldcout(cout_rdbuf);
     std::ostream oldcerr(cerr_rdbuf);
 
-    boost::filesystem::ofstream logfile;
+    std::ofstream logfile;
 
     if (!variables["no-logs"].as<bool>())
     {
         // Redirect cout and cerr to tes3mp server log
 
-        logfile.open(boost::filesystem::path(
-                cfgMgr.getLogPath() / "/tes3mp-server-" += TimedLog::getFilenameTimestamp() += ".log"));
+        logfile.open(cfgMgr.getLogPath()
+            / ("tes3mp-server-" + TimedLog::getFilenameTimestamp() + ".log"));
 
         coutsb.open(Tee(logfile, oldcout));
         cerrsb.open(Tee(logfile, oldcerr));
@@ -208,7 +232,7 @@ int main(int argc, char *argv[])
 
     std::vector<std::string> plugins(Utils::split(mgr.getString("plugins", "Plugins"), ','));
 
-    std::string versionInfo = Utils::getVersionInfo("TES3MP dedicated server", TES3MP_VERSION, version.mCommitHash, TES3MP_PROTO_VERSION);
+    std::string versionInfo = Utils::getVersionInfo("TES3MP dedicated server", TES3MP_VERSION, commitHash, TES3MP_PROTO_VERSION);
     LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "%s", versionInfo.c_str());
     
     Script::SetModDir(dataDirectory);
@@ -232,8 +256,8 @@ int main(int argc, char *argv[])
     sstr << TES3MP_VERSION;
     sstr << TES3MP_PROTO_VERSION;
     // Remove carriage returns added to version file on Windows
-    version.mCommitHash.erase(std::remove(version.mCommitHash.begin(), version.mCommitHash.end(), '\r'), version.mCommitHash.end());
-    sstr << version.mCommitHash;
+    commitHash.erase(std::remove(commitHash.begin(), commitHash.end(), '\r'), commitHash.end());
+    sstr << commitHash;
 
     peer->SetIncomingPassword(sstr.str().c_str(), (int) sstr.str().size());
 
@@ -304,7 +328,7 @@ int main(int argc, char *argv[])
             networking.getMasterClient()->SetUpdateRate((unsigned) updateRate);
             std::string hostname = mgr.getString("hostname", "General");
             networking.getMasterClient()->SetHostname(hostname);
-            networking.getMasterClient()->SetRuleString("CommitHash", version.mCommitHash.substr(0, 10));
+            networking.getMasterClient()->SetRuleString("CommitHash", commitHash.substr(0, 10));
 
             networking.getMasterClient()->Start();
         }

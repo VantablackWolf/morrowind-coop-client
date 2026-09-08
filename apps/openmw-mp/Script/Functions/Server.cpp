@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "Server.hpp"
 
 #include <components/misc/strings/algorithm.hpp>
@@ -50,20 +51,32 @@ void ServerFunctions::UnbanAddress(const char *ipAddress) noexcept
 
 bool ServerFunctions::DoesFilePathExist(const char *filePath) noexcept
 {
-    return boost::filesystem::exists(filePath);
+    // 0.51 dropped the boost::filesystem dependency; std::filesystem is equivalent here.
+    std::error_code ec;
+    return std::filesystem::exists(std::filesystem::path(filePath), ec);
 }
 
 const char *ServerFunctions::GetCaseInsensitiveFilename(const char *folderPath, const char *filename) noexcept
 {
-    if (!boost::filesystem::exists(folderPath)) return "invalid";
+    std::error_code ec;
+    const std::filesystem::path folder(folderPath);
 
-    boost::filesystem::directory_iterator end_itr; // default construction yields past-the-end
+    if (!std::filesystem::exists(folder, ec))
+        return "invalid";
 
-    for (boost::filesystem::directory_iterator itr(folderPath); itr != end_itr; ++itr)
+    // 0.51 dropped the boost::filesystem dependency; std::filesystem is equivalent here.
+    // The non-throwing directory_iterator overload is used so a permissions error on one
+    // entry cannot take the server down through a Lua call.
+    for (std::filesystem::directory_iterator itr(folder, ec), end; itr != end; itr.increment(ec))
     {
-        if (Misc::StringUtils::ciEqual(itr->path().filename().string(), filename))
+        if (ec)
+            break;
+
+        const std::string entry = itr->path().filename().string();
+
+        if (Misc::StringUtils::ciEqual(entry, filename))
         {
-            tempFilename = itr->path().filename().string();
+            tempFilename = entry;
             return tempFilename.c_str();
         }
     }
