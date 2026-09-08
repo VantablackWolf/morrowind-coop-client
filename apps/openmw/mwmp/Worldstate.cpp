@@ -775,3 +775,30 @@ void Worldstate::sendClientGlobal(const ESM::RefId& varName, float value)
     End of tes3mp addition
 */
 
+/*
+    Start of tes3mp addition
+
+    RefId-taking overloads -- see the header.
+*/
+void Worldstate::sendArmorRecord(const ESM::Armor* armor, const ESM::RefId& baseRefId)
+{
+    sendArmorRecord(armor, mwmp::RefIdCompat::toWire(baseRefId));
+}
+
+void Worldstate::sendBookRecord(const ESM::Book* book, const ESM::RefId& baseRefId)
+{
+    sendBookRecord(book, mwmp::RefIdCompat::toWire(baseRefId));
+}
+
+void Worldstate::sendClothingRecord(const ESM::Clothing* clothing, const ESM::RefId& baseRefId)
+{
+    sendClothingRecord(clothing, mwmp::RefIdCompat::toWire(baseRefId));
+}
+
+void Worldstate::sendWeaponRecord(const ESM::Weapon* weapon, const ESM::RefId& baseRefId, unsigned int quantity)
+{
+    sendWeaponRecord(weapon, mwmp::RefIdCompat::toWire(baseRefId), quantity);
+}
+/*
+    End of tes3mp addition
+*/

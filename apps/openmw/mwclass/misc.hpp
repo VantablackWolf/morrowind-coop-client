@@ -15,6 +15,18 @@ namespace MWClass
         MWWorld::Ptr copyToCell(const MWWorld::ConstPtr& ptr, MWWorld::CellStore& cell, int count) const override;
         MWWorld::Ptr moveToCell(const MWWorld::Ptr& ptr, MWWorld::CellStore& cell) const override;
 
+        /*
+            Start of tes3mp addition
+
+            Make it possible to enable collision for this object class from a packet
+        */
+        void insertObject(const MWWorld::Ptr& ptr, const std::string& model, const osg::Quat& rotation,
+            MWPhysics::PhysicsSystem& physics) const override;
+        void insertObjectPhysics(const MWWorld::Ptr& ptr, const std::string& model, const osg::Quat& rotation,
+            MWPhysics::PhysicsSystem& physics) const override;
+        /*
+            End of tes3mp addition
+        */
         void insertObjectRendering(const MWWorld::Ptr& ptr, const std::string& model,
             MWRender::RenderingInterface& renderingInterface) const override;
         ///< Add reference into a cell for rendering

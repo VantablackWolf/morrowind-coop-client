@@ -6,6 +6,9 @@
     Include additional headers for multiplayer purposes
 */
 #include <components/openmw-mp/Utils.hpp>
+#include "../mwphysics/physicssystem.hpp"
+#include "../mwmp/RefIdCompat.hpp"
+#include <components/vfs/pathutil.hpp>
 #include "../mwmp/Main.hpp"
 #include "../mwmp/Networking.hpp"
 /*
@@ -47,28 +50,46 @@ namespace MWClass
         }
     }
 
+    /*
+        Start of tes3mp addition
+
+        Make it possible to enable collision for this object class from a packet
+
+        0.51 split object insertion into insertObject and insertObjectPhysics, and item
+        classes override neither -- items have no collision by default, which is exactly
+        what this hook changes. So it becomes an insertObjectPhysics override rather than
+        a block inside a function that no longer exists. The merge had left it inside
+        getModel(), where model and physics are both out of scope.
+    */
+    void Apparatus::insertObject(const MWWorld::Ptr& ptr, const std::string& model, const osg::Quat& rotation,
+        MWPhysics::PhysicsSystem& physics) const
+    {
+        insertObjectPhysics(ptr, model, rotation, physics);
+    }
+
+    void Apparatus::insertObjectPhysics(const MWWorld::Ptr& ptr, const std::string& model, const osg::Quat& rotation,
+        MWPhysics::PhysicsSystem& physics) const
+    {
+        if (model.empty())
+            return;
+
+        mwmp::BaseWorldstate *worldstate = mwmp::Main::get().getNetworking()->getWorldstate();
+
+        if (worldstate->hasPlacedObjectCollision
+            || Utils::vectorContains(worldstate->enforcedCollisionRefIds,
+                mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId())))
+        {
+            physics.addObject(ptr, VFS::Path::toNormalized(model), rotation,
+                worldstate->useActorCollisionForPlacedObjects ? MWPhysics::CollisionType_Actor
+                                                              : MWPhysics::CollisionType_World);
+        }
+    }
+    /*
+        End of tes3mp addition
+    */
+
     std::string_view Apparatus::getModel(const MWWorld::ConstPtr& ptr) const
     {
-        /*
-            Start of tes3mp addition
-
-            Make it possible to enable collision for this object class from a packet
-        */
-        if (!model.empty())
-        {
-            mwmp::BaseWorldstate *worldstate = mwmp::Main::get().getNetworking()->getWorldstate();
-
-            if (worldstate->hasPlacedObjectCollision || Utils::vectorContains(worldstate->enforcedCollisionRefIds, ptr.getCellRef().getRefId()))
-            {
-                if (worldstate->useActorCollisionForPlacedObjects)
-                    physics.addObject(ptr, model, MWPhysics::CollisionType_Actor);
-                else
-                    physics.addObject(ptr, model, MWPhysics::CollisionType_World);
-            }
-        }
-        /*
-            End of tes3mp addition
-        */
         return getClassModel<ESM::Apparatus>(ptr);
     }
 

@@ -58,6 +58,19 @@ namespace mwmp
         void sendClothingRecord(const ESM::Clothing* clothing, std::string baseRefId = "");
         void sendWeaponRecord(const ESM::Weapon* weapon, std::string baseRefId = "", unsigned int quantity = 1);
 
+        /*
+            Start of tes3mp addition
+
+            RefId-taking overloads for the base record ids -- see LocalPlayer.hpp.
+        */
+        void sendArmorRecord(const ESM::Armor* armor, const ESM::RefId& baseRefId);
+        void sendBookRecord(const ESM::Book* book, const ESM::RefId& baseRefId);
+        void sendClothingRecord(const ESM::Clothing* clothing, const ESM::RefId& baseRefId);
+        void sendWeaponRecord(const ESM::Weapon* weapon, const ESM::RefId& baseRefId, unsigned int quantity = 1);
+        /*
+            End of tes3mp addition
+        */
+
     private:
 
         std::vector<MapTile> exploredMapTiles;
