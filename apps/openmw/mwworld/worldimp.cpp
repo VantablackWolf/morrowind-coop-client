@@ -1,14 +1,10 @@
 #include "worldimp.hpp"
 
-<<<<<<< HEAD
-#include <stdio.h>
-
-#include <osg/Group>
-=======
 #include <charconv>
+#include <stdio.h>
 #include <vector>
 
->>>>>>> omw51
+#include <osg/Group>
 #include <osg/ComputeBoundsVisitor>
 #include <osg/Group>
 #include <osg/Timer>
@@ -350,26 +346,18 @@ namespace MWWorld
                 */
                 const int cellSize = Constants::CellSizeInUnits;
                 pos.pos[0] = cellSize / 2;
-<<<<<<< HEAD
                 pos.pos[1] = cellSize * -7 + cellSize / 2;
-=======
-                pos.pos[1] = cellSize / 2;
->>>>>>> omw51
                 pos.pos[2] = 0;
                 pos.rot[0] = 0;
                 pos.rot[1] = 0;
                 pos.rot[2] = 0;
-<<<<<<< HEAD
-                mWorldScene->changeToExteriorCell(pos, true);
-                /*
-                    End of tes3mp change (major)
-                */
-=======
 
                 ESM::ExteriorCellLocation exteriorCellPos = ESM::positionToExteriorCellLocation(pos.pos[0], pos.pos[1]);
                 ESM::RefId cellId = ESM::RefId::esm3ExteriorCell(exteriorCellPos.mX, exteriorCellPos.mY);
                 mWorldScene->changeToExteriorCell(cellId, pos, true);
->>>>>>> omw51
+                /*
+                    End of tes3mp change (major)
+                */
             }
         }
 
@@ -563,10 +551,6 @@ namespace MWWorld
 
     const std::vector<int>& World::getESMVersions() const
     {
-<<<<<<< HEAD
-        return mStore;
-    }
-
     /*
         Start of tes3mp addition
 
@@ -579,13 +563,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    std::vector<ESM::ESMReader>& World::getEsmReader()
-    {
-        return mEsm;
-=======
         return mESMVersions;
->>>>>>> omw51
     }
 
     LocalScripts& World::getLocalScripts()
@@ -599,7 +577,6 @@ namespace MWWorld
         mGlobalVariables[name].setInteger(value);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -621,11 +598,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    void World::setGlobalInt (const std::string& name, int value)
-=======
     void World::setGlobalFloat(GlobalVariableName name, float value)
->>>>>>> omw51
     {
         mTimeManager->updateGlobalFloat(name, value);
         mGlobalVariables[name].setFloat(value);
@@ -741,12 +714,6 @@ namespace MWWorld
         throw std::runtime_error(error);
     }
 
-<<<<<<< HEAD
-    Ptr World::searchPtrViaActorId (int actorId)
-    {
-        // The player is not registered in any CellStore so must be checked manually
-        if (actorId == getPlayerPtr().getClass().getCreatureStats(getPlayerPtr()).getActorId())
-            return getPlayerPtr();
         /*
             Start of tes3mp addition
 
@@ -763,15 +730,6 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-        // Now search cells
-        return mWorldScene->searchPtrViaActorId (actorId);
-    }
-
-    Ptr World::searchPtrViaRefNum (const std::string& id, const ESM::RefNum& refNum)
-    {
-        return mCells.getPtr (id, refNum);
-    }
-
     /*
         Start of tes3mp addition
 
@@ -795,7 +753,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -842,9 +799,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-=======
->>>>>>> omw51
     struct FindContainerVisitor
     {
         ConstPtr mContainedPtr;
@@ -1005,16 +959,7 @@ namespace MWWorld
         }
     }
 
-<<<<<<< HEAD
 
-    float World::getTimeScaleFactor() const
-
-    {
-        return mCurrentDate->getTimeScaleFactor();
-    }
-
-=======
->>>>>>> omw51
     TimeStamp World::getTimeStamp() const
     {
         return mTimeManager->getTimeStamp();
@@ -1616,7 +1561,6 @@ namespace MWWorld
             MWBase::Environment::get().getSoundManager()->setListenerVel(velocity);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -1635,7 +1579,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -1654,7 +1597,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -1667,11 +1609,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    void World::updateAnimatedCollisionShape(const Ptr &ptr)
-=======
     void World::updateAnimatedCollisionShape(const Ptr& ptr)
->>>>>>> omw51
     {
         mPhysics->updateAnimatedCollisionShape(ptr);
     }
@@ -1859,107 +1797,7 @@ namespace MWWorld
         }
     }
 
-<<<<<<< HEAD
-    const ESM::Potion *World::createRecord (const ESM::Potion& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Class *World::createRecord (const ESM::Class& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Spell *World::createRecord (const ESM::Spell& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Cell *World::createRecord (const ESM::Cell& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::CreatureLevList *World::createOverrideRecord(const ESM::CreatureLevList &record)
-    {
-        return mStore.overrideRecord(record);
-    }
-
-    const ESM::ItemLevList *World::createOverrideRecord(const ESM::ItemLevList &record)
-    {
-        return mStore.overrideRecord(record);
-    }
-
-    const ESM::Creature *World::createOverrideRecord(const ESM::Creature &record)
-    {
-        return mStore.overrideRecord(record);
-    }
-
-    const ESM::NPC *World::createOverrideRecord(const ESM::NPC &record)
-    {
-        return mStore.overrideRecord(record);
-    }
-
-    const ESM::Container *World::createOverrideRecord(const ESM::Container &record)
-    {
-        return mStore.overrideRecord(record);
-    }
-
-    const ESM::NPC *World::createRecord(const ESM::NPC &record)
-    {
-        bool update = false;
-
-        if (Misc::StringUtils::ciEqual(record.mId, "player"))
-        {
-            const ESM::NPC *player =
-                mPlayer->getPlayer().get<ESM::NPC>()->mBase;
-
-            update = record.isMale() != player->isMale() ||
-                     !Misc::StringUtils::ciEqual(record.mRace, player->mRace) ||
-                     !Misc::StringUtils::ciEqual(record.mHead, player->mHead) ||
-                     !Misc::StringUtils::ciEqual(record.mHair, player->mHair);
-        }
-        const ESM::NPC *ret = mStore.insert(record);
-        if (update) {
-            renderPlayer();
-        }
-        return ret;
-    }
-
-    const ESM::Creature *World::createRecord(const ESM::Creature &record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Armor *World::createRecord (const ESM::Armor& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Weapon *World::createRecord (const ESM::Weapon& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Clothing *World::createRecord (const ESM::Clothing& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Enchantment *World::createRecord (const ESM::Enchantment& record)
-    {
-        return mStore.insert(record);
-    }
-
-    const ESM::Book *World::createRecord (const ESM::Book& record)
-    {
-        return mStore.insert(record);
-    }
-
-    void World::update (float duration, bool paused)
-=======
     void World::update(float duration, bool paused)
->>>>>>> omw51
     {
         if (mGoToJail && !paused)
             goToJail();
@@ -2231,7 +2069,6 @@ namespace MWWorld
         mWeatherManager->changeWeather(region, id);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -2246,7 +2083,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2260,7 +2096,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2274,7 +2109,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2288,16 +2122,12 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    void World::modRegion(const std::string &regionid, const std::vector<char> &chances)
-=======
     void World::changeWeather(const ESM::RefId& region, const ESM::RefId& id)
     {
         mWeatherManager->changeWeather(region, id);
     }
 
     void World::modRegion(const ESM::RefId& regionid, const std::vector<uint8_t>& chances)
->>>>>>> omw51
     {
         mWeatherManager->modRegion(regionid, chances);
     }
@@ -2854,7 +2684,6 @@ namespace MWWorld
         }
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -2869,7 +2698,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2893,7 +2721,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2911,7 +2738,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2933,7 +2759,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2951,11 +2776,7 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-    bool World::getPlayerStandingOn (const MWWorld::ConstPtr& object)
-=======
     bool World::getPlayerStandingOn(const MWWorld::ConstPtr& object)
->>>>>>> omw51
     {
         MWWorld::Ptr player = getPlayerPtr();
         return mPhysics->isActorStandingOn(player, object);
@@ -3605,7 +3426,6 @@ namespace MWWorld
         {
             MWWorld::ContainerStore& inv = actor.getClass().getContainerStore(actor);
             if (inv.getSelectedEnchantItem() != inv.end())
-<<<<<<< HEAD
             /*
                 Start of tes3mp change (minor)
 
@@ -3631,12 +3451,10 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-=======
             {
                 const auto& itemPtr = *inv.getSelectedEnchantItem();
                 cast.cast(itemPtr);
             }
->>>>>>> omw51
         }
     }
 
@@ -3958,15 +3776,7 @@ namespace MWWorld
             }
         }
         else
-<<<<<<< HEAD
-            mCells.recharge(duration);
-        */
-        /*
-            End of tes3mp change (major)
-        */
-=======
             mWorldModel.forEachLoadedCellStore([duration](CellStore& store) { store.recharge(duration); });
->>>>>>> omw51
     }
 
     void World::teleportToClosestMarker(const MWWorld::Ptr& ptr, const ESM::RefId& id)
