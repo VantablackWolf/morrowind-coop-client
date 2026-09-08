@@ -2,23 +2,19 @@
 
 #include <cmath>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
     Include additional headers for multiplayer purposes
 */
 #include "../mwmp/Main.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadnpc.hpp>
-=======
 #include <components/esm3/loadcrea.hpp>
 #include <components/esm3/loadnpc.hpp>
->>>>>>> omw51
 
 #include "../mwworld/esmstore.hpp"
 
@@ -529,48 +525,47 @@ namespace MWScript
                 ESM::Spell::SpellType type = static_cast<ESM::Spell::SpellType>(spell->mData.mType);
                 if (type != ESM::Spell::ST_Spell && type != ESM::Spell::ST_Power)
                 {
-<<<<<<< HEAD
-                    MWWorld::Ptr ptr = R()(runtime);
+                MWWorld::Ptr ptr = R()(runtime);
 
-                    std::string id = runtime.getStringLiteral (runtime[0].mInteger);
-                    runtime.pop();
+                ESM::RefId id = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
+                runtime.pop();
 
-                    const ESM::Spell* spell = MWBase::Environment::get().getWorld()->getStore().get<ESM::Spell>().find (id);
+                if (!ptr.getClass().isActor())
+                    return;
 
-                    MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
+                const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->get<ESM::Spell>().find(id);
 
-                    /*
-                        Start of tes3mp change (major)
+                MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
 
-                        Only add the spell if the target doesn't already have it
+                /*
+                    Start of tes3mp change (major)
 
-                        Send an ID_PLAYER_SPELLBOOK packet every time a player gains a spell here
-                    */
-                    MWMechanics::Spells &spells = creatureStats.getSpells();
+                    Only add the spell if the target doesn't already have it
 
-                    if (!spells.hasSpell(id))
-                    {
-                        spells.add(id);
+                    Send an ID_PLAYER_SPELLBOOK packet every time a player gains a spell here
+                */
+                MWMechanics::Spells& spells = creatureStats.getSpells();
 
-                        if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() && ptr == MWMechanics::getPlayer())
-                            mwmp::Main::get().getLocalPlayer()->sendSpellChange(id, mwmp::SpellbookChanges::ADD);
-                    }
-                    /*
-                        End of tes3mp change (major)
-                    */
+                if (!spells.hasSpell(id))
+                {
+                    spells.add(spell);
 
-                    ESM::Spell::SpellType type = static_cast<ESM::Spell::SpellType>(spell->mData.mType);
-                    if (type != ESM::Spell::ST_Spell && type != ESM::Spell::ST_Power)
-                    {
-                        // Apply looping particles immediately for constant effects
-                        MWBase::Environment::get().getWorld()->applyLoopingParticles(ptr);
-                    }
-=======
+                    if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() && ptr == MWMechanics::getPlayer())
+                        mwmp::Main::get().getLocalPlayer()->sendSpellChange(
+                            mwmp::RefIdCompat::toWire(id), mwmp::SpellbookChanges::ADD);
+                }
+                /*
+                    End of tes3mp change (major)
+                */
+
+                ESM::Spell::SpellType type = static_cast<ESM::Spell::SpellType>(spell->mData.mType);
+                if (type != ESM::Spell::ST_Spell && type != ESM::Spell::ST_Power)
+                {
                     // Add spell effect to *this actor's* queue immediately
                     creatureStats.getActiveSpells().addSpell(spell, ptr);
                     // Apply looping particles immediately for constant effects
                     MWBase::Environment::get().getWorld()->applyLoopingParticles(ptr);
->>>>>>> omw51
+                }
                 }
             }
         };
@@ -600,60 +595,39 @@ namespace MWScript
 
                 if (ptr == MWMechanics::getPlayer() && id == wm->getSelectedSpell())
                 {
-<<<<<<< HEAD
-                    MWWorld::Ptr ptr = R()(runtime);
+                MWWorld::Ptr ptr = R()(runtime);
 
-                    std::string id = runtime.getStringLiteral (runtime[0].mInteger);
-                    runtime.pop();
+                ESM::RefId id = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
+                runtime.pop();
 
-                    MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
+                if (!ptr.getClass().isActor())
+                    return;
 
-                    /*
-                        Start of tes3mp change (major)
+                MWMechanics::CreatureStats& creatureStats = ptr.getClass().getCreatureStats(ptr);
 
-                        Only remove the spell if the target has it
-                    */
-                    MWMechanics::Spells& spells = creatureStats.getSpells();
+                /*
+                    Start of tes3mp change (major)
 
-                    if (!spells.hasSpell(id)) return;
-                    /*
-                        End of tes3mp change (major)
-                    */
-                                        
-                    // The spell may have an instant effect which must be handled before the spell's removal.
-                    for (const auto& effect : creatureStats.getSpells().getMagicEffects())
-                    {
-                        if (effect.second.getMagnitude() <= 0)
-                            continue;
-                        MWMechanics::CastSpell cast(ptr, ptr);
-                        if (cast.applyInstantEffect(ptr, ptr, effect.first, effect.second.getMagnitude()))
-                            creatureStats.getSpells().purgeEffect(effect.first.mId);
-                    }
+                    Only remove the spell if the target has it
+                */
+                if (!creatureStats.getSpells().hasSpell(id))
+                    return;
+                /*
+                    End of tes3mp change (major)
+                */
 
-                    MWBase::Environment::get().getMechanicsManager()->restoreStatsAfterCorprus(ptr, id);
-                    creatureStats.getSpells().remove (id);
+                const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->get<ESM::Spell>().find(id);
+                creatureStats.getSpells().remove(spell);
+                if (spell->mData.mType == ESM::Spell::ST_Ability || spell->mData.mType == ESM::Spell::ST_Blight
+                    || spell->mData.mType == ESM::Spell::ST_Curse || spell->mData.mType == ESM::Spell::ST_Disease)
+                    creatureStats.getActiveSpells().removeEffectsBySourceSpellId(ptr, id);
 
-                    MWBase::WindowManager* wm = MWBase::Environment::get().getWindowManager();
+                MWBase::WindowManager* wm = MWBase::Environment::get().getWindowManager();
 
-                    if (ptr == MWMechanics::getPlayer() &&
-                        id == wm->getSelectedSpell())
-                    {
-                        wm->unsetSelectedSpell();
-                    }
-
-                    /*
-                        Start of tes3mp change (major)
-
-                        Send an ID_PLAYER_SPELLBOOK packet every time a player loses a spell here
-                    */
-                    if (mwmp::Main::get().getLocalPlayer()->isLoggedIn())
-                        mwmp::Main::get().getLocalPlayer()->sendSpellChange(id, mwmp::SpellbookChanges::REMOVE);
-                    /*
-                        End of tes3mp change (major)
-                    */
-=======
+                if (ptr == MWMechanics::getPlayer() && id == wm->getSelectedSpell())
+                {
                     wm->unsetSelectedSpell();
->>>>>>> omw51
+                }
                 }
             }
         };
@@ -724,29 +698,6 @@ namespace MWScript
 
                 if (arg0 == 0)
                 {
-<<<<<<< HEAD
-                    MWWorld::ConstPtr actor = R()(runtime, false);
-
-                    std::string factionID = "";
-
-                    if(arg0==0)
-                    {
-                        factionID = getDialogueActorFaction(actor);
-                    }
-                    else
-                    {
-                        factionID = runtime.getStringLiteral (runtime[0].mInteger);
-                        runtime.pop();
-                    }
-                    ::Misc::StringUtils::lowerCaseInPlace(factionID);
-                    // Make sure this faction exists
-                    MWBase::Environment::get().getWorld()->getStore().get<ESM::Faction>().find(factionID);
-
-                    if(factionID != "")
-                    {
-                        MWWorld::Ptr player = MWMechanics::getPlayer();
-                        player.getClass().getNpcStats(player).joinFaction(factionID);
-
                         /*
                             Start of tes3mp addition
 
@@ -757,10 +708,7 @@ namespace MWScript
                         /*
                             End of tes3mp addition
                         */
-                    }
-=======
                     factionID = getDialogueActorFaction(actor);
->>>>>>> omw51
                 }
                 else
                 {
@@ -809,26 +757,6 @@ namespace MWScript
                     }
                     else
                     {
-<<<<<<< HEAD
-                        factionID = runtime.getStringLiteral (runtime[0].mInteger);
-                        runtime.pop();
-                    }
-                    ::Misc::StringUtils::lowerCaseInPlace(factionID);
-                    // Make sure this faction exists
-                    MWBase::Environment::get().getWorld()->getStore().get<ESM::Faction>().find(factionID);
-
-                    if(factionID != "")
-                    {
-                        MWWorld::Ptr player = MWMechanics::getPlayer();
-                        if(player.getClass().getNpcStats(player).getFactionRanks().find(factionID) == player.getClass().getNpcStats(player).getFactionRanks().end())
-                        {
-                            player.getClass().getNpcStats(player).joinFaction(factionID);
-                        }
-                        else
-                        {
-                            player.getClass().getNpcStats(player).raiseRank(factionID);
-                        }
-
                         /*
                             Start of tes3mp addition
 
@@ -839,10 +767,8 @@ namespace MWScript
                         /*
                             End of tes3mp addition
                         */
-=======
                         int currentRank = player.getClass().getNpcStats(player).getFactionRank(factionID);
                         player.getClass().getNpcStats(player).setFactionRank(factionID, currentRank + 1);
->>>>>>> omw51
                     }
                 }
             }
@@ -860,29 +786,6 @@ namespace MWScript
 
                 if (arg0 == 0)
                 {
-<<<<<<< HEAD
-                    MWWorld::ConstPtr actor = R()(runtime, false);
-
-                    std::string factionID = "";
-
-                    if(arg0==0)
-                    {
-                        factionID = getDialogueActorFaction(actor);
-                    }
-                    else
-                    {
-                        factionID = runtime.getStringLiteral (runtime[0].mInteger);
-                        runtime.pop();
-                    }
-                    ::Misc::StringUtils::lowerCaseInPlace(factionID);
-                    // Make sure this faction exists
-                    MWBase::Environment::get().getWorld()->getStore().get<ESM::Faction>().find(factionID);
-
-                    if(factionID != "")
-                    {
-                        MWWorld::Ptr player = MWMechanics::getPlayer();
-                        player.getClass().getNpcStats(player).lowerRank(factionID);
-
                         /*
                             Start of tes3mp addition
 
@@ -893,10 +796,7 @@ namespace MWScript
                         /*
                             End of tes3mp addition
                         */
-                    }
-=======
                     factionID = getDialogueActorFaction(actor);
->>>>>>> omw51
                 }
                 else
                 {
@@ -1053,28 +953,6 @@ namespace MWScript
                 {
                     factionId = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                     runtime.pop();
-<<<<<<< HEAD
-
-                    std::string factionId;
-
-                    if (arg0==1)
-                    {
-                        factionId = runtime.getStringLiteral (runtime[0].mInteger);
-                        runtime.pop();
-                    }
-                    else
-                    {
-                        factionId = getDialogueActorFaction(ptr);
-                    }
-
-                    if (factionId.empty())
-                        throw std::runtime_error ("failed to determine faction");
-
-                    ::Misc::StringUtils::lowerCaseInPlace (factionId);
-
-                    MWWorld::Ptr player = MWMechanics::getPlayer();
-                    player.getClass().getNpcStats (player).setFactionReputation (factionId, value);
-
                     /*
                         Start of tes3mp addition
 
@@ -1084,8 +962,6 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-=======
->>>>>>> omw51
                 }
                 else
                 {
@@ -1117,30 +993,6 @@ namespace MWScript
                 {
                     factionId = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                     runtime.pop();
-<<<<<<< HEAD
-
-                    std::string factionId;
-
-                    if (arg0==1)
-                    {
-                        factionId = runtime.getStringLiteral (runtime[0].mInteger);
-                        runtime.pop();
-                    }
-                    else
-                    {
-                        factionId = getDialogueActorFaction(ptr);
-                    }
-
-                    if (factionId.empty())
-                        throw std::runtime_error ("failed to determine faction");
-
-                    ::Misc::StringUtils::lowerCaseInPlace (factionId);
-
-                    MWWorld::Ptr player = MWMechanics::getPlayer();
-                    player.getClass().getNpcStats (player).setFactionReputation (factionId,
-                        player.getClass().getNpcStats (player).getFactionReputation (factionId)+
-                        value);
-
                     /*
                         Start of tes3mp addition
 
@@ -1151,8 +1003,6 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-=======
->>>>>>> omw51
                 }
                 else
                 {
@@ -1274,24 +1124,6 @@ namespace MWScript
                 ESM::RefId factionID;
                 if (arg0 > 0)
                 {
-<<<<<<< HEAD
-                    MWWorld::ConstPtr ptr = R()(runtime, false);
-
-                    std::string factionID = "";
-                    if(arg0 >0 )
-                    {
-                        factionID = runtime.getStringLiteral (runtime[0].mInteger);
-                        runtime.pop();
-                    }
-                    else
-                    {
-                        factionID = ptr.getClass().getPrimaryFaction(ptr);
-                    }
-                    MWWorld::Ptr player = MWMechanics::getPlayer();
-                    if(factionID!="")
-                    {
-                        player.getClass().getNpcStats(player).expell(factionID);
-
                         /*
                             Start of tes3mp addition
 
@@ -1301,11 +1133,8 @@ namespace MWScript
                         /*
                             End of tes3mp addition
                         */
-                    }
-=======
                     factionID = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                     runtime.pop();
->>>>>>> omw51
                 }
                 else
                 {
@@ -1330,23 +1159,6 @@ namespace MWScript
                 ESM::RefId factionID;
                 if (arg0 > 0)
                 {
-<<<<<<< HEAD
-                    MWWorld::ConstPtr ptr = R()(runtime, false);
-
-                    std::string factionID = "";
-                    if(arg0 >0 )
-                    {
-                        factionID = runtime.getStringLiteral (runtime[0].mInteger);
-                        runtime.pop();
-                    }
-                    else
-                    {
-                        factionID = ptr.getClass().getPrimaryFaction(ptr);
-                    }
-                    MWWorld::Ptr player = MWMechanics::getPlayer();
-                    if(factionID!="")
-                        player.getClass().getNpcStats(player).clearExpelled(factionID);
-
                     /*
                         Start of tes3mp addition
 
@@ -1357,10 +1169,8 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-=======
                     factionID = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                     runtime.pop();
->>>>>>> omw51
                 }
                 else
                 {
@@ -1521,8 +1331,6 @@ namespace MWScript
                 MWWorld::Ptr ptr = R()(runtime);
                 if (ptr.getClass().isNpc())
                     MWBase::Environment::get().getMechanicsManager()->setWerewolf(ptr, set);
-<<<<<<< HEAD
-
                     /*
                         Start of tes3mp addition
 
@@ -1533,10 +1341,7 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-                }
-=======
             }
->>>>>>> omw51
         };
 
         template <class R>
