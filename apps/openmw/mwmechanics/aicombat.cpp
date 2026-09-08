@@ -17,6 +17,7 @@
 #include "../mwmp/Main.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/ActorList.hpp"
+#include "../mwmp/RecordConvertPlayer.hpp"
 #include "../mwmp/MechanicsHelper.hpp"
 #include "../mwgui/windowmanagerimp.hpp"
 /*
@@ -734,7 +735,7 @@ namespace MWMechanics
 
                     mwmp::ActorList *actorList = mwmp::Main::get().getNetworking()->getActorList();
                     actorList->reset();
-                    actorList->cell = *actor.getCell()->getCell();
+                    actorList->cell = mwmp::RecordConvert::toMirror(*actor.getCell()->getCell());
                     actorList->addAttackActor(actor, *localAttack);
                     actorList->sendAttackActors();
                 }

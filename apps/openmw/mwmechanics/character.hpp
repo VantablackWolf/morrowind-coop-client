@@ -146,15 +146,6 @@ namespace MWMechanics
         AnimationQueue mAnimQueue;
         bool mLuaAnimations{ false };
 
-    /*
-        Start of tes3mp addition
-
-        Make it possible to get the current attack type from elsewhere in the code
-    */
-    std::string getAttackType() const;
-    /*
-        End of tes3mp addition
-    */
         CharacterState mIdleState{ CharState_None };
         std::string mCurrentIdle;
 
@@ -326,6 +317,18 @@ namespace MWMechanics
         bool isTurning() const;
         bool isAttackingOrSpell() const;
 
+        /*
+            Start of tes3mp addition
+
+            Make it possible to get the current attack type from elsewhere in the code
+
+            0.51's class body opens private, so the merge's placement left this
+            inaccessible to AiCombat, which is its only caller.
+        */
+        std::string getAttackType() const;
+        /*
+            End of tes3mp addition
+        */
         /*
             Start of tes3mp change (minor)
 

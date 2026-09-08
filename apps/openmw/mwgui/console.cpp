@@ -273,6 +273,8 @@ namespace MWGui
                     so that packets sent by the Interpreter can have their
                     origin determined by serverside scripts
                 */
+                ConsoleInterpreterContext interpreterContext(*this, mPtr);
+
                 interpreterContext.trackContextType(Interpreter::Context::CONSOLE);
 
                 mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
@@ -291,7 +293,6 @@ namespace MWGui
                 /*
                     End of tes3mp addition
                 */
-                ConsoleInterpreterContext interpreterContext(*this, mPtr);
                 Interpreter::Interpreter interpreter;
                 MWScript::installOpcodes(interpreter, mConsoleOnlyScripts);
                 const Interpreter::Program program = output.getProgram();

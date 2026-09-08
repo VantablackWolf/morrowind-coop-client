@@ -48,15 +48,16 @@ namespace MWMechanics
     bool AiActivate::execute(
         const MWWorld::Ptr& actor, CharacterController& characterController, AiState& state, float duration)
     {
-        const MWWorld::Ptr target
-            = MWBase::Environment::get().getWorld()->searchPtr(mObjectId, false); // The target to follow
-
         /*
             Start of tes3mp change (major)
 
             Only search for an object based on its refId if we haven't provided a specific
             object already
+
+            The merge kept upstream's declaration as well, so the variable was declared twice.
         */
+        // const MWWorld::Ptr target
+        //     = MWBase::Environment::get().getWorld()->searchPtr(mObjectId, false); // The target to follow
         const MWWorld::Ptr target = mObjectId.empty()
             ? mObjectPtr
             : MWBase::Environment::get().getWorld()->searchPtr(mObjectId, false);
