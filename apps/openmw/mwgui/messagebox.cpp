@@ -169,17 +169,24 @@ namespace MWGui
             mInterMessageBoxe->setVisible(false);
         }
 
+        mInterMessageBoxe
+            = std::make_unique<InteractiveMessageBox>(*this, std::string{ message }, buttons, immediate, defaultFocus);
+
         /*
             Start of tes3mp addition
 
             Track whether the message box has a server origin
+
+            After the construction, not before it. The merge had lifted this above the
+            make_unique, where mInterMessageBoxe is null in the ordinary case -- the branch
+            immediately above only runs when a previous box is still unanswered. So the
+            very first interactive message box of a session dereferenced a null pointer.
         */
         mInterMessageBoxe->mHasServerOrigin = hasServerOrigin;
         /*
             End of tes3mp addition
         */
-        mInterMessageBoxe
-            = std::make_unique<InteractiveMessageBox>(*this, std::string{ message }, buttons, immediate, defaultFocus);
+
         mLastButtonPressed = -1;
 
         return true;
