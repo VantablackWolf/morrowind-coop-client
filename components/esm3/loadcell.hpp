@@ -195,6 +195,19 @@ namespace ESM
          */
         static bool getNextMVRF(ESMReader& esm, MovedCellRef& mref);
 
+        /*
+            Start of tes3mp addition
+
+            Add a method that returns cell descriptions in OpenMW's previous way, because it was
+            widely used in TES3MP.
+
+            Migrated from components/esm/loadcell.hpp, which 0.51 replaced with this file.
+        */
+        std::string getShortDescription() const;
+        /*
+            End of tes3mp addition
+        */
+
         void blank();
         ///< Set record to default state (does not touch the ID/index).
 

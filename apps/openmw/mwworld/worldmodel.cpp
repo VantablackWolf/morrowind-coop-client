@@ -142,6 +142,28 @@ MWWorld::CellStore& MWWorld::WorldModel::insertCellStore(const ESM::Cell& cell)
     return cellStore;
 }
 
+/*
+    Start of tes3mp addition
+
+    Clear the CellStore for one specific Cell so it can be replaced from elsewhere.
+    Prunes the interior/exterior lookup indices as well as the main map.
+*/
+void MWWorld::WorldModel::clear(const ESM::Cell& cell)
+{
+    if (cell.isExterior())
+    {
+        const ESM::ExteriorCellLocation location(cell.getGridX(), cell.getGridY(), ESM::Cell::sDefaultWorldspaceId);
+        mExteriors.erase(location);
+    }
+    else
+        mInteriors.erase(cell.mName);
+
+    mCells.erase(cell.mId);
+}
+/*
+    End of tes3mp addition
+*/
+
 void MWWorld::WorldModel::clear()
 {
     mPtrRegistry.clear();

@@ -72,43 +72,6 @@ namespace MWPhysics
         void releaseSharedStates(); // destroy all objects whose destructor can't be safely called from
                                     // ~PhysicsTaskScheduler()
 
-<<<<<<< HEAD
-        private:
-            void syncComputation();
-            void worker();
-            void updateActorsPositions();
-            bool hasLineOfSight(const Actor* actor1, const Actor* actor2);
-            void refreshLOSCache();
-            void updateAabbs();
-            void updatePtrAabb(const std::weak_ptr<PtrHolder>& ptr);
-            void updateStats(osg::Timer_t frameStart, unsigned int frameNumber, osg::Stats& stats);
-            std::tuple<int, float> calculateStepConfig(float timeAccum) const;
-            void afterPreStep();
-            void afterPostStep();
-            void afterPostSim();
-            void waitForWorkers();
-
-            std::unique_ptr<WorldFrameData> mWorldFrameData;
-            std::vector<ActorFrameData> mActorsFrameData;
-            std::vector<MWWorld::Ptr> mMovedActors;
-            float mDefaultPhysicsDt;
-        /*
-            Start of tes3mp change (major)
-
-            Turn mPhysicsDt into a public variable so it can be set from elsewhere
-        */
-        public:
-            float mPhysicsDt;
-        private:
-        /*
-            End of tes3mp change (major)
-        */
-            float mTimeAccum;
-            btCollisionWorld* mCollisionWorld;
-            MWRender::DebugDrawer* mDebugDrawer;
-            std::vector<LOSRequest> mLOSCache;
-            std::set<std::weak_ptr<PtrHolder>, std::owner_less<std::weak_ptr<PtrHolder>>> mUpdateAabb;
-=======
     private:
         class WorkersSync;
 
@@ -128,11 +91,22 @@ namespace MWPhysics
         void waitForWorkers();
         void prepareWork(float& timeAccum, std::vector<Simulation>& simulations, osg::Timer_t frameStart,
             unsigned int frameNumber, osg::Stats& stats);
->>>>>>> omw51
 
         std::unique_ptr<WorldFrameData> mWorldFrameData;
         std::vector<Simulation>* mSimulations = nullptr;
         std::unordered_set<const btCollisionObject*> mCollisionObjects;
+        /*
+            Start of tes3mp change (major)
+
+            Turn mPhysicsDt into a public variable so it can be set from elsewhere
+        */
+    public:
+        float mPhysicsDt;
+
+    private:
+        /*
+            End of tes3mp change (major)
+        */
         float mDefaultPhysicsDt;
         float mPhysicsDt;
         float mTimeAccum;
@@ -141,30 +115,6 @@ namespace MWPhysics
         std::vector<LOSRequest> mLOSCache;
         std::set<std::weak_ptr<PtrHolder>, std::owner_less<std::weak_ptr<PtrHolder>>> mUpdateAabb;
 
-<<<<<<< HEAD
-            int mNumThreads;
-            int mNumJobs;
-            int mRemainingSteps;
-            int mLOSCacheExpiry;
-            bool mDeferAabbUpdate;
-            std::size_t mFrameCounter;
-            bool mAdvanceSimulation;
-            bool mThreadSafeBullet;
-            bool mQuit;
-            std::atomic<int> mNextJob;
-            std::atomic<int> mNextLOS;
-            std::vector<std::thread> mThreads;
-
-            std::size_t mWorkersFrameCounter = 0;
-            std::condition_variable mWorkersDone;
-            std::mutex mWorkersDoneMutex;
-
-            mutable std::shared_mutex mSimulationMutex;
-            mutable std::shared_mutex mCollisionWorldMutex;
-            mutable std::shared_mutex mLOSCacheMutex;
-            mutable std::mutex mUpdateAabbMutex;
-            std::condition_variable_any mHasJob;
-=======
         // TODO: use std::experimental::flex_barrier or std::barrier once it becomes a thing
         std::unique_ptr<Misc::Barrier> mPreStepBarrier;
         std::unique_ptr<Misc::Barrier> mPostStepBarrier;
@@ -179,7 +129,6 @@ namespace MWPhysics
         std::atomic<int> mNextJob;
         std::atomic<int> mNextLOS;
         std::vector<std::thread> mThreads;
->>>>>>> omw51
 
         mutable std::shared_mutex mSimulationMutex;
         mutable std::shared_mutex mCollisionWorldMutex;

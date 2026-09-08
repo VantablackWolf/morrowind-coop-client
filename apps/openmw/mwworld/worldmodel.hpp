@@ -47,6 +47,21 @@ namespace MWWorld
 
         void clear();
 
+        /*
+            Start of tes3mp addition
+
+            Make it possible to clear the CellStore for a specific Cell, allowing cells to be
+            replaced from elsewhere in the code -- used by the server's cell reset packet.
+
+            Migrated from MWWorld::Cells, which 0.51 replaced with WorldModel. 0.51 keys
+            cells by ESM::RefId in mCells, with mInteriors and mExteriors as lookup indices,
+            so all three have to be pruned rather than just the one map 0.47 used.
+        */
+        void clear(const ESM::Cell& cell);
+        /*
+            End of tes3mp addition
+        */
+
         CellStore& getExterior(ESM::ExteriorCellLocation location, bool forceLoad = true) const;
 
         CellStore* findCell(ESM::RefId id, bool forceLoad = true) const;

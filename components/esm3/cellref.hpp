@@ -30,6 +30,19 @@ namespace ESM
         // Note: Currently unused for items in containers
         RefNum mRefNum;
 
+        /*
+            Start of tes3mp addition
+
+            Keep track of a multiplayer-only number unique to this object.
+
+            Migrated here from components/esm/cellref.hpp, which 0.51 replaced with this
+            file. The old file survived the merge as a stale copy and was deleted.
+        */
+        unsigned int mMpNum;
+        /*
+            End of tes3mp addition
+        */
+
         ESM::RefId mRefID; // ID of object being referenced
 
         float mScale; // Scale applied to mesh

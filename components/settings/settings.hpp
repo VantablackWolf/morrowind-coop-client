@@ -45,21 +45,22 @@ namespace Settings
         static void clear();
         ///< clears all settings and default settings
 
-<<<<<<< HEAD
+        static std::filesystem::path load(const Files::ConfigurationManager& cfgMgr, bool loadEditorSettings = false);
+        ///< load settings from all active config dirs. Returns the path of the last loaded file.
+
         /*
             Start of tes3mp change (major)
 
-            Add a base64encoded argument to this function to allow unencoded files to still be opened
+            0.51 replaced loadDefault() with load(), which discovers settings through the
+            configuration manager. TES3MP still needs to load its OWN cfg files directly
+            (tes3mp-client-default.cfg, tes3mp-server-default.cfg), and unencoded, so
+            loadDefault is reinstated here on top of SettingsFileParser, which 0.51 kept.
         */
-        void loadDefault (const std::string& file, bool base64encoded = true);
-        ///< load file as the default settings (can be overridden by user settings)
+        static void loadDefault(const std::filesystem::path& file, bool base64encoded = true);
+        ///< load a file as default settings (can be overridden by user settings)
         /*
             End of tes3mp change (major)
         */
-=======
-        static std::filesystem::path load(const Files::ConfigurationManager& cfgMgr, bool loadEditorSettings = false);
-        ///< load settings from all active config dirs. Returns the path of the last loaded file.
->>>>>>> omw51
 
         static void saveUser(const std::filesystem::path& file);
         ///< save user settings to file

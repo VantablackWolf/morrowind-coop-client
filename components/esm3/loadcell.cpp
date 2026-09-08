@@ -323,6 +323,23 @@ namespace ESM
         return true;
     }
 
+    /*
+        Start of tes3mp addition
+
+        Add a method that returns cell descriptions in OpenMW's previous way, because it was
+        widely used in TES3MP
+    */
+    std::string Cell::getShortDescription() const
+    {
+        if (mData.mFlags & Interior)
+            return mName;
+
+        return std::to_string(mData.mX) + ", " + std::to_string(mData.mY);
+    }
+    /*
+        End of tes3mp addition
+    */
+
     void Cell::blank()
     {
         mName.clear();

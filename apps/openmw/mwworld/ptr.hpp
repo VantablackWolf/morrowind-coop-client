@@ -15,94 +15,9 @@ namespace MWWorld
     struct LiveCellRefBase;
 
     /// \brief Pointer to a LiveCellRef
-<<<<<<< HEAD
-
-    class Ptr
-    {
-        public:
-
-            MWWorld::LiveCellRefBase *mRef;
-            CellStore *mCell;
-            ContainerStore *mContainerStore;
-
-        public:
-            Ptr(MWWorld::LiveCellRefBase *liveCellRef=nullptr, CellStore *cell=nullptr)
-              : mRef(liveCellRef), mCell(cell), mContainerStore(nullptr)
-            {
-            }
-
-            bool isEmpty() const
-            {
-                return mRef == nullptr;
-            }
-
-            const std::string& getTypeName() const;
-
-            const Class& getClass() const
-            {
-                if(mRef != nullptr)
-                    return *(mRef->mClass);
-                throw std::runtime_error("Cannot get class of an empty object");
-            }
-
-            template<typename T>
-            MWWorld::LiveCellRef<T> *get() const
-            {
-                MWWorld::LiveCellRef<T> *ref = dynamic_cast<MWWorld::LiveCellRef<T>*>(mRef);
-                if(ref) return ref;
-
-                std::stringstream str;
-                str<< "Bad LiveCellRef cast to "<<typeid(T).name()<<" from ";
-                /*
-                    Start of tes3mp change (major)
-
-                    Print additional information
-                */
-                if(mRef != nullptr) str<< getTypeName() << " " << mRef->mRef.getRefId().c_str() << " " << mRef->mRef.getRefNum().mIndex << "-" << mRef->mRef.getMpNum();
-                /*
-                    End of tes3mp change (major)
-                */
-
-                else str<< "an empty object";
-
-                throw std::runtime_error(str.str());
-            }
-
-            MWWorld::LiveCellRefBase *getBase() const;
-
-            MWWorld::CellRef& getCellRef() const;
-
-            RefData& getRefData() const;
-
-            CellStore *getCell() const
-            {
-                assert(mCell);
-                return mCell;
-            }
-
-            bool isInCell() const
-            {
-                return (mContainerStore == nullptr) && (mCell != nullptr);
-            }
-
-            void setContainerStore (ContainerStore *store);
-            ///< Must not be called on references that are in a cell.
-
-            ContainerStore *getContainerStore() const;
-            ///< May return a 0-pointer, if reference is not in a container.
-
-            operator const void *();
-            ///< Return a 0-pointer, if Ptr is empty; return a non-0-pointer, if Ptr is not empty
-    };
-
-    /// \brief Pointer to a const LiveCellRef
-    /// @note a Ptr can be implicitely converted to a ConstPtr, but you can not convert a ConstPtr to a Ptr.
-    class ConstPtr
-=======
     /// @note PtrBase is never used directly and needed only to define Ptr and ConstPtr
     template <template <class> class TypeTransform>
     class PtrBase
->>>>>>> omw51
     {
     public:
         typedef TypeTransform<MWWorld::LiveCellRefBase> LiveCellRefBaseType;
@@ -139,27 +54,7 @@ namespace MWWorld
         template <class T>
         auto* get() const
         {
-<<<<<<< HEAD
-            const MWWorld::LiveCellRef<T> *ref = dynamic_cast<const MWWorld::LiveCellRef<T>*>(mRef);
-            if(ref) return ref;
-
-            std::stringstream str;
-            str<< "Bad LiveCellRef cast to "<<typeid(T).name()<<" from ";
-            /*
-                Start of tes3mp change (major)
-
-                Print additional information
-            */
-            if(mRef != nullptr) str<< getTypeName() << " " << mRef->mRef.getRefId().c_str() << " " << mRef->mRef.getRefNum().mIndex << "-" << mRef->mRef.getMpNum();
-            /*
-                End of tes3mp change (major)
-            */
-            else str<< "an empty object";
-
-            throw std::runtime_error(str.str());
-=======
             return LiveCellRefBase::dynamicCast<T>(mRef);
->>>>>>> omw51
         }
 
         LiveCellRefBaseType* getBase() const
@@ -213,6 +108,19 @@ namespace MWWorld
             result += mRef->getTypeDescription();
             result += ", ";
             result += mRef->mRef.getRefId().toDebugString();
+            /*
+                Start of tes3mp change (major)
+
+                Include the multiplayer index so objects can be identified in logs.
+
+                0.51 merged Ptr and ConstPtr into PtrBase, so the two identical patches
+                0.8.1 carried collapse into this one.
+            */
+            result += ", mpNum ";
+            result += std::to_string(mRef->mRef.getMpNum());
+            /*
+                End of tes3mp change (major)
+            */
             result += ")";
             return result;
         }
