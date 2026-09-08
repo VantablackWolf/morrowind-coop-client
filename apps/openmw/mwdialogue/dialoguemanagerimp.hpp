@@ -95,7 +95,7 @@ namespace MWDialogue
                 Make it possible to check whether a topic is known by the player from elsewhere
                 in the code
             */
-            virtual bool isNewTopic(const std::string& topic);
+            virtual bool isNewTopic(const ESM::RefId& topic);
             /*
                 End of tes3mp addition
             */

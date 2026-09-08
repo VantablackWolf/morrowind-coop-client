@@ -37,6 +37,7 @@
 #include "../mwmp/Main.hpp"
 #include "../mwmp/CellController.hpp"
 #include "../mwmp/LocalPlayer.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 #include "../mwmp/LocalActor.hpp"
 /*
     End of tes3mp addition
@@ -106,7 +107,7 @@ namespace MWDialogue
         Make it possible to check whether a topic is known by the player from elsewhere
         in the code
     */
-    bool DialogueManager::isNewTopic(const std::string& topic)
+    bool DialogueManager::isNewTopic(const ESM::RefId& topic)
     {
         return (!mKnownTopics.count(topic));
     }
@@ -153,7 +154,7 @@ namespace MWDialogue
                 Send an ID_PLAYER_TOPIC packet every time a new topic becomes known
             */
             if (mActorKnownTopics.count(topicId) && isNewTopic(topicId))
-                mwmp::Main::get().getLocalPlayer()->sendTopic(topicId);
+                mwmp::Main::get().getLocalPlayer()->sendTopic(mwmp::RefIdCompat::toWire(topicId));
             /*
                 End of tes3mp addition
             */
@@ -701,19 +702,24 @@ namespace MWDialogue
         const ESM::DialInfo* info = filter.search(*dial, false).second;
         if (info != nullptr)
         {
+            MWBase::WindowManager* winMgr = MWBase::Environment::get().getWindowManager();
             /*
                 Start of tes3mp change (minor)
 
                 Prevent subtitles for NPC sounds from being added to a currently open dialogue window,
                 which wasn't a problem in regular OpenMW because time was frozen during dialogue
+
+                The merge left the replacement call live and ABOVE the declaration of the
+                winMgr it uses, with upstream's call still below it -- so the subtitle would
+                have been shown twice had it compiled.
             */
+            // if (Settings::gui().mSubtitles)
+            //     winMgr->messageBox(info->mResponse);
+            if (Settings::gui().mSubtitles)
                 winMgr->messageBox(info->mResponse, MWGui::ShowInDialogueMode_Never);
             /*
                 End of tes3mp change (minor)
             */
-            MWBase::WindowManager* winMgr = MWBase::Environment::get().getWindowManager();
-            if (Settings::gui().mSubtitles)
-                winMgr->messageBox(info->mResponse);
             if (!info->mSound.empty())
                 sndMgr->say(actor, Misc::ResourceHelpers::correctSoundPath(VFS::Path::Normalized(info->mSound)));
             if (!info->mResultScript.empty())

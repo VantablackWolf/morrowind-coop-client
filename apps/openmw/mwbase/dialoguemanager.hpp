@@ -68,7 +68,7 @@ namespace MWBase
                 Make it possible to check whether a topic is known by the player from elsewhere
                 in the code
             */
-            virtual bool isNewTopic(const std::string& topic) = 0;
+            virtual bool isNewTopic(const ESM::RefId& topic) = 0;
             /*
                 End of tes3mp addition
             */
