@@ -820,7 +820,28 @@ namespace MWWorld
 
         bool operator()(const Ptr& ptr)
         {
-            if (ptr.getCellRef().getRefNum().mIndex == mRefNumToFind && ptr.getCellRef().getMpNum() == mMpNumToFind)
+            /*
+                An mpNum identifies an object on its own.
+
+                0.47 could compare both numbers because they were mutually exclusive: an
+                object either came from a content file and had a refNum, or was created at
+                runtime and had an mpNum, and the other half was always zero.
+
+                0.51 broke that. WorldModel::registerPtr runs getOrAssignRefNum on every Ptr
+                it takes, and actors are registered as soon as their class first touches
+                them, so a server-spawned creature now picks up an engine RefNum for the
+                Ptr registry's own bookkeeping. Comparing both numbers then fails to find
+                the very objects tes3mp created, because it looks for them under refNum 0.
+
+                So: when an mpNum is given it decides on its own, and the engine's internal
+                RefNum is ignored. Lookups by refNum -- content-file objects, mpNum 0 --
+                behave exactly as before.
+            */
+            const bool matches = mMpNumToFind != 0
+                ? ptr.getCellRef().getMpNum() == mMpNumToFind
+                : (ptr.getCellRef().getRefNum().mIndex == mRefNumToFind && ptr.getCellRef().getMpNum() == 0);
+
+            if (matches)
             {
                 if (!mActorsOnly || ptr.getClass().isActor())
                 {

@@ -1357,6 +1357,31 @@ void ObjectList::addObjectSpawn(const MWWorld::Ptr& ptr)
     cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
+
+    /*
+        Start of tes3mp change (major)
+
+        Never put an engine-assigned RefNum on the wire for a spawn.
+
+        A spawn describes an object that does not exist anywhere yet; the server assigns
+        its identity and hands back an mpNum. In 0.47 the refNum was already zero here,
+        because a manually placed object had none. 0.51 assigns one -- WorldModel's Ptr
+        registry calls getOrAssignRefNum on everything it takes -- purely for its own
+        bookkeeping.
+
+        Letting that leak onto the wire produced objects carrying both numbers, which
+        PacketContainer and its siblings reject outright:
+
+            Received ID_CONTAINER that failed integrity check and was ignored!
+
+        so every container in a cell with spawned creatures went unsynchronised. The
+        RefNum is an engine-internal detail and does not belong in the protocol.
+    */
+    baseObject.refNum = 0;
+    /*
+        End of tes3mp change (major)
+    */
+
     baseObject.isSummon = false;
     baseObject.summonDuration = -1;
 
