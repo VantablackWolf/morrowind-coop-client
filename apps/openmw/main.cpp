@@ -195,31 +195,21 @@ bool parseOptions(int argc, char** argv, OMW::Engine& engine, Files::Configurati
     // scripts
     engine.setCompileAll(variables["script-all"].as<bool>());
     engine.setCompileAllDialogue(variables["script-all-dialogue"].as<bool>());
-<<<<<<< HEAD
-    engine.setScriptConsoleMode (variables["script-console"].as<bool>());
-    
+    engine.setScriptConsoleMode(variables["script-console"].as<bool>());
+
     /*
         Start of tes3mp change (major)
 
         Clients should not be allowed to set any of these unilaterally in multiplayer, so
-        disable them
+        they are disabled. 0.51 dropped setScriptBlacklist/setScriptBlacklistUse and changed
+        the option types, so the disabled lines are updated to match.
     */
-    /*
-    engine.setStartupScript (variables["script-run"].as<Files::EscapeHashString>().toStdString());
-    engine.setWarningsMode (variables["script-warn"].as<int>());
-    engine.setScriptBlacklist (variables["script-blacklist"].as<Files::EscapeStringVector>().toStdStringVector());
-    engine.setScriptBlacklistUse (variables["script-blacklist-use"].as<bool>());
-    engine.setSaveGameFile (variables["load-savegame"].as<Files::EscapePath>().mPath.string());
-    */
+    // engine.setStartupScript(variables["script-run"].as<std::string>());
+    // engine.setWarningsMode(variables["script-warn"].as<int>());
+    // engine.setSaveGameFile(variables["load-savegame"].as<Files::MaybeQuotedPath>().u8string());
     /*
         End of tes3mp change (major)
     */
-=======
-    engine.setScriptConsoleMode(variables["script-console"].as<bool>());
-    engine.setStartupScript(variables["script-run"].as<std::string>());
-    engine.setWarningsMode(variables["script-warn"].as<int>());
-    engine.setSaveGameFile(variables["load-savegame"].as<Files::MaybeQuotedPath>().u8string());
->>>>>>> omw51
 
     // other settings
     Fallback::Map::init(variables["fallback"].as<Fallback::FallbackMap>().mMap);
@@ -320,7 +310,6 @@ extern "C" int SDL_main(int argc, char** argv)
 int main(int argc, char** argv)
 #endif
 {
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -334,16 +323,14 @@ int main(int argc, char** argv)
     /*
         Start of tes3mp change (major)
 
-        Instead of logging information in openmw.log, use a more descriptive filename
-        that includes a timestamp
+        Instead of logging information in openmw.log, use a more descriptive filename that
+        includes a timestamp
     */
-    return wrapApplication(&runApplication, argc, argv, "/tes3mp-client-" + TimedLog::getFilenameTimestamp());
+    return Debug::wrapApplication(
+        &runApplication, argc, argv, "/tes3mp-client-" + TimedLog::getFilenameTimestamp());
     /*
         End of tes3mp change (major)
     */
-=======
-    return Debug::wrapApplication(&runApplication, argc, argv, "OpenMW");
->>>>>>> omw51
 }
 
 // Platform specific for Windows when there is no console built into the executable.

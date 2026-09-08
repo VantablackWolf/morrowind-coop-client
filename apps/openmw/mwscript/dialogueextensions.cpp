@@ -216,37 +216,10 @@ namespace MWScript
 
                 if (!ptr.getClass().isActor())
                 {
-<<<<<<< HEAD
-                    MWWorld::Ptr ptr = R()(runtime);
-
-                    if (!ptr.getRefData().isEnabled())
-                        return;
-
-                    if (!ptr.getClass().isActor())
-                    {
-                        const std::string error = "Warning: \"forcegreeting\" command works only for actors.";
-                        runtime.getContext().report(error);
-                        Log(Debug::Warning) << error;
-                        return;
-                    }
-
-                    /*
-                        Start of tes3mp change (major)
-
-                        Don't start a dialogue if the target is already engaged in one, thus
-                        preventing infinite greeting loops
-                    */
-                    if (!MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue))
-                        MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Dialogue, ptr);
-                    /*
-                        End of tes3mp change (major)
-                    */
-=======
                     const std::string error = "Warning: \"forcegreeting\" command works only for actors.";
                     runtime.getContext().report(error);
                     Log(Debug::Warning) << error;
                     return;
->>>>>>> omw51
                 }
 
                 bool greetWerewolves = false;
@@ -258,7 +231,17 @@ namespace MWScript
                 if (player.getClass().getNpcStats(player).isWerewolf() && !greetWerewolves)
                     return;
 
-                MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Dialogue, ptr);
+                /*
+                    Start of tes3mp change (major)
+
+                    Don't start a dialogue if the target is already engaged in one, thus
+                    preventing infinite greeting loops
+                */
+                if (!MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue))
+                    MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Dialogue, ptr);
+                /*
+                    End of tes3mp change (major)
+                */
             }
         };
 

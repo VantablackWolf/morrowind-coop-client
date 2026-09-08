@@ -113,138 +113,26 @@ namespace MWScript
 
                 if (!MWBase::Environment::get().getESMStore()->find(item))
                 {
-<<<<<<< HEAD
-                    MWWorld::Ptr ptr = R()(runtime);
-
-                    std::string item = runtime.getStringLiteral (runtime[0].mInteger);
-                    runtime.pop();
-
-                    Interpreter::Type_Integer count = runtime[0].mInteger;
-                    runtime.pop();
-
-                    if (count<0)
-                        count = static_cast<uint16_t>(count);
-
-                    // no-op
-                    if (count == 0)
-                        return;
-
-                    if(::Misc::StringUtils::ciEqual(item, "gold_005")
-                            || ::Misc::StringUtils::ciEqual(item, "gold_010")
-                            || ::Misc::StringUtils::ciEqual(item, "gold_025")
-                            || ::Misc::StringUtils::ciEqual(item, "gold_100"))
-                        item = "gold_001";
-
-                    // Check if "item" can be placed in a container
-                    MWWorld::ManualRef manualRef(MWBase::Environment::get().getWorld()->getStore(), item, 1);
-                    MWWorld::Ptr itemPtr = manualRef.getPtr();
-                    bool isLevelledList = itemPtr.getClass().getTypeName() == typeid(ESM::ItemLevList).name();
-                    if(!isLevelledList)
-                        MWWorld::ContainerStore::getType(itemPtr);
-
-                    // Explicit calls to non-unique actors affect the base record
-                    if(!R::implicit && ptr.getClass().isActor() && MWBase::Environment::get().getWorld()->getStore().getRefCount(ptr.getCellRef().getRefId()) > 1)
-                    {
-                        ptr.getClass().modifyBaseInventory(ptr.getCellRef().getRefId(), item, count);
-                        return;
-                    }
-
-                    /*
-                        Start of tes3mp change (major)
-
-                        Allow unilateral item removal on this client from client scripts and dialogue (but not console commands)
-                        to prevent infinite loops in certain mods. Otherwise, expect the server's reply to our packet to do the
-                        removal instead, except for changes to player inventories which still require the PlayerInventory to be
-                        reworked.
-                    */
-                    unsigned char packetOrigin = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
-
-                    if (ptr == MWBase::Environment::get().getWorld()->getPlayerPtr() || packetOrigin != mwmp::CLIENT_CONSOLE)
-                    {
-                        // Calls to unresolved containers affect the base record
-                        if (ptr.getClass().getTypeName() == typeid(ESM::Container).name() && (!ptr.getRefData().getCustomData() ||
-                            !ptr.getClass().getContainerStore(ptr).isResolved()))
-                        {
-                            ptr.getClass().modifyBaseInventory(ptr.getCellRef().getRefId(), item, count);
-                            const ESM::Container* baseRecord = MWBase::Environment::get().getWorld()->getStore().get<ESM::Container>().find(ptr.getCellRef().getRefId());
-                            const auto& ptrs = MWBase::Environment::get().getWorld()->getAll(ptr.getCellRef().getRefId());
-                            for (const auto& container : ptrs)
-                            {
-                                // use the new base record
-                                container.get<ESM::Container>()->mBase = baseRecord;
-                                if (container.getRefData().getCustomData())
-                                {
-                                    auto& store = container.getClass().getContainerStore(container);
-                                    if (isLevelledList)
-                                    {
-                                        if (store.isResolved())
-                                        {
-                                            addRandomToStore(itemPtr, count, ptr, store);
-                                        }
-                                    }
-                                    else
-                                        addToStore(itemPtr, count, ptr, store, store.isResolved());
-                                }
-                            }
-                            return;
-                        }
-                        MWWorld::ContainerStore& store = ptr.getClass().getContainerStore(ptr);
-                        if (isLevelledList)
-                            addRandomToStore(itemPtr, count, ptr, store);
-                        else
-                            addToStore(itemPtr, count, ptr, store);
-                    }
-                    /*
-                        End of tes3mp change (major)
-                    */
-
-                    // Spawn a messagebox (only for items added to player's inventory and if player is talking to someone)
-                    if (ptr == MWBase::Environment::get().getWorld ()->getPlayerPtr() )
-                    {
-                        // The two GMST entries below expand to strings informing the player of what, and how many of it has been added to their inventory
-                        std::string msgBox;
-                        std::string itemName = itemPtr.getClass().getName(itemPtr);
-                        if (count == 1)
-                        {
-                            msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage60}");
-                            msgBox = ::Misc::StringUtils::format(msgBox, itemName);
-                        }
-                        else
-                        {
-                            msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage61}");
-                            msgBox = ::Misc::StringUtils::format(msgBox, count, itemName);
-                        }
-                        MWBase::Environment::get().getWindowManager()->messageBox(msgBox, MWGui::ShowInDialogueMode_Only);
-                    }
-                    /*
-                        Start of tes3mp addition
-
-                        Send an ID_CONTAINER packet every time an item is added to a Ptr
-                        that doesn't belong to a DedicatedPlayer
-                    */
-                    else if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() &&
-                        (!ptr.getClass().isActor() || !mwmp::PlayerList::isDedicatedPlayer(ptr)))
-                    {
-                        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-                        objectList->reset();
-                        objectList->packetOrigin = packetOrigin;
-                        objectList->originClientScript = runtime.getContext().getCurrentScriptName();
-                        objectList->cell = *ptr.getCell()->getCell();
-                        objectList->action = mwmp::BaseObjectList::ADD;
-                        objectList->containerSubAction = mwmp::BaseObjectList::NONE;
-                        mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(ptr);
-                        objectList->addContainerItem(baseObject, item, count, 0);
-                        objectList->addBaseObject(baseObject);
-                        objectList->sendContainer();
-                    }
-                    /*
-                        End of tes3mp addition
-                    */
-=======
                     runtime.getContext().report("Failed to add item '" + item.getRefIdString() + "': unknown ID");
                     return;
->>>>>>> omw51
                 }
+
+                if (count < 0)
+                    count = static_cast<uint16_t>(count);
+
+                // no-op
+                if (count == 0)
+                    return;
+
+                if (item == "gold_005" || item == "gold_010" || item == "gold_025" || item == "gold_100")
+                    item = MWWorld::ContainerStore::sGoldId;
+
+                // Check if "item" can be placed in a container
+                MWWorld::ManualRef manualRef(*MWBase::Environment::get().getESMStore(), item, 1);
+                MWWorld::Ptr itemPtr = manualRef.getPtr();
+                bool isLevelledList = itemPtr.getClass().getType() == ESM::ItemLevList::sRecordId;
+                if (!isLevelledList)
+                    MWWorld::ContainerStore::getType(itemPtr);
 
                 if (count < 0)
                     count = static_cast<uint16_t>(count);
@@ -301,10 +189,54 @@ namespace MWScript
                     return;
                 }
                 MWWorld::ContainerStore& store = ptr.getClass().getContainerStore(ptr);
-                if (isLevelledList)
-                    addRandomToStore(itemPtr, count, store);
-                else
-                    addToStore(itemPtr, count, store);
+
+                /*
+                    Start of tes3mp change (major)
+
+                    Allow unilateral item addition on this client from client scripts and
+                    dialogue (but not console commands) to prevent infinite loops in certain
+                    mods. Otherwise send an ID_CONTAINER packet and expect the server's reply
+                    to do the addition instead.
+                */
+                unsigned char packetOrigin
+                    = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
+
+                if (ptr == MWBase::Environment::get().getWorld()->getPlayerPtr()
+                    || packetOrigin != mwmp::CLIENT_CONSOLE)
+                {
+                    if (isLevelledList)
+                        addRandomToStore(itemPtr, count, store);
+                    else
+                        addToStore(itemPtr, count, store);
+                }
+                /*
+                    End of tes3mp change (major)
+                */
+
+                /*
+                    Start of tes3mp addition
+
+                    Send an ID_CONTAINER packet every time an item is added to a Ptr that
+                    doesn't belong to a DedicatedPlayer
+                */
+                else if (mwmp::Main::get().getLocalPlayer()->isLoggedIn()
+                    && (!ptr.getClass().isActor() || !mwmp::PlayerList::isDedicatedPlayer(ptr)))
+                {
+                    mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = packetOrigin;
+                    objectList->originClientScript = runtime.getContext().getCurrentScriptName();
+                    objectList->cell = *ptr.getCell()->getCell();
+                    objectList->action = mwmp::BaseObjectList::ADD;
+                    objectList->containerSubAction = mwmp::BaseObjectList::NONE;
+                    mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(ptr);
+                    objectList->addContainerItem(baseObject, item, count, 0);
+                    objectList->addBaseObject(baseObject);
+                    objectList->sendContainer();
+                }
+                /*
+                    End of tes3mp addition
+                */
 
                 // Spawn a messagebox (only for items added to player's inventory and if player is talking to someone)
                 if (ptr == MWBase::Environment::get().getWorld()->getPlayerPtr())
@@ -415,44 +347,6 @@ namespace MWScript
                 }
                 MWWorld::ContainerStore& store = ptr.getClass().getContainerStore(ptr);
 
-<<<<<<< HEAD
-                    /*
-                        Start of tes3mp change (major)
-
-                        Allow unilateral item removal on this client from client scripts and dialogue (but not console commands)
-                        to prevent infinite loops in certain mods. Otherwise, expect the server's reply to our packet to do the
-                        removal instead, except for changes to player inventories which still require the PlayerInventory to be
-                        reworked.
-                    */
-                    unsigned char packetOrigin = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
-                    int numRemoved = 0;
-                    
-                    if (ptr == MWMechanics::getPlayer() || packetOrigin != mwmp::CLIENT_CONSOLE)
-                        numRemoved = store.remove(item, count, ptr);
-
-                    // Spawn a messagebox (only for items removed from player's inventory)
-                    if ((numRemoved > 0)
-                        && (ptr == MWMechanics::getPlayer()))
-                    {
-                    /*
-                        End of tes3mp change (major)
-                    */
-
-                        // The two GMST entries below expand to strings informing the player of what, and how many of it has been removed from their inventory
-                        std::string msgBox;
-
-                        if (numRemoved > 1)
-                        {
-                            msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage63}");
-                            msgBox = ::Misc::StringUtils::format(msgBox, numRemoved, itemName);
-                        }
-                        else
-                        {
-                            msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage62}");
-                            msgBox = ::Misc::StringUtils::format(msgBox, itemName);
-                        }
-                        MWBase::Environment::get().getWindowManager()->messageBox(msgBox, MWGui::ShowInDialogueMode_Only);
-=======
                 std::string_view itemName;
                 for (MWWorld::ConstContainerStoreIterator iter(store.cbegin()); iter != store.cend(); ++iter)
                 {
@@ -460,8 +354,49 @@ namespace MWScript
                     {
                         itemName = iter->getClass().getName(*iter);
                         break;
->>>>>>> omw51
                     }
+                }
+
+                /*
+                    Start of tes3mp change (major)
+
+                    Allow unilateral item removal on this client from client scripts and dialogue
+                    (but not console commands) to prevent infinite loops in certain mods.
+                    Otherwise expect the server's reply to our packet to do the removal, except
+                    for changes to player inventories which still require PlayerInventory to be
+                    reworked.
+
+                    0.51 dropped the actor argument from ContainerStore::remove.
+                */
+                unsigned char packetOrigin
+                    = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
+                int numRemoved = 0;
+
+                if (ptr == MWMechanics::getPlayer() || packetOrigin != mwmp::CLIENT_CONSOLE)
+                    numRemoved = store.remove(item, count);
+                /*
+                    End of tes3mp change (major)
+                */
+
+                // Spawn a messagebox (only for items removed from player's inventory)
+                if ((numRemoved > 0) && (ptr == MWMechanics::getPlayer()))
+                {
+                    // The two GMST entries below expand to strings informing the player of what, and how many of it has
+                    // been removed from their inventory
+                    std::string msgBox;
+
+                    if (numRemoved > 1)
+                    {
+                        msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage63}");
+                        msgBox = ::Misc::StringUtils::format(msgBox, numRemoved, itemName);
+                    }
+                    else
+                    {
+                        msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage62}");
+                        msgBox = ::Misc::StringUtils::format(msgBox, itemName);
+                    }
+                    MWBase::Environment::get().getWindowManager()->messageBox(msgBox, MWGui::ShowInDialogueMode_Only);
+                }
                     /*
                         Start of tes3mp addition
 

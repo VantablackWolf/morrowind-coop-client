@@ -370,23 +370,17 @@ void MWState::StateManager::saveGame(std::string_view description, const Slot* s
 
 void MWState::StateManager::quickSave(std::string name)
 {
-<<<<<<< HEAD
     /*
         Start of tes3mp change (major)
 
-        It should not be possible to quicksave the game in multiplayer, so it has been disabled
+        It should not be possible to quicksave or quickload the game in multiplayer, so it
+        has been disabled
     */
     return;
     /*
         End of tes3mp change (major)
     */
 
-    if (!(mState==State_Running &&
-        MWBase::Environment::get().getWorld()->getGlobalInt ("chargenstate")==-1 // char gen
-=======
-    if (!(mState == State_Running
-            && MWBase::Environment::get().getWorld()->getGlobalInt(MWWorld::Globals::sCharGenState) == -1 // char gen
->>>>>>> omw51
             && MWBase::Environment::get().getWindowManager()->isSavingAllowed()))
     {
         // You can not save your game right now
@@ -720,21 +714,17 @@ void MWState::StateManager::printSavegameFormatError(
 
 void MWState::StateManager::quickLoad()
 {
-<<<<<<< HEAD
     /*
         Start of tes3mp change (major)
 
-        It should not be possible to quickload the game in multiplayer, so it has been disabled
+        It should not be possible to quicksave or quickload the game in multiplayer, so it
+        has been disabled
     */
     return;
     /*
         End of tes3mp change (major)
     */
 
-    if (Character* currentCharacter = getCurrentCharacter ())
-=======
-    if (Character* currentCharacter = getCurrentCharacter())
->>>>>>> omw51
     {
         if (currentCharacter->begin() == currentCharacter->end())
             return;
