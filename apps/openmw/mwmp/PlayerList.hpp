@@ -47,7 +47,13 @@ namespace mwmp
             answer.
         */
         static DedicatedPlayer* getPlayer(ESM::RefNum actorRefNum);
+        /*
+            The mirror form is canonical here too: every caller is comparing against cells
+            that came off the wire, and isSameCell already works on mirrors.
+        */
+        static std::vector<RakNet::RakNetGUID> getPlayersInCell(const mwmp::records::Cell& cell);
         static std::vector<RakNet::RakNetGUID> getPlayersInCell(const ESM::Cell& cell);
+        static std::vector<RakNet::RakNetGUID> getPlayersInCell(const MWWorld::Cell& cell);
 
         static bool isDedicatedPlayer(const MWWorld::Ptr &ptr);
 

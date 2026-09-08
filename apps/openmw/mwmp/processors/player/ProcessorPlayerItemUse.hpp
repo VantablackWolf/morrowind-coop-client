@@ -37,7 +37,7 @@ namespace mwmp
 
                 MWWorld::Ptr itemPtr = MechanicsHelper::getItemPtrFromStore(player->usedItem, inventoryStore);
 
-                if (itemPtr)
+                if (!itemPtr.isEmpty())
                 {
                     MWBase::Environment::get().getWindowManager()->getInventoryWindow()->useItem(itemPtr);
 
@@ -53,7 +53,7 @@ namespace mwmp
                         inventoryStore.setSelectedEnchantItem(storeIterator);
                     }
 
-                    if (player->itemUseDrawState != MWMechanics::DrawState::Nothing)
+                    if (player->itemUseDrawState != static_cast<char>(MWMechanics::DrawState::Nothing))
                         playerPtr.getClass().getNpcStats(playerPtr).setDrawState(static_cast<MWMechanics::DrawState>(player->itemUseDrawState));
                 }
                 else

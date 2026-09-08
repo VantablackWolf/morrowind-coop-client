@@ -483,7 +483,7 @@ void Worldstate::setWeather()
         weather.queuedWeather, weather.transitionFactor, forceWeather);
 }
 
-void Worldstate::resetCells(std::vector<ESM::Cell>* cells)
+void Worldstate::resetCells(std::vector<mwmp::records::Cell>* cells)
 {
     MWBase::World* world = MWBase::Environment::get().getWorld();
 
@@ -523,12 +523,14 @@ void Worldstate::resetCells(std::vector<ESM::Cell>* cells)
             }
         }
 
-        world->clearCellStore(cell);
+        ESM::Cell engineCell;
+        mwmp::RecordConvert::toEngine(cell, engineCell);
+        world->clearCellStore(engineCell);
 
         for (RakNet::RakNetGUID otherGuid : playersInCell)
         {
             DedicatedPlayer* dedicatedPlayer = mwmp::PlayerList::getPlayer(otherGuid);
-            dedicatedPlayer->cell = mwmp::RecordConvert::toMirror(cell);
+            dedicatedPlayer->cell = cell;
             dedicatedPlayer->setCell();
         }
     }

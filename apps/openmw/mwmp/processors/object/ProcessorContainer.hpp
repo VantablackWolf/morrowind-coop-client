@@ -1,6 +1,7 @@
 #ifndef OPENMW_PROCESSORCONTAINER_HPP
 #define OPENMW_PROCESSORCONTAINER_HPP
 
+#include <apps/openmw/mwmp/RecordConvertPlayer.hpp>
 #include "BaseObjectProcessor.hpp"
 
 namespace mwmp
@@ -57,7 +58,7 @@ namespace mwmp
                     LOG_APPEND(TimedLog::LOG_VERBOSE, "- Request had no objects attached, so we are sending all containers in the cell %s",
                         objectList.cell.getShortDescription().c_str());
                     objectList.reset();
-                    objectList.cell = *ptrCellStore->getCell();
+                    objectList.cell = mwmp::RecordConvert::toMirror(*ptrCellStore->getCell());
                     objectList.action = mwmp::BaseObjectList::SET;
                     objectList.containerSubAction = mwmp::BaseObjectList::REPLY_TO_REQUEST;
                     objectList.addAllContainers(ptrCellStore);
@@ -68,7 +69,7 @@ namespace mwmp
                     LOG_APPEND(TimedLog::LOG_VERBOSE, "- Request was for %i %s", objectList.baseObjectCount, objectList.baseObjectCount == 1 ? "object" : "objects");
                     std::vector<BaseObject> requestObjects = objectList.baseObjects;
                     objectList.reset();
-                    objectList.cell = *ptrCellStore->getCell();
+                    objectList.cell = mwmp::RecordConvert::toMirror(*ptrCellStore->getCell());
                     objectList.action = mwmp::BaseObjectList::SET;
                     objectList.containerSubAction = mwmp::BaseObjectList::REPLY_TO_REQUEST;
                     objectList.addRequestedContainers(ptrCellStore, requestObjects);

@@ -23,7 +23,12 @@ namespace mwmp
         void setMapExplored();
         void setWeather();
 
-        void resetCells(std::vector<ESM::Cell>* cells);
+        /*
+            Takes the protocol mirror: these cells arrive in a WorldstatePacket and are
+            described by the wire, not by anything loaded. Converted to engine cells only
+            where an engine call needs one.
+        */
+        void resetCells(std::vector<mwmp::records::Cell>* cells);
 
         void sendClientGlobal(std::string varName, int value, mwmp::VARIABLE_TYPE variableType);
         void sendClientGlobal(std::string varName, float value);

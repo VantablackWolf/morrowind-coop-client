@@ -105,7 +105,7 @@ DedicatedPlayer* PlayerList::getPlayer(ESM::RefNum actorRefNum)
     return nullptr;
 }
 
-std::vector<RakNet::RakNetGUID> PlayerList::getPlayersInCell(const ESM::Cell& cell)
+std::vector<RakNet::RakNetGUID> PlayerList::getPlayersInCell(const mwmp::records::Cell& cell)
 {
     std::vector<RakNet::RakNetGUID> playersInCell;
 
@@ -121,6 +121,16 @@ std::vector<RakNet::RakNetGUID> PlayerList::getPlayersInCell(const ESM::Cell& ce
     }
 
     return playersInCell;
+}
+
+std::vector<RakNet::RakNetGUID> PlayerList::getPlayersInCell(const ESM::Cell& cell)
+{
+    return getPlayersInCell(mwmp::RecordConvert::toMirror(cell));
+}
+
+std::vector<RakNet::RakNetGUID> PlayerList::getPlayersInCell(const MWWorld::Cell& cell)
+{
+    return getPlayersInCell(mwmp::RecordConvert::toMirror(cell));
 }
 
 bool PlayerList::isDedicatedPlayer(const MWWorld::Ptr &ptr)

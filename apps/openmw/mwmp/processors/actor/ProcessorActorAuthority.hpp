@@ -36,10 +36,23 @@ namespace mwmp
                     cell->initializeLocalActors();
                     cell->updateLocal(true);
 
-                    // Enable updates for DetourNavigator for advanced pathfinding
+                    /*
+                        Start of tes3mp change (major)
+
+                        0.8.1 re-enabled DetourNavigator updates here, having disabled them in
+                        CellController when no cells were initialized. 0.51 replaced the global
+                        toggle with a scoped update guard -- there is nothing to re-enable, and
+                        update() takes a guard as its second argument.
+
+                        The nudge is kept: taking authority over a cell is exactly when the
+                        navmesh around the player wants rebuilding.
+                    */
                     MWBase::World* world = MWBase::Environment::get().getWorld();
-                    world->getNavigator()->setUpdatesEnabled(true);
-                    world->getNavigator()->update(world->getPlayerPtr().getRefData().getPosition().asVec3());
+                    world->getNavigator()->update(
+                        world->getPlayerPtr().getRefData().getPosition().asVec3(), nullptr);
+                    /*
+                        End of tes3mp change (major)
+                    */
                 }
                 else
                 {

@@ -1,6 +1,7 @@
 #ifndef OPENMW_PROCESSORWORLDREGIONAUTHORITY_HPP
 #define OPENMW_PROCESSORWORLDREGIONAUTHORITY_HPP
 
+#include <apps/openmw/mwmp/RefIdCompat.hpp>
 #include <apps/openmw/mwbase/world.hpp>
 
 #include "../PlayerProcessor.hpp"
@@ -19,8 +20,11 @@ namespace mwmp
         {
             MWBase::World *world = MWBase::Environment::get().getWorld();
 
-            if (!worldstate.authorityRegion.empty() && Misc::StringUtils::ciEqual(worldstate.authorityRegion,
-                world->getPlayerPtr().getCell()->getCell()->mRegion))
+            // MWWorld::Cell keeps mRegion private behind getRegion(); RefId interning
+            // already carries ciEqual's case-insensitivity.
+            if (!worldstate.authorityRegion.empty()
+                && worldstate.authorityRegion
+                    == mwmp::RefIdCompat::toWire(world->getPlayerPtr().getCell()->getCell()->getRegion()))
             {
                 LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Received %s about %s", strPacketID.c_str(), worldstate.authorityRegion.c_str());
 
