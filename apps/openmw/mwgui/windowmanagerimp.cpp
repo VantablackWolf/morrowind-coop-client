@@ -1,5 +1,9 @@
 #include "windowmanagerimp.hpp"
 
+#include <components/esm3/quickkeys.hpp>
+
+#include "../mwmp/RefIdCompat.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -1933,20 +1937,32 @@ namespace MWGui
             // indexes in the mKey vector, so adjust for the latter
             mQuickKeysMenu->setSelectedIndex(slot - 1);
 
-            switch (quickKeyType)
+            /*
+                0.51 moved the quick-key kinds out of QuickKeysMenu and into
+                ESM::QuickKeys::Type, an enum class.
+
+                The cast is safe: the wire carries the 0.47 integer, and both enumerations
+                number them identically (Item 0, Magic 1, MagicItem 2, Unassigned 3,
+                HandToHand 4). Checked rather than assumed -- if 0.52 renumbers them this
+                becomes a silent mis-assignment, so it is worth re-checking on the next
+                port. A default case covers HandToHand, which tes3mp does not send.
+            */
+            switch (static_cast<ESM::QuickKeys::Type>(quickKeyType))
             {
-            case QuickKeysMenu::Type_Unassigned:
-                mQuickKeysMenu->unassignIndex(slot - 1);
-                break;
-            case QuickKeysMenu::Type_Item:
-                mQuickKeysMenu->onAssignItem(item);
-                break;
-            case QuickKeysMenu::Type_MagicItem:
-                mQuickKeysMenu->onAssignMagicItem(item);
-                break;
-            case QuickKeysMenu::Type_Magic:
-                mQuickKeysMenu->onAssignMagic(spellId);
-                break;
+                case ESM::QuickKeys::Type::Unassigned:
+                    mQuickKeysMenu->unassignIndex(slot - 1);
+                    break;
+                case ESM::QuickKeys::Type::Item:
+                    mQuickKeysMenu->onAssignItem(item);
+                    break;
+                case ESM::QuickKeys::Type::MagicItem:
+                    mQuickKeysMenu->onAssignMagicItem(item);
+                    break;
+                case ESM::QuickKeys::Type::Magic:
+                    mQuickKeysMenu->onAssignMagic(mwmp::RefIdCompat::fromWireCreate(spellId));
+                    break;
+                default:
+                    break;
             }
         }
     }

@@ -34,6 +34,27 @@ Then, in order:
 3. **Then source conflicts**, biggest files first.
 4. **Then run the round-trip tests** in `apps/openmw-mp/tests/`.
 
+### Compile one file at a time
+
+`CI/compile-one.sh apps/openmw/openmw-lib.vcxproj apps/openmw/mwmp/LocalPlayer.cpp`
+
+About five seconds instead of minutes, and *more* informative than a full build:
+MSVC caps reported errors at 100 per translation unit, so a heavily-broken file
+shows only its first hundred in a full build and hides the rest. Adapting one
+file at a time with a compile after each edit is the whole loop.
+
+### The checks, and what each one cannot see
+
+| Check | Finds | Blind to |
+|---|---|---|
+| `check-resolution.sh` | conflict markers, brace imbalance, lost hooks, restored suppressions | anything that keeps braces balanced |
+| `audit-port.sh` | stale files, hooks stranded by file *moves* | hooks that stayed in the file |
+| `check-hook-depth.sh` | hooks relocated into a deeper scope | a hook that moved sideways |
+| `check-missing-definitions.sh` | definitions swallowed by a runaway comment | anything still compiling and linking |
+
+Run all four. Each one on this list exists because the ones above it missed
+something real.
+
 ---
 
 ## Traps, in the order they will bite
@@ -97,6 +118,40 @@ that resolves conflicts mechanically must skip files containing
 upstream code out, and mechanically taking "hook plus upstream code" silently
 restores behaviour TES3MP disabled on purpose. It compiles, it runs, and it is
 wrong only in play.
+
+### A hook can land inside a function body
+
+The most expensive failure of the 0.47 → 0.51 port, five times over. When
+upstream restructures a region, git can place a tes3mp block *inside* a function
+rather than beside it. Braces stay balanced. Hook counts are unchanged. The file
+compiles. The only symptom is an error in a **different** file saying a member
+does not exist.
+
+It hit `CellStore`'s six accessors (inside `forEach`), `ContainerStore::setResolved`
+(outside its class entirely), three `ActiveSpells` hooks (inside `unloadActor`),
+`CreatureStats::setSummonedCreatureActorId` (inside `updateAwareness`),
+`Spells::setPowerUseTimestamp` (inside `usePower`), `CharacterController::getAttackType`,
+`CellRef::setDestCell` (inside `getDestCell`), and `DragAndDrop::finish` — whose
+entire hook, signature included, ended up mid-function inside `drop()`.
+
+`CI/check-hook-depth.sh` compares each hook's brace depth against the previous
+tree. Treat its output as leads, not failures.
+
+### Suppress upstream code with line comments, never a block comment
+
+The hook markers are themselves block comments, and block comments do not nest.
+On the 0.51 port a `change (major)` hook opened `/*` to suppress
+`World::rechargeItems`' recharge loop and never closed it. The comment ran on for
+**330 lines**, silently deleting every function from `teleportToClosestMarker`
+through `spawnRandomCreature` — `getPlayerPtr`, `updateWeather`, `goToJail`,
+`confiscateStolenItems`.
+
+The file still compiled. Those symbols would have gone missing at link time, and
+the compiler's errors pointed 300 lines past the cause, at the first place it
+noticed the namespace had closed.
+
+Always `//` the suppressed lines. `CI/check-missing-definitions.sh` catches this
+one directly.
 
 ### Check binaries for conflict markers
 

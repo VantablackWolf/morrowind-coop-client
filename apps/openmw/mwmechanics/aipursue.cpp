@@ -29,38 +29,6 @@
 namespace MWMechanics
 {
 
-    /*
-        Start of tes3mp addition
-
-        Because multiplayer does not pause the game, prevent infinite arrest loops by ignoring
-        players already engaged in dialogue while retaining the AiPursue package
-
-        Additionally, do not arrest players who are currently jailed
-    */
-    if (target == MWBase::Environment::get().getWorld()->getPlayerPtr())
-    {
-        if (MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue) ||
-            MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Jail))
-        {
-            return false;
-        }
-    }
-    /*
-        End of tes3mp addition
-    */
-        /*
-            Start of tes3mp addition
-
-            Record that the player has not died since the last attempt to arrest them
-
-            Close the player's inventory or open container and cancel any drag and drops
-        */
-        LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "After being pursued by %s, diedSinceArrestAttempt is now false", actor.getCellRef().getRefId().getRefIdString().c_str());
-        mwmp::Main::get().getLocalPlayer()->diedSinceArrestAttempt = false;
-        mwmp::Main::get().getLocalPlayer()->closeInventoryWindows();
-        /*
-            End of tes3mp addition
-        */
     AiPursue::AiPursue(const MWWorld::Ptr& actor)
     {
         mTargetActor = actor.getCellRef().getRefNum();
@@ -94,6 +62,26 @@ namespace MWMechanics
         if (target.getClass().getNpcStats(target).getBounty() <= 0)
             return true;
 
+        /*
+            Start of tes3mp addition
+
+            Because multiplayer does not pause the game, prevent infinite arrest loops by ignoring
+            players already engaged in dialogue while retaining the AiPursue package
+
+            Additionally, do not arrest players who are currently jailed
+        */
+        if (target == MWBase::Environment::get().getWorld()->getPlayerPtr())
+        {
+            if (MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue) ||
+                MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Jail))
+            {
+                return false;
+            }
+        }
+        /*
+            End of tes3mp addition
+        */
+
         actor.getClass().getCreatureStats(actor).setDrawState(DrawState::Nothing);
 
         // Set the target destination
@@ -111,6 +99,20 @@ namespace MWMechanics
         {
             if (!MWBase::Environment::get().getWorld()->getLOS(target, actor))
                 return false;
+            /*
+                Start of tes3mp addition
+
+                Record that the player has not died since the last attempt to arrest them
+
+                Close the player's inventory or open container and cancel any drag and drops
+            */
+            LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "After being pursued by %s, diedSinceArrestAttempt is now false", actor.getCellRef().getRefId().getRefIdString().c_str());
+            mwmp::Main::get().getLocalPlayer()->diedSinceArrestAttempt = false;
+            mwmp::Main::get().getLocalPlayer()->closeInventoryWindows();
+            /*
+                End of tes3mp addition
+            */
+
             MWBase::Environment::get().getWindowManager()->pushGuiMode(
                 MWGui::GM_Dialogue, actor); // Arrest player when reached
             return true;

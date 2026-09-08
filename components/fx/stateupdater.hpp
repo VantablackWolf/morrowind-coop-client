@@ -1,6 +1,30 @@
 #ifndef OPENMW_COMPONENTS_FX_STATEUPDATER_H
 #define OPENMW_COMPONENTS_FX_STATEUPDATER_H
 
+/*
+    Start of tes3mp addition
+
+    <windef.h> defines "near" and "far" as empty macros, so the parameter names below stop
+    being names at all and the declarations fail to parse. OpenMW never sees this because
+    OpenMW does not include <windows.h> in these translation units; tes3mp does, through
+    RakNet.
+
+    Same reasoning as apps/openmw/mwmp/WinAPIConflicts.hpp, and the undef has to be HERE
+    rather than at the include site: if <windows.h> is seen first, no later undef can
+    repair a declaration the preprocessor has already eaten. components/ cannot include
+    from apps/, so it is spelled out.
+*/
+#ifdef near
+#undef near
+#endif
+
+#ifdef far
+#undef far
+#endif
+/*
+    End of tes3mp addition
+*/
+
 #include <osg/BufferTemplate>
 
 #include <components/sceneutil/lightmanager.hpp>
