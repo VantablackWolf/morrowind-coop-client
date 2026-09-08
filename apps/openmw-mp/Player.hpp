@@ -6,10 +6,6 @@
 #include <chrono>
 #include <RakNetTypes.h>
 
-#include <components/esm/npcstats.hpp>
-#include <components/esm/cellid.hpp>
-#include <components/esm/loadnpc.hpp>
-#include <components/esm/loadcell.hpp>
 
 #include <components/openmw-mp/TimedLog.hpp>
 #include <components/openmw-mp/Base/BasePlayer.hpp>

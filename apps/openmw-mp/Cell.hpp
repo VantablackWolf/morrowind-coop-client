@@ -3,7 +3,6 @@
 
 #include <deque>
 #include <string>
-#include <components/esm/records.hpp>
 #include <components/openmw-mp/Base/BaseActor.hpp>
 #include <components/openmw-mp/Base/BaseObject.hpp>
 #include <components/openmw-mp/Packets/Actor/ActorPacket.hpp>
@@ -16,7 +15,7 @@ class Cell
 {
     friend class CellController;
 public:
-    Cell(ESM::Cell cell);
+    Cell(records::Cell cell);
     typedef std::deque<Player*> TPlayers;
     typedef TPlayers::const_iterator Iterator;
 
@@ -44,7 +43,7 @@ public:
 
 private:
     TPlayers players;
-    ESM::Cell cell;
+    records::Cell cell;
 
     RakNet::RakNetGUID authorityGuid;
     mwmp::BaseActorList cellActorList;

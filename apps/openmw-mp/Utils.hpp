@@ -7,7 +7,6 @@
 
 #include <boost/any.hpp>
 
-#include <components/esm/loadcell.hpp>
 
 #include <components/openmw-mp/Utils.hpp>
 #include <components/openmw-mp/TimedLog.hpp>
@@ -23,7 +22,7 @@ namespace Utils
 {
     const std::vector<std::string> split(const std::string &str, int delimiter);
 
-    ESM::Cell getCellFromDescription(std::string cellDescription);
+    records::Cell getCellFromDescription(std::string cellDescription);
 
     void getArguments(std::vector<boost::any> &params, va_list args, const std::string &def);
 

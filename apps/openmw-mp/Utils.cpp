@@ -1,3 +1,4 @@
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include "Utils.hpp"
 
 #include <cstdarg>
@@ -21,9 +22,9 @@ const std::vector<std::string> Utils::split(const std::string &str, int delimite
     return result;
 }
 
-ESM::Cell Utils::getCellFromDescription(std::string cellDescription)
+records::Cell Utils::getCellFromDescription(std::string cellDescription)
 {
-    ESM::Cell cell;
+    records::Cell cell;
     cell.blank();
 
     static std::regex exteriorCellPattern("^(-?\\d+), (-?\\d+)$");
@@ -31,7 +32,7 @@ ESM::Cell Utils::getCellFromDescription(std::string cellDescription)
 
     if (std::regex_match(cellDescription, baseMatch, exteriorCellPattern))
     {
-        cell.mData.mFlags &= ~ESM::Cell::Interior;
+        cell.mData.mFlags &= ~records::Cell::Interior;
 
         // The first sub match is the whole string, so check for a length of 3
         if (baseMatch.size() == 3)
@@ -42,7 +43,7 @@ ESM::Cell Utils::getCellFromDescription(std::string cellDescription)
     }
     else
     {
-        cell.mData.mFlags |= ESM::Cell::Interior;
+        cell.mData.mFlags |= records::Cell::Interior;
         cell.mName = cellDescription;
     }
 

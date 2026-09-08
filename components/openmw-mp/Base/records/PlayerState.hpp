@@ -116,6 +116,18 @@ namespace mwmp
             int mEffectIndex;
         };
 
+        /*
+            Mirrors the serialized subset of ESM::ActiveSpells::ActiveSpellParams.
+            Only mEffects and mDisplayName cross the wire; mCasterActorId is
+            engine-local and 0.51 added further bookkeeping fields that TES3MP
+            has never sent.
+        */
+        struct ActiveSpellParams
+        {
+            std::vector<ActiveEffect> mEffects;
+            std::string mDisplayName;
+        };
+
         // Mirrors the serialized subset of ESM::NpcStats.
         struct NpcStats
         {

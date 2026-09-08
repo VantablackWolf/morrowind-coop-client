@@ -1,9 +1,9 @@
+#include <components/openmw-mp/Base/records/PlayerState.hpp>
+#include <components/openmw-mp/Base/records/StatNames.hpp>
 #include "Stats.hpp"
 
 #include <iostream>
 
-#include <components/esm/attr.hpp>
-#include <components/esm/loadskil.hpp>
 #include <components/misc/stringops.hpp>
 #include <components/openmw-mp/TimedLog.hpp>
 #include <components/openmw-mp/NetworkMessages.hpp>
@@ -13,19 +13,19 @@
 
 int StatsFunctions::GetAttributeCount() noexcept
 {
-    return ESM::Attribute::Length;
+    return records::sAttributeCount;
 }
 
 int StatsFunctions::GetSkillCount() noexcept
 {
-    return ESM::Skill::Length;
+    return records::sSkillCount;
 }
 
 int StatsFunctions::GetAttributeId(const char *name) noexcept
 {
-    for (int x = 0; x < ESM::Attribute::Length; x++)
+    for (int x = 0; x < records::sAttributeCount; x++)
     {
-        if (Misc::StringUtils::ciEqual(name, ESM::Attribute::sAttributeNames[x]))
+        if (Misc::StringUtils::ciEqual(name, records::sAttributeNames[x]))
         {
             return x;
         }
@@ -36,9 +36,9 @@ int StatsFunctions::GetAttributeId(const char *name) noexcept
 
 int StatsFunctions::GetSkillId(const char *name) noexcept
 {
-    for (int x = 0; x < ESM::Skill::Length; x++)
+    for (int x = 0; x < records::sSkillCount; x++)
     {
-        if (Misc::StringUtils::ciEqual(name, ESM::Skill::sSkillNames[x]))
+        if (Misc::StringUtils::ciEqual(name, records::sSkillNames[x]))
         {
             return x;
         }
@@ -49,18 +49,18 @@ int StatsFunctions::GetSkillId(const char *name) noexcept
 
 const char *StatsFunctions::GetAttributeName(unsigned short attributeId) noexcept
 {
-    if (attributeId >= ESM::Attribute::Length)
+    if (attributeId >= records::sAttributeCount)
         return "invalid";
 
-    return ESM::Attribute::sAttributeNames[attributeId].c_str();
+    return records::sAttributeNames[attributeId].c_str();
 }
 
 const char *StatsFunctions::GetSkillName(unsigned short skillId) noexcept
 {
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return "invalid";
 
-    return ESM::Skill::sSkillNames[skillId].c_str();
+    return records::sSkillNames[skillId].c_str();
 }
 
 const char *StatsFunctions::GetName(unsigned short pid) noexcept
@@ -189,7 +189,7 @@ int StatsFunctions::GetAttributeBase(unsigned short pid, unsigned short attribut
     Player *player;
     GET_PLAYER(pid, player, 0);
 
-    if (attributeId >= ESM::Attribute::Length)
+    if (attributeId >= records::sAttributeCount)
         return 0;
 
     return player->creatureStats.mAttributes[attributeId].mBase;
@@ -200,7 +200,7 @@ int StatsFunctions::GetAttributeModifier(unsigned short pid, unsigned short attr
     Player *player;
     GET_PLAYER(pid, player, 0);
 
-    if (attributeId >= ESM::Attribute::Length)
+    if (attributeId >= records::sAttributeCount)
         return 0;
 
     return player->creatureStats.mAttributes[attributeId].mMod;
@@ -211,7 +211,7 @@ double StatsFunctions::GetAttributeDamage(unsigned short pid, unsigned short att
     Player *player;
     GET_PLAYER(pid, player, 0);
 
-    if (attributeId >= ESM::Attribute::Length)
+    if (attributeId >= records::sAttributeCount)
         return 0;
 
     return player->creatureStats.mAttributes[attributeId].mDamage;
@@ -222,7 +222,7 @@ int StatsFunctions::GetSkillBase(unsigned short pid, unsigned short skillId) noe
     Player *player;
     GET_PLAYER(pid, player, 0);
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return 0;
 
     return player->npcStats.mSkills[skillId].mBase;
@@ -233,7 +233,7 @@ int StatsFunctions::GetSkillModifier(unsigned short pid, unsigned short skillId)
     Player *player;
     GET_PLAYER(pid, player, 0);
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return 0;
 
     return player->npcStats.mSkills[skillId].mMod;
@@ -244,7 +244,7 @@ double StatsFunctions::GetSkillDamage(unsigned short pid, unsigned short skillId
     Player *player;
     GET_PLAYER(pid, player, 0);
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return 0;
 
     return player->npcStats.mSkills[skillId].mDamage;
@@ -255,7 +255,7 @@ double StatsFunctions::GetSkillProgress(unsigned short pid, unsigned short skill
     Player *player;
     GET_PLAYER(pid, player, 0.0f);
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return 0;
 
     return player->npcStats.mSkills[skillId].mProgress;
@@ -266,7 +266,7 @@ int StatsFunctions::GetSkillIncrease(unsigned short pid, unsigned int attributeI
     Player *player;
     GET_PLAYER(pid, player, 0);
 
-    if (attributeId > ESM::Attribute::Length)
+    if (attributeId > records::sAttributeCount)
         return 0;
 
     return player->npcStats.mSkillIncrease[attributeId];
@@ -452,7 +452,7 @@ void StatsFunctions::SetAttributeBase(unsigned short pid, unsigned short attribu
     Player *player;
     GET_PLAYER(pid, player,);
 
-    if (attributeId >= ESM::Attribute::Length)
+    if (attributeId >= records::sAttributeCount)
         return;
 
     player->creatureStats.mAttributes[attributeId].mBase = value;
@@ -466,7 +466,7 @@ void StatsFunctions::ClearAttributeModifier(unsigned short pid, unsigned short a
     Player *player;
     GET_PLAYER(pid, player,);
 
-    if (attributeId >= ESM::Attribute::Length)
+    if (attributeId >= records::sAttributeCount)
         return;
 
     player->creatureStats.mAttributes[attributeId].mMod = 0;
@@ -480,7 +480,7 @@ void StatsFunctions::SetAttributeDamage(unsigned short pid, unsigned short attri
     Player *player;
     GET_PLAYER(pid, player, );
 
-    if (attributeId >= ESM::Attribute::Length)
+    if (attributeId >= records::sAttributeCount)
         return;
 
     player->creatureStats.mAttributes[attributeId].mDamage = value;
@@ -494,7 +494,7 @@ void StatsFunctions::SetSkillBase(unsigned short pid, unsigned short skillId, in
     Player *player;
     GET_PLAYER(pid, player,);
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return;
 
     player->npcStats.mSkills[skillId].mBase = value;
@@ -508,7 +508,7 @@ void StatsFunctions::ClearSkillModifier(unsigned short pid, unsigned short skill
     Player *player;
     GET_PLAYER(pid, player,);
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return;
 
     player->npcStats.mSkills[skillId].mMod = 0;
@@ -522,7 +522,7 @@ void StatsFunctions::SetSkillDamage(unsigned short pid, unsigned short skillId, 
     Player *player;
     GET_PLAYER(pid, player, );
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return;
 
     player->npcStats.mSkills[skillId].mDamage = value;
@@ -536,7 +536,7 @@ void StatsFunctions::SetSkillProgress(unsigned short pid, unsigned short skillId
     Player *player;
     GET_PLAYER(pid, player, );
 
-    if (skillId >= ESM::Skill::Length)
+    if (skillId >= records::sSkillCount)
         return;
 
     player->npcStats.mSkills[skillId].mProgress = value;
@@ -550,7 +550,7 @@ void StatsFunctions::SetSkillIncrease(unsigned short pid, unsigned int attribute
     Player *player;
     GET_PLAYER(pid, player,);
 
-    if (attributeId > ESM::Attribute::Length)
+    if (attributeId > records::sAttributeCount)
         return;
 
     player->npcStats.mSkillIncrease[attributeId] = value;

@@ -1,6 +1,7 @@
 #ifndef OPENMW_PACKETRECORDDYNAMIC_HPP
 #define OPENMW_PACKETRECORDDYNAMIC_HPP
 
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <components/openmw-mp/Packets/Worldstate/WorldstatePacket.hpp>
 #include <components/openmw-mp/NetworkMessages.hpp>
 
@@ -13,9 +14,9 @@ namespace mwmp
 
         virtual void Packet(RakNet::BitStream *newBitstream, bool send);
 
-        void ProcessEffects(ESM::EffectList &effectList, bool send);
-        void ProcessBodyParts(ESM::PartReferenceList &bodyPartList, bool send);
-        void ProcessInventoryList(std::vector<mwmp::Item> &inventory, ESM::InventoryList &inventoryList, bool send);
+        void ProcessEffects(records::EffectList &effectList, bool send);
+        void ProcessBodyParts(records::PartReferenceList &bodyPartList, bool send);
+        void ProcessInventoryList(std::vector<mwmp::Item> &inventory, records::InventoryList &inventoryList, bool send);
 
     protected:
         static const int maxRecords = 3000;

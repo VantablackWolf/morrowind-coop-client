@@ -1,3 +1,4 @@
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include "Cell.hpp"
 
 #include <components/openmw-mp/NetworkMessages.hpp>
@@ -6,7 +7,7 @@
 #include "Player.hpp"
 #include "Script/Script.hpp"
 
-Cell::Cell(ESM::Cell cell) : cell(cell)
+Cell::Cell(records::Cell cell) : cell(cell)
 {
     cellActorList.count = 0;
 }

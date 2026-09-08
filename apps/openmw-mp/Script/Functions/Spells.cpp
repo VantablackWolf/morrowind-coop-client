@@ -1,3 +1,4 @@
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include "Spells.hpp"
 
 #include <components/misc/stringops.hpp>
@@ -8,7 +9,7 @@
 
 using namespace mwmp;
 
-std::vector<ESM::ActiveEffect> storedActiveEffects;
+std::vector<records::ActiveEffect> storedActiveEffects;
 
 void SpellFunctions::ClearSpellbookChanges(unsigned short pid) noexcept
 {
@@ -95,7 +96,7 @@ void SpellFunctions::AddSpell(unsigned short pid, const char* spellId) noexcept
     Player *player;
     GET_PLAYER(pid, player, );
 
-    ESM::Spell spell;
+    records::Spell spell;
     spell.mId = spellId;
 
     player->spellbookChanges.spells.push_back(spell);
@@ -122,7 +123,7 @@ void SpellFunctions::AddSpellActiveEffect(unsigned short pid, int effectId, doub
     Player* player;
     GET_PLAYER(pid, player, );
 
-    ESM::ActiveEffect effect;
+    records::ActiveEffect effect;
     effect.mEffectId = effectId;
     effect.mMagnitude = magnitude;
     effect.mDuration = duration;

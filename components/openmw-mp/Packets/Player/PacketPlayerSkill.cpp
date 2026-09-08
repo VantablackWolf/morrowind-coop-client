@@ -1,7 +1,6 @@
 #include "PacketPlayerSkill.hpp"
 
 #include <components/openmw-mp/NetworkMessages.hpp>
-#include <components/esm/creaturestats.hpp>
 
 using namespace mwmp;
 

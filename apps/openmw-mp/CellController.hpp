@@ -3,7 +3,6 @@
 
 #include <deque>
 #include <string>
-#include <components/esm/records.hpp>
 #include <components/openmw-mp/Base/BaseObject.hpp>
 #include <components/openmw-mp/Packets/Actor/ActorPacket.hpp>
 #include <components/openmw-mp/Packets/Object/ObjectPacket.hpp>
@@ -27,12 +26,12 @@ public:
     typedef std::deque<Cell*> TContainer;
     typedef TContainer::iterator TIter;
 
-    Cell * addCell(ESM::Cell cell);
+    Cell * addCell(records::Cell cell);
     void removeCell(Cell *);
 
     void deletePlayer(Player *player);
 
-    Cell *getCell(ESM::Cell *esmCell);
+    Cell *getCell(records::Cell *esmCell);
     Cell *getCellByXY(int x, int y);
     Cell *getCellByName(std::string cellName);
 

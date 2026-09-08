@@ -180,7 +180,7 @@ namespace mwmp
         int timestampDay;
         double timestampHour;
         Target caster;
-        ESM::ActiveSpells::ActiveSpellParams params;
+        records::ActiveSpellParams params;
     };
 
     struct SpellsActiveChanges

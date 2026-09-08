@@ -1,3 +1,4 @@
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include "PacketRecordDynamic.hpp"
 
 #include <components/openmw-mp/TimedLog.hpp>
@@ -632,23 +633,14 @@ void PacketRecordDynamic::Packet(RakNet::BitStream *newBitstream, bool send)
             if (variableType == mwmp::VARIABLE_TYPE::INT)
             {
                 RW(record.variable.intValue, send);
-                recordData.mValue.setType(ESM::VarType::VT_Int);
-                recordData.mValue.setInteger(record.variable.intValue);
             }
             else if (variableType == mwmp::VARIABLE_TYPE::FLOAT)
             {
                 RW(record.variable.floatValue, send);
-
-                if (variableType == mwmp::VARIABLE_TYPE::FLOAT)
-                    recordData.mValue.setType(ESM::VarType::VT_Float);
-
-                recordData.mValue.setFloat(record.variable.floatValue);
             }
             else if (variableType == mwmp::VARIABLE_TYPE::STRING)
             {
                 RW(record.variable.stringValue, send, true);
-                recordData.mValue.setType(ESM::VarType::VT_String);
-                recordData.mValue.setString(record.variable.stringValue);
             }
         }
     }
@@ -927,7 +919,7 @@ void PacketRecordDynamic::Packet(RakNet::BitStream *newBitstream, bool send)
     }
 }
 
-void PacketRecordDynamic::ProcessEffects(ESM::EffectList &effectList, bool send)
+void PacketRecordDynamic::ProcessEffects(records::EffectList &effectList, bool send)
 {
     uint32_t effectCount;
 
@@ -960,7 +952,7 @@ void PacketRecordDynamic::ProcessEffects(ESM::EffectList &effectList, bool send)
     }
 }
 
-void PacketRecordDynamic::ProcessBodyParts(ESM::PartReferenceList &partList, bool send)
+void PacketRecordDynamic::ProcessBodyParts(records::PartReferenceList &partList, bool send)
 {
     uint32_t partCount;
 
@@ -988,9 +980,9 @@ void PacketRecordDynamic::ProcessBodyParts(ESM::PartReferenceList &partList, boo
     }
 }
 
-// ESM::InventoryList has a strange structure that makes it hard to read in packets directly, so we just deal with it
+// records::InventoryList has a strange structure that makes it hard to read in packets directly, so we just deal with it
 // here with the help of a separate mwmp::Item vector
-void PacketRecordDynamic::ProcessInventoryList(std::vector<mwmp::Item> &inventory, ESM::InventoryList &inventoryList, bool send)
+void PacketRecordDynamic::ProcessInventoryList(std::vector<mwmp::Item> &inventory, records::InventoryList &inventoryList, bool send)
 {
     uint32_t itemCount;
 
@@ -1018,7 +1010,7 @@ void PacketRecordDynamic::ProcessInventoryList(std::vector<mwmp::Item> &inventor
 
         if (!send)
         {
-            ESM::ContItem contItem;
+            records::ContItem contItem;
             contItem.mItem.assign(item.refId);
             contItem.mCount = item.count;
             inventoryList.mList.push_back(contItem);

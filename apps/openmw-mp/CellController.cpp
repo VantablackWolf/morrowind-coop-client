@@ -1,3 +1,4 @@
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include "CellController.hpp"
 
 #include <iostream>
@@ -37,7 +38,7 @@ CellController *CellController::get()
     return sThis;
 }
 
-Cell *CellController::getCell(ESM::Cell *esmCell)
+Cell *CellController::getCell(records::Cell *esmCell)
 {
     if (esmCell->isExterior())
         return getCellByXY(esmCell->mData.mX, esmCell->mData.mY);
@@ -78,7 +79,7 @@ Cell *CellController::getCellByName(std::string cellName)
     return *it;
 }
 
-Cell *CellController::addCell(ESM::Cell cellData)
+Cell *CellController::addCell(records::Cell cellData)
 {
     LOG_APPEND(TimedLog::LOG_INFO, "- Loaded cells: %d", cells.size());
     auto it = find_if(cells.begin(), cells.end(), [cellData](const Cell *c) {

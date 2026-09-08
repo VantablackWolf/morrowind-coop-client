@@ -6,8 +6,8 @@
 #include <apps/openmw-mp/Utils.hpp>
 #include <apps/openmw-mp/Script/ScriptFunctions.hpp>
 
-#include <components/esm/creaturestats.hpp>
 
+#include <components/openmw-mp/Base/records/PlayerState.hpp>
 #include "Actors.hpp"
 
 using namespace mwmp;
@@ -17,7 +17,7 @@ BaseActorList writeActorList;
 
 BaseActor tempActor;
 const BaseActor emptyActor = {};
-std::vector<ESM::ActiveEffect> storedActorActiveEffects;
+std::vector<records::ActiveEffect> storedActorActiveEffects;
 
 static std::string tempCellDescription;
 
@@ -28,7 +28,7 @@ void ActorFunctions::ReadReceivedActorList() noexcept
 
 void ActorFunctions::ReadCellActorList(const char* cellDescription) noexcept
 {
-    ESM::Cell esmCell = Utils::getCellFromDescription(cellDescription);
+    records::Cell esmCell = Utils::getCellFromDescription(cellDescription);
     Cell *serverCell = CellController::get()->getCell(&esmCell);
 
     if (serverCell != nullptr)
@@ -504,7 +504,7 @@ void ActorFunctions::AddActorSpellActive(const char* spellId, const char* displa
 
 void ActorFunctions::AddActorSpellActiveEffect(int effectId, double magnitude, double duration, double timeLeft, int arg) noexcept
 {
-    ESM::ActiveEffect effect;
+    records::ActiveEffect effect;
     effect.mEffectId = effectId;
     effect.mMagnitude = magnitude;
     effect.mDuration = duration;

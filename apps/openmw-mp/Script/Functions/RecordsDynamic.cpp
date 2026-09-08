@@ -1,3 +1,4 @@
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <components/openmw-mp/NetworkMessages.hpp>
 #include <components/openmw-mp/Base/BaseWorldstate.hpp>
 
@@ -40,13 +41,13 @@ GameSettingRecord tempGameSetting;
 BaseOverrides tempOverrides;
 
 unsigned int effectCount = 0;
-ESM::ENAMstruct tempEffect;
-ESM::PartReference tempBodyPartReference;
+records::ENAMstruct tempEffect;
+records::PartReference tempBodyPartReference;
 mwmp::Item tempInventoryItem;
 
-const ESM::EffectList emptyEffectList = {};
+const records::EffectList emptyEffectList = {};
 
-const ESM::EffectList& GetRecordEffects(unsigned int recordIndex)
+const records::EffectList& GetRecordEffects(unsigned int recordIndex)
 {
     unsigned short recordsType = RecordsDynamicFunctions::GetRecordType();
 
@@ -748,13 +749,13 @@ void RecordsDynamicFunctions::SetRecordAutoCalc(int autoCalc) noexcept
     {
         if (autoCalc)
         {
-            tempNpc.data.mFlags |= ESM::NPC::Autocalc;
-            tempNpc.data.mNpdtType = ESM::NPC::NPC_WITH_AUTOCALCULATED_STATS;
+            tempNpc.data.mFlags |= records::NPC::Autocalc;
+            tempNpc.data.mNpdtType = records::NPC::NPC_WITH_AUTOCALCULATED_STATS;
         }
         else
         {
-            tempNpc.data.mFlags &= ~ESM::NPC::Autocalc;
-            tempNpc.data.mNpdtType = ESM::NPC::NPC_DEFAULT;
+            tempNpc.data.mFlags &= ~records::NPC::Autocalc;
+            tempNpc.data.mNpdtType = records::NPC::NPC_DEFAULT;
         }
     }
     else
