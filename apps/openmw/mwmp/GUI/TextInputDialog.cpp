@@ -32,9 +32,11 @@ namespace mwmp
         getWidget(okButton, "OKButton");
 
         if (shown)
-            okButton->setCaption(MWBase::Environment::get().getWindowManager()->getGameSettingString("sNext", ""));
+            okButton->setCaption(MyGUI::UString(std::string(
+                MWBase::Environment::get().getWindowManager()->getGameSettingString("sNext", ""))));
         else
-            okButton->setCaption(MWBase::Environment::get().getWindowManager()->getGameSettingString("sOK", ""));
+            okButton->setCaption(MyGUI::UString(std::string(
+                MWBase::Environment::get().getWindowManager()->getGameSettingString("sOK", ""))));
     }
 
     void TextInputDialog::setEditPassword(bool value)

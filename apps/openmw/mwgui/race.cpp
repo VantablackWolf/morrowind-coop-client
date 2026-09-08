@@ -107,7 +107,7 @@ namespace MWGui
             Disable the back button here so players can't change their names after logging
             into their server accounts
         */
-        backButton->setVisible(false);
+        mBackButton->setVisible(false);
         /*
             End of tes3mp change (major)
         */

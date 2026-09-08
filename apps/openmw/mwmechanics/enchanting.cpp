@@ -149,11 +149,6 @@ namespace MWMechanics
 
         mwmp::Main::get().getLocalPlayer()->storeLastEnchantmentQuantity(count);
 
-        std::string newItemId = mOldItemPtr.getClass().applyEnchantment(mOldItemPtr, enchantmentPtr->mId, getGemCharge(), mNewItemName);
-        /*
-            End of tes3mp change (major)
-        */
-
         return true;
     }
 

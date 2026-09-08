@@ -393,20 +393,7 @@ namespace MWGui
             mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
             objectList->reset();
             objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-            objectList->addObjectSound(MWMechanics::getPlayer(), "enchant success", 1.0, 1.0);
-            objectList->sendObjectSound();
-            /*
-                End of tes3mp addition
-            */
-            /*
-                Start of tes3mp addition
-
-                Send an ID_OBJECT_SOUND packet every time the player makes a sound here
-            */
-            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-            objectList->reset();
-            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-            objectList->addObjectSound(MWMechanics::getPlayer(), "enchant fail", 1.0, 1.0);
+            objectList->addObjectSound(MWMechanics::getPlayer(), ESM::RefId::stringRefId("enchant success"), 1.0, 1.0);
             objectList->sendObjectSound();
             /*
                 End of tes3mp addition
@@ -417,6 +404,24 @@ namespace MWGui
         }
         else
         {
+            /*
+                Start of tes3mp addition
+
+                Send an ID_OBJECT_SOUND packet every time the player makes a sound here
+
+                The merge stacked this beside the success hook, in the branch for the
+                opposite outcome, so a failed enchantment would have reported a success
+                sound and a successful one would have reported both.
+            */
+            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            objectList->reset();
+            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+            objectList->addObjectSound(MWMechanics::getPlayer(), ESM::RefId::stringRefId("enchant fail"), 1.0, 1.0);
+            objectList->sendObjectSound();
+            /*
+                End of tes3mp addition
+            */
+
             MWBase::Environment::get().getWindowManager()->playSound(ESM::RefId::stringRefId("enchant fail"));
             MWBase::Environment::get().getWindowManager()->messageBox("#{sNotifyMessage34}");
             if (!mEnchanting.getGem().isEmpty() && !mEnchanting.getGem().getCellRef().getCount())
