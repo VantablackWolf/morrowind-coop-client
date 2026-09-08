@@ -17,7 +17,7 @@ BaseActorList writeActorList;
 
 BaseActor tempActor;
 const BaseActor emptyActor = {};
-std::vector<records::ActiveEffect> storedActorActiveEffects;
+std::vector<mwmp::records::ActiveEffect> storedActorActiveEffects;
 
 static std::string tempCellDescription;
 
@@ -28,7 +28,7 @@ void ActorFunctions::ReadReceivedActorList() noexcept
 
 void ActorFunctions::ReadCellActorList(const char* cellDescription) noexcept
 {
-    records::Cell esmCell = Utils::getCellFromDescription(cellDescription);
+    mwmp::records::Cell esmCell = Utils::getCellFromDescription(cellDescription);
     Cell *serverCell = CellController::get()->getCell(&esmCell);
 
     if (serverCell != nullptr)
@@ -504,7 +504,7 @@ void ActorFunctions::AddActorSpellActive(const char* spellId, const char* displa
 
 void ActorFunctions::AddActorSpellActiveEffect(int effectId, double magnitude, double duration, double timeLeft, int arg) noexcept
 {
-    records::ActiveEffect effect;
+    mwmp::records::ActiveEffect effect;
     effect.mEffectId = effectId;
     effect.mMagnitude = magnitude;
     effect.mDuration = duration;

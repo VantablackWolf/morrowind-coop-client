@@ -166,8 +166,13 @@ if (OPENMW_MP_BUILD)
 endif()
 
 set_target_properties(tes3mp-server PROPERTIES
-    CXX_STANDARD 17
+    # Start of tes3mp change (major)
+    #
+    # 0.51 requires C++20 -- components/misc/strings/algorithm.hpp uses
+    # std::u8string_view. The server pinned 17, which no longer compiles against it.
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
+    # End of tes3mp change (major)
     CXX_EXTENSIONS YES
 )
 

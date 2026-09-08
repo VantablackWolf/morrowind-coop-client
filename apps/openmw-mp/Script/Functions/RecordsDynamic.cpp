@@ -41,13 +41,13 @@ GameSettingRecord tempGameSetting;
 BaseOverrides tempOverrides;
 
 unsigned int effectCount = 0;
-records::ENAMstruct tempEffect;
-records::PartReference tempBodyPartReference;
+mwmp::records::ENAMstruct tempEffect;
+mwmp::records::PartReference tempBodyPartReference;
 mwmp::Item tempInventoryItem;
 
-const records::EffectList emptyEffectList = {};
+const mwmp::records::EffectList emptyEffectList = {};
 
-const records::EffectList& GetRecordEffects(unsigned int recordIndex)
+const mwmp::records::EffectList& GetRecordEffects(unsigned int recordIndex)
 {
     unsigned short recordsType = RecordsDynamicFunctions::GetRecordType();
 
@@ -749,13 +749,13 @@ void RecordsDynamicFunctions::SetRecordAutoCalc(int autoCalc) noexcept
     {
         if (autoCalc)
         {
-            tempNpc.data.mFlags |= records::NPC::Autocalc;
-            tempNpc.data.mNpdtType = records::NPC::NPC_WITH_AUTOCALCULATED_STATS;
+            tempNpc.data.mFlags |= mwmp::records::NPC::Autocalc;
+            tempNpc.data.mNpdtType = mwmp::records::NPC::NPC_WITH_AUTOCALCULATED_STATS;
         }
         else
         {
-            tempNpc.data.mFlags &= ~records::NPC::Autocalc;
-            tempNpc.data.mNpdtType = records::NPC::NPC_DEFAULT;
+            tempNpc.data.mFlags &= ~mwmp::records::NPC::Autocalc;
+            tempNpc.data.mNpdtType = mwmp::records::NPC::NPC_DEFAULT;
         }
     }
     else

@@ -1,6 +1,7 @@
 #ifndef OPENMW_RECORDHELPER_HPP
 #define OPENMW_RECORDHELPER_HPP
 
+#include "RefIdCompat.hpp"
 #include <components/openmw-mp/Base/BaseWorldstate.hpp>
 
 #include "../mwbase/environment.hpp"
@@ -50,12 +51,29 @@ namespace RecordHelper
     }
 
     template<class RecordType>
+    /*
+        Start of tes3mp change (major)
+
+        Ids arrive from the server as plain strings; 0.51's stores are keyed by ESM::RefId.
+        Convert at this boundary so the 25 overrideRecord functions do not each have to.
+    */
     bool doesRecordIdExist(const std::string& id)
     {
-        MWBase::World *world = MWBase::Environment::get().getWorld();
+        MWBase::World* world = MWBase::Environment::get().getWorld();
 
-        return world->getStore().get<RecordType>().search(id);
+        return world->getStore().get<RecordType>().search(mwmp::RefIdCompat::fromWireCreate(id)) != nullptr;
     }
+
+    template <class RecordType>
+    bool doesRecordIdExist(const ESM::RefId& id)
+    {
+        MWBase::World* world = MWBase::Environment::get().getWorld();
+
+        return world->getStore().get<RecordType>().search(id) != nullptr;
+    }
+    /*
+        End of tes3mp change (major)
+    */
 
     void createPlaceholderInteriorCell();
     const std::string getPlaceholderInteriorCellName();

@@ -919,7 +919,7 @@ void PacketRecordDynamic::Packet(RakNet::BitStream *newBitstream, bool send)
     }
 }
 
-void PacketRecordDynamic::ProcessEffects(records::EffectList &effectList, bool send)
+void PacketRecordDynamic::ProcessEffects(mwmp::records::EffectList &effectList, bool send)
 {
     uint32_t effectCount;
 
@@ -952,7 +952,7 @@ void PacketRecordDynamic::ProcessEffects(records::EffectList &effectList, bool s
     }
 }
 
-void PacketRecordDynamic::ProcessBodyParts(records::PartReferenceList &partList, bool send)
+void PacketRecordDynamic::ProcessBodyParts(mwmp::records::PartReferenceList &partList, bool send)
 {
     uint32_t partCount;
 
@@ -980,9 +980,9 @@ void PacketRecordDynamic::ProcessBodyParts(records::PartReferenceList &partList,
     }
 }
 
-// records::InventoryList has a strange structure that makes it hard to read in packets directly, so we just deal with it
+// mwmp::records::InventoryList has a strange structure that makes it hard to read in packets directly, so we just deal with it
 // here with the help of a separate mwmp::Item vector
-void PacketRecordDynamic::ProcessInventoryList(std::vector<mwmp::Item> &inventory, records::InventoryList &inventoryList, bool send)
+void PacketRecordDynamic::ProcessInventoryList(std::vector<mwmp::Item> &inventory, mwmp::records::InventoryList &inventoryList, bool send)
 {
     uint32_t itemCount;
 
@@ -1010,7 +1010,7 @@ void PacketRecordDynamic::ProcessInventoryList(std::vector<mwmp::Item> &inventor
 
         if (!send)
         {
-            records::ContItem contItem;
+            mwmp::records::ContItem contItem;
             contItem.mItem.assign(item.refId);
             contItem.mCount = item.count;
             inventoryList.mList.push_back(contItem);

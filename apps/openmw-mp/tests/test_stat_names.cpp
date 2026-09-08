@@ -1,3 +1,4 @@
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <cstdio>
 #include <string>
 #include <algorithm>

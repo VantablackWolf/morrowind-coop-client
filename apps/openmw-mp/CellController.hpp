@@ -1,6 +1,7 @@
 #ifndef OPENMW_SERVERCELLCONTROLLER_HPP
 #define OPENMW_SERVERCELLCONTROLLER_HPP
 
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <deque>
 #include <string>
 #include <components/openmw-mp/Base/BaseObject.hpp>
@@ -26,12 +27,12 @@ public:
     typedef std::deque<Cell*> TContainer;
     typedef TContainer::iterator TIter;
 
-    Cell * addCell(records::Cell cell);
+    Cell * addCell(mwmp::records::Cell cell);
     void removeCell(Cell *);
 
     void deletePlayer(Player *player);
 
-    Cell *getCell(records::Cell *esmCell);
+    Cell *getCell(mwmp::records::Cell *esmCell);
     Cell *getCellByXY(int x, int y);
     Cell *getCellByName(std::string cellName);
 

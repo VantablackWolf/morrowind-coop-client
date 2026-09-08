@@ -38,7 +38,7 @@ CellController *CellController::get()
     return sThis;
 }
 
-Cell *CellController::getCell(records::Cell *esmCell)
+Cell *CellController::getCell(mwmp::records::Cell *esmCell)
 {
     if (esmCell->isExterior())
         return getCellByXY(esmCell->mData.mX, esmCell->mData.mY);
@@ -79,7 +79,7 @@ Cell *CellController::getCellByName(std::string cellName)
     return *it;
 }
 
-Cell *CellController::addCell(records::Cell cellData)
+Cell *CellController::addCell(mwmp::records::Cell cellData)
 {
     LOG_APPEND(TimedLog::LOG_INFO, "- Loaded cells: %d", cells.size());
     auto it = find_if(cells.begin(), cells.end(), [cellData](const Cell *c) {

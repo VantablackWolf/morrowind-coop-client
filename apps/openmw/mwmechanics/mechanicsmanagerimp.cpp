@@ -6,7 +6,7 @@
 
 #include <components/misc/rng.hpp>
 
-#include <components/esm/records.hpp>
+#include <components/esm3/records.hpp>
 #include <components/esm/refid.hpp>
 #include <components/esm3/esmwriter.hpp>
 #include <components/esm3/loadgmst.hpp>

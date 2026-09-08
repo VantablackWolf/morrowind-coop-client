@@ -225,7 +225,7 @@ void DedicatedPlayer::setAnimFlags()
 
     MWMechanics::CreatureStats *ptrCreatureStats = &ptr.getClass().getCreatureStats(ptr);
 
-    ptrCreatureStats->setDrawState(static_cast<MWMechanics::DrawState_>(drawState));
+    ptrCreatureStats->setDrawState(static_cast<MWMechanics::DrawState>(drawState));
 
     ptrCreatureStats->setMovementFlag(CreatureStats::Flag_Run, (movementFlags & CreatureStats::Flag_Run) != 0);
     ptrCreatureStats->setMovementFlag(CreatureStats::Flag_Sneak, (movementFlags & CreatureStats::Flag_Sneak) != 0);

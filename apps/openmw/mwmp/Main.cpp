@@ -4,9 +4,18 @@
 #include <components/openmw-mp/TimedLog.hpp>
 #include <components/openmw-mp/Version.hpp>
 
-#include <components/esm/esmwriter.hpp>
+#include <components/esm3/esmwriter.hpp>
 #include <components/files/configurationmanager.hpp>
-#include <components/files/escape.hpp>
+/*
+    Start of tes3mp change (major)
+
+    0.51 removed components/files/escape.hpp; the quoted-path option types moved to
+    the configuration manager.
+*/
+#include <components/files/configurationmanager.hpp>
+/*
+    End of tes3mp change (major)
+*/
 
 #include "../mwbase/environment.hpp"
 
@@ -120,7 +129,7 @@ void Main::configure(const boost::program_options::variables_map &variables)
 {
     Main::address = variables["connect"].as<std::string>();
     Main::serverPassword = variables["password"].as<std::string>();
-    resourceDir = variables["resources"].as<Files::EscapePath>().mPath.string();
+    resourceDir = Files::pathToUnicodeString(variables["resources"].as<Files::MaybeQuotedPath>());
 }
 
 bool Main::init(std::vector<std::string> &content, Files::Collections &collections)

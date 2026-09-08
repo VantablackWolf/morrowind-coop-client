@@ -34,7 +34,7 @@ using namespace mwmp;
 
 DedicatedActor::DedicatedActor()
 {
-    drawState = MWMechanics::DrawState_::DrawState_Nothing;
+    drawState = MWMechanics::DrawState::Nothing;
     movementFlags = 0;
     animation.groupname = "";
     sound = "";
@@ -134,7 +134,7 @@ void DedicatedActor::setAnimFlags()
 
     MWMechanics::CreatureStats *ptrCreatureStats = &ptr.getClass().getCreatureStats(ptr);
 
-    ptrCreatureStats->setDrawState(static_cast<MWMechanics::DrawState_>(drawState));
+    ptrCreatureStats->setDrawState(static_cast<MWMechanics::DrawState>(drawState));
 
     ptrCreatureStats->setMovementFlag(CreatureStats::Flag_Run, (movementFlags & CreatureStats::Flag_Run) != 0);
     ptrCreatureStats->setMovementFlag(CreatureStats::Flag_Sneak, (movementFlags & CreatureStats::Flag_Sneak) != 0);
@@ -213,7 +213,7 @@ void DedicatedActor::setAi()
     ptrCreatureStats->setAiSetting(MWMechanics::CreatureStats::AI_Fight, 0);
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "- actor cellRef: %s %i-%i",
-        ptr.getCellRef().getRefId().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
+        ptr.getCellRef().getRefId().getRefIdString().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
 
     if (aiAction == mwmp::BaseActorList::CANCEL)
     {
@@ -262,7 +262,7 @@ void DedicatedActor::setAi()
             if (targetPtr)
             {
                 LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Has actor target %s %i-%i",
-                    targetPtr.getCellRef().getRefId().c_str(), aiTarget.refNum, aiTarget.mpNum);
+                    targetPtr.getCellRef().getRefId().getRefIdString().c_str(), aiTarget.refNum, aiTarget.mpNum);
             }
             else
             {

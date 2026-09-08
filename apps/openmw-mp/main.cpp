@@ -5,7 +5,16 @@
 #include <boost/iostreams/stream_buffer.hpp>
 
 #include <components/files/configurationmanager.hpp>
-#include <components/files/escape.hpp>
+/*
+    Start of tes3mp change (major)
+
+    0.51 removed components/files/escape.hpp; the quoted-path option types moved to
+    the configuration manager.
+*/
+#include <components/files/configurationmanager.hpp>
+/*
+    End of tes3mp change (major)
+*/
 #include <components/settings/settings.hpp>
 #include <components/version/version.hpp>
 
@@ -128,7 +137,7 @@ boost::program_options::variables_map launchOptions(int argc, char *argv[], File
     bpo::options_description desc;
 
     desc.add_options()
-            ("resources", bpo::value<Files::EscapeHashString>()->default_value("resources"), "set resources directory")
+            ("resources", bpo::value<Files::MaybeQuotedPath>()->default_value(Files::MaybeQuotedPath(), "resources"), "set resources directory")
             ("no-logs", bpo::value<bool>()->implicit_value(true)->default_value(false),
              "Do not write logs. Useful for daemonizing.");
 
@@ -153,7 +162,7 @@ int main(int argc, char *argv[])
 
     auto variables = launchOptions(argc, argv, cfgMgr);
 
-    auto version = Version::getOpenmwVersion(variables["resources"].as<Files::EscapeHashString>().toStdString());
+    auto version = Version::getOpenmwVersion(Files::pathToUnicodeString(variables["resources"].as<Files::MaybeQuotedPath>()));
 
     int logLevel = mgr.getInt("logLevel", "General");
     if (logLevel < TimedLog::LOG_VERBOSE || logLevel > TimedLog::LOG_FATAL)

@@ -154,21 +154,21 @@ namespace MWWorld
 
         MWWorld::Ptr getFocusObject(float maxDistance, bool ignorePlayer = true);
 
-        void PCDropped(const Ptr& item);
-
         bool rotateDoor(const Ptr door, DoorState state, float duration);
 
             /*
                 Start of tes3mp change (major)
 
-                This has been turned into a public method so it can be used in
-                multiplayer's different approach to placing items
+                PCDropped is public so it can be used in multiplayer's different approach to
+                placing items. 0.51 declares it too, so the declaration is not repeated --
+                only its access level is changed.
             */
     public:
             void PCDropped(const Ptr& item);
             /*
                 End of tes3mp change (major)
             */
+    private:
         void processDoors(float duration);
         ///< Run physics simulation and modify \a world accordingly.
 
@@ -346,7 +346,7 @@ namespace MWWorld
 
                 Make it possible to update all Ptrs in active cells that have a certain refId
             */
-            void updatePtrsWithRefId(std::string refId) override;
+            void updatePtrsWithRefId(const ESM::RefId& refId) override;
             /*
                 End of tes3mp addition
             */

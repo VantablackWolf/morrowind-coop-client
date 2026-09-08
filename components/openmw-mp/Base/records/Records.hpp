@@ -22,6 +22,7 @@
     protocol; changing one is a wire-format break.
 */
 
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -360,6 +361,32 @@ namespace mwmp
             records::AIData mAiData;
             unsigned char mNpdtType;
             records::InventoryList mInventory;
+
+            /*
+                Start of tes3mp addition
+
+                The dedicated server uses these; they came from ESM::NPC. Values copied from
+                0.47, which is what the wire format encodes.
+            */
+            enum Flags
+            {
+                Female = 0x01,
+                Essential = 0x02,
+                Respawn = 0x04,
+                Base = 0x08,
+                Autocalc = 0x10,
+            };
+
+            enum NpcType
+            {
+                NPC_WITH_AUTOCALCULATED_STATS = 12,
+                NPC_DEFAULT = 52,
+            };
+
+            void blank() { *this = NPC{}; }
+            /*
+                End of tes3mp addition
+            */
         };
 
         struct Probe

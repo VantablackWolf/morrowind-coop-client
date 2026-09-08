@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <components/esm/records.hpp>
+#include <components/esm3/records.hpp>
 #include <components/esm3/cellstate.hpp>
 #include <components/esm3/fogstate.hpp>
 

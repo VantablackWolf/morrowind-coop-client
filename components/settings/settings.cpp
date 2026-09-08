@@ -24,20 +24,6 @@
 namespace Settings
 {
     namespace
-
-    /*
-        Start of tes3mp change (major)
-
-        Reinstated for TES3MP's own cfg files -- see the note in settings.hpp
-    */
-    void Manager::loadDefault(const std::filesystem::path& file, bool base64encoded)
-    {
-        SettingsFileParser parser;
-        parser.loadSettingsFile(file, mDefaultSettings, base64encoded);
-    }
-    /*
-        End of tes3mp change (major)
-    */
     {
         template <class T>
         T parseNumberFromSetting(const std::string& value, std::string_view setting, std::string_view category)
@@ -205,6 +191,20 @@ namespace Settings
 
         return settingspath;
     }
+
+    /*
+        Start of tes3mp change (major)
+
+        Reinstated for TES3MP's own cfg files -- see the note in settings.hpp
+    */
+    void Manager::loadDefault(const std::filesystem::path& file, bool base64encoded)
+    {
+        SettingsFileParser parser;
+        parser.loadSettingsFile(file, mDefaultSettings, base64encoded);
+    }
+    /*
+        End of tes3mp change (major)
+    */
 
     void Manager::saveUser(const std::filesystem::path& file)
     {

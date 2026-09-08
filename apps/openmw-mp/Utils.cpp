@@ -22,9 +22,9 @@ const std::vector<std::string> Utils::split(const std::string &str, int delimite
     return result;
 }
 
-records::Cell Utils::getCellFromDescription(std::string cellDescription)
+mwmp::records::Cell Utils::getCellFromDescription(std::string cellDescription)
 {
-    records::Cell cell;
+    mwmp::records::Cell cell;
     cell.blank();
 
     static std::regex exteriorCellPattern("^(-?\\d+), (-?\\d+)$");
@@ -32,7 +32,7 @@ records::Cell Utils::getCellFromDescription(std::string cellDescription)
 
     if (std::regex_match(cellDescription, baseMatch, exteriorCellPattern))
     {
-        cell.mData.mFlags &= ~records::Cell::Interior;
+        cell.mData.mFlags &= ~mwmp::records::Cell::Interior;
 
         // The first sub match is the whole string, so check for a length of 3
         if (baseMatch.size() == 3)
@@ -43,7 +43,7 @@ records::Cell Utils::getCellFromDescription(std::string cellDescription)
     }
     else
     {
-        cell.mData.mFlags |= records::Cell::Interior;
+        cell.mData.mFlags |= mwmp::records::Cell::Interior;
         cell.mName = cellDescription;
     }
 

@@ -54,6 +54,41 @@ namespace mwmp
             DATAstruct mData;
             std::string mName;
             std::string mRegion; // ESM::RefId in 0.51
+
+            /*
+                Start of tes3mp addition
+
+                The dedicated server subclasses this and uses these accessors, which used to
+                come from ESM::Cell. Reimplemented here so the mirror stays self-contained --
+                they are pure reads of mData and involve no engine types.
+            */
+            enum Flags
+            {
+                Interior = 0x01,
+            };
+
+            bool isExterior() const { return !(mData.mFlags & Interior); }
+            int getGridX() const { return mData.mX; }
+            int getGridY() const { return mData.mY; }
+
+            std::string getShortDescription() const
+            {
+                if (!isExterior())
+                    return mName;
+                return std::to_string(mData.mX) + ", " + std::to_string(mData.mY);
+            }
+
+            void blank()
+            {
+                mName.clear();
+                mRegion.clear();
+                mData.mFlags = 0;
+                mData.mX = 0;
+                mData.mY = 0;
+            }
+            /*
+                End of tes3mp addition
+            */
         };
 
         // Mirrors ESM::StatState<T>.
@@ -81,6 +116,14 @@ namespace mwmp
             std::string mId; // ESM::RefId in 0.51
             std::string mName;
             std::string mDescription;
+
+            void blank()
+            {
+                mId.clear();
+                mName.clear();
+                mDescription.clear();
+                mData = {};
+            }
         };
 
         // Mirrors the serialized subset of ESM::CreatureStats.
@@ -90,6 +133,11 @@ namespace mwmp
             StatState<float> mDynamic[sDynamicCount];
             bool mDead;
             int mLevel;
+
+            void blank()
+            {
+                *this = CreatureStats{};
+            }
         };
 
         /*
@@ -136,6 +184,11 @@ namespace mwmp
             int mBounty;
             int mReputation;
             int mLevelProgress;
+
+            void blank()
+            {
+                *this = NpcStats{};
+            }
         };
     }
 }

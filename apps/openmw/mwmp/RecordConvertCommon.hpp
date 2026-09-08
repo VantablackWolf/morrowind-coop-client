@@ -8,6 +8,7 @@
     Client-side only. The dedicated server never includes this.
 */
 
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <cstdint>
 
 #include <components/esm/attr.hpp>

@@ -10,7 +10,7 @@
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
-#include <components/esm/records.hpp>
+#include <components/esm3/records.hpp>
 #include <components/l10n/manager.hpp>
 #include <components/misc/resourcehelpers.hpp>
 #include <components/settings/values.hpp>

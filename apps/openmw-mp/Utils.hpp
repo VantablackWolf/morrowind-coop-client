@@ -1,6 +1,7 @@
 #ifndef OPENMW_UTILS_HPP
 #define OPENMW_UTILS_HPP
 
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <cstddef>
 #include <regex>
 #include <vector>
@@ -22,7 +23,7 @@ namespace Utils
 {
     const std::vector<std::string> split(const std::string &str, int delimiter);
 
-    records::Cell getCellFromDescription(std::string cellDescription);
+    mwmp::records::Cell getCellFromDescription(std::string cellDescription);
 
     void getArguments(std::vector<boost::any> &params, va_list args, const std::string &def);
 

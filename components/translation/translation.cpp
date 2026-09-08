@@ -111,7 +111,8 @@ namespace Translation
     */
     std::string Storage::getLocalizedTopicId(const std::string& englishTopicId) const
     {
-        for (std::map<std::string, std::string>::const_iterator it = mTopicIDs.begin(); it != mTopicIDs.end(); ++it)
+        // 0.51 renamed this container from mTopicIDs to mKeywords
+        for (ContainerType::const_iterator it = mKeywords.begin(); it != mKeywords.end(); ++it)
         {
             if (Misc::StringUtils::ciEqual(englishTopicId, it->second))
                 return it->first;

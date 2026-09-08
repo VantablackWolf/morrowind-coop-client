@@ -89,93 +89,6 @@ namespace Gui
 
 namespace MWGui
 {
-    /*
-        Start of tes3mp addition
-
-        Make it possible to get the ContainerWindow from elsewhere
-        in the code
-    */
-    virtual MWGui::ContainerWindow* getContainerWindow();
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Make it possible to get the DialogueWindow from elsewhere
-    */
-    virtual MWGui::DialogueWindow* getDialogueWindow();
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Allow the direct setting of a console's Ptr, without the assumption that an object
-        was clicked and that key focus should be restored to the console window, for console
-        commands executed via server scripts
-    */
-    virtual void setConsolePtr(const MWWorld::Ptr& object);
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Allow the clearing of the console's Ptr from elsewhere in the code, so that
-        Ptrs used in console commands run from server scripts do not stay selected
-    */
-    virtual void clearConsolePtr();
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Allow the setting of the image data for a global map tile from elsewhere
-        in the code
-    */
-    virtual void setGlobalMapImage(int cellX, int cellY, const std::vector<char>& imageData);
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Allow the completion of a drag and drop from elsewhere in the code
-    */
-    virtual void finishDragDrop();
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Make it possible to add quickKeys from elsewhere in the code
-    */
-    virtual void setQuickKey(int slot, int quickKeyType, MWWorld::Ptr item, const std::string& spellId = "");
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Allow the execution of console commands from elsewhere in the code
-    */
-    virtual void executeCommandInConsole(const std::string& command);
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
-        Keep a pointer to the container window because of its usefulness
-        in multiplayer for container sync
-    */
-    ContainerWindow* mContainerWindow;
-    /*
-        End of tes3mp addition
-    */
     class HUD;
     class MapWindow;
     class MainMenu;
@@ -211,6 +124,104 @@ namespace MWGui
     class WindowManager : public MWBase::WindowManager
     {
     public:
+
+        /*
+            Start of tes3mp addition
+
+            The multiplayer accessors below were declared at namespace scope by the merge;
+            they belong inside the class.
+        */
+        /*
+        Start of tes3mp addition
+
+        Make it possible to get the ContainerWindow from elsewhere
+        in the code
+        */
+        virtual MWGui::ContainerWindow* getContainerWindow();
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Make it possible to get the DialogueWindow from elsewhere
+        */
+        virtual MWGui::DialogueWindow* getDialogueWindow();
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Allow the direct setting of a console's Ptr, without the assumption that an object
+        was clicked and that key focus should be restored to the console window, for console
+        commands executed via server scripts
+        */
+        virtual void setConsolePtr(const MWWorld::Ptr& object);
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Allow the clearing of the console's Ptr from elsewhere in the code, so that
+        Ptrs used in console commands run from server scripts do not stay selected
+        */
+        virtual void clearConsolePtr();
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Allow the setting of the image data for a global map tile from elsewhere
+        in the code
+        */
+        virtual void setGlobalMapImage(int cellX, int cellY, const std::vector<char>& imageData);
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Allow the completion of a drag and drop from elsewhere in the code
+        */
+        virtual void finishDragDrop();
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Make it possible to add quickKeys from elsewhere in the code
+        */
+        virtual void setQuickKey(int slot, int quickKeyType, MWWorld::Ptr item, const std::string& spellId = "");
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Allow the execution of console commands from elsewhere in the code
+        */
+        virtual void executeCommandInConsole(const std::string& command);
+        /*
+        End of tes3mp addition
+        */
+        /*
+        Start of tes3mp addition
+
+        Keep a pointer to the container window because of its usefulness
+        in multiplayer for container sync
+        */
+        ContainerWindow* mContainerWindow;
+        /*
+        End of tes3mp addition
+        */
+        /*
+            End of tes3mp addition
+        */
+
         typedef std::pair<std::string, int> Faction;
         typedef std::vector<Faction> FactionList;
 

@@ -118,9 +118,11 @@ namespace MWMechanics
             /*
                 Start of tes3mp addition
 
-                Useful methods for setting player stats
+                Useful methods for setting player stats.
+
+                setLevelProgress is declared by 0.51 itself now, so only the skill-increase
+                accessors remain here.
             */
-            void setLevelProgress(int value);
             int getSkillIncrease(int attribute) const;
             void setSkillIncrease(int attribute, int value);
             /*

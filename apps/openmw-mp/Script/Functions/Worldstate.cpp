@@ -252,7 +252,7 @@ void WorldstateFunctions::AddEnforcedCollisionRefId(const char *refId) noexcept
 
 void WorldstateFunctions::AddCellToReset(const char *cellDescription) noexcept
 {
-    records::Cell cell = Utils::getCellFromDescription(cellDescription);
+    mwmp::records::Cell cell = Utils::getCellFromDescription(cellDescription);
     writeWorldstate.cellsToReset.push_back(cell);
 }
 

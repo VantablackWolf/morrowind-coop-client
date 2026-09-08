@@ -35,7 +35,20 @@ namespace luabridge {
 
 // These are for Lua versions prior to 5.2.0.
 //
-#if LUA_VERSION_NUM < 502
+/*
+    Start of tes3mp change (major)
+
+    OpenMW 0.51 pulls in sol3's compat-5.3.h, which for LuaJIT (5.1) does
+    "#define lua_absindex kp_compat53_absindex" and friends. LuaBridge then defines its
+    own 5.1 shims under those same names, and every call becomes ambiguous -- ~490
+    errors in the server build.
+
+    Only define the shims when compat-5.3.h has not already supplied them.
+*/
+#if LUA_VERSION_NUM < 502 && !defined(COMPAT53_PREFIX) && !defined(lua_absindex)
+/*
+    End of tes3mp change (major)
+*/
 inline int lua_absindex (lua_State* L, int idx)
 {
   if (idx > LUA_REGISTRYINDEX && idx < 0)

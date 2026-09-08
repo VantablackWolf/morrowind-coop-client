@@ -5,7 +5,7 @@
 
 #include <components/compiler/locals.hpp>
 #include <components/debug/debuglog.hpp>
-#include <components/esm/records.hpp>
+#include <components/esm3/records.hpp>
 
 /*
     Start of tes3mp addition

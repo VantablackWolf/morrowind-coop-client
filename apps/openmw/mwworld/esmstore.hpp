@@ -321,8 +321,10 @@ namespace MWWorld
         other types of records can be overridden
     */
     template <>
-    inline const ESM::Cell *ESMStore::overrideRecord<ESM::Cell>(const ESM::Cell &cell) {
-        return mCells.override(cell);
+    inline const ESM::Cell* ESMStore::overrideRecord<ESM::Cell>(const ESM::Cell& cell)
+    {
+        // 0.51 replaced the named member stores with getWritable<T>()
+        return getWritable<ESM::Cell>().override(cell);
     }
     /*
         End of tes3mp addition
@@ -334,8 +336,10 @@ namespace MWWorld
         other types of records can be overridden
     */
     template <>
-    inline const ESM::Pathgrid* ESMStore::overrideRecord<ESM::Pathgrid>(const ESM::Pathgrid& pathgrid) {
-        return mPathgrids.override(pathgrid);
+    inline const ESM::Pathgrid* ESMStore::overrideRecord<ESM::Pathgrid>(const ESM::Pathgrid& pathgrid)
+    {
+        // 0.51 replaced the named member stores with getWritable<T>()
+        return getWritable<ESM::Pathgrid>().override(pathgrid);
     }
     /*
         End of tes3mp addition

@@ -1,6 +1,7 @@
 #ifndef OPENMW_SERVERCELL_HPP
 #define OPENMW_SERVERCELL_HPP
 
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <deque>
 #include <string>
 #include <components/openmw-mp/Base/BaseActor.hpp>
@@ -15,7 +16,7 @@ class Cell
 {
     friend class CellController;
 public:
-    Cell(records::Cell cell);
+    Cell(mwmp::records::Cell cell);
     typedef std::deque<Player*> TPlayers;
     typedef TPlayers::const_iterator Iterator;
 
@@ -43,7 +44,7 @@ public:
 
 private:
     TPlayers players;
-    records::Cell cell;
+    mwmp::records::Cell cell;
 
     RakNet::RakNetGUID authorityGuid;
     mwmp::BaseActorList cellActorList;

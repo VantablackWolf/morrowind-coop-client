@@ -3,6 +3,44 @@
 #include "../mwworld/cellstore.hpp"
 #include "../mwworld/worldimp.hpp"
 
+/*
+    Start of tes3mp change (major)
+
+    0.51 split components/esm into esm3/esm4, and the record definitions this file
+    instantiates are no longer pulled in transitively.
+*/
+#include <components/esm3/loadacti.hpp>
+#include <components/esm3/loadalch.hpp>
+#include <components/esm3/loadappa.hpp>
+#include <components/esm3/loadarmo.hpp>
+#include <components/esm3/loadbody.hpp>
+#include <components/esm3/loadbook.hpp>
+#include <components/esm3/loadcell.hpp>
+#include <components/esm3/loadclot.hpp>
+#include <components/esm3/loadcont.hpp>
+#include <components/esm3/loadcrea.hpp>
+#include <components/esm3/loaddoor.hpp>
+#include <components/esm3/loadench.hpp>
+#include <components/esm3/loadgmst.hpp>
+#include <components/esm3/loadingr.hpp>
+#include <components/esm3/loadligh.hpp>
+#include <components/esm3/loadlock.hpp>
+#include <components/esm3/loadmisc.hpp>
+#include <components/esm3/loadnpc.hpp>
+#include <components/esm3/loadprob.hpp>
+#include <components/esm3/loadrepa.hpp>
+#include <components/esm3/loadscpt.hpp>
+#include <components/esm3/loadsoun.hpp>
+#include <components/esm3/loadspel.hpp>
+#include <components/esm3/loadstat.hpp>
+#include <components/esm3/loadweap.hpp>
+/*
+    End of tes3mp change (major)
+*/
+
+#include "RecordConvert.hpp"
+#include "RecordConvertPlayer.hpp"
+#include "RefIdCompat.hpp"
 #include "RecordHelper.hpp"
 #include "Main.hpp"
 #include "CellController.hpp"
@@ -10,7 +48,8 @@
 
 void RecordHelper::overrideRecord(const mwmp::ActivatorRecord& record)
 {
-    const ESM::Activator &recordData = record.data;
+    ESM::Activator recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -27,7 +66,7 @@ void RecordHelper::overrideRecord(const mwmp::ActivatorRecord& record)
     }
     else if (doesRecordIdExist<ESM::Activator>(record.baseId))
     {
-        const ESM::Activator *baseData = world->getStore().get<ESM::Activator>().search(record.baseId);
+        const ESM::Activator *baseData = world->getStore().get<ESM::Activator>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Activator finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -54,7 +93,8 @@ void RecordHelper::overrideRecord(const mwmp::ActivatorRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::ApparatusRecord& record)
 {
-    const ESM::Apparatus &recordData = record.data;
+    ESM::Apparatus recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -71,7 +111,7 @@ void RecordHelper::overrideRecord(const mwmp::ApparatusRecord& record)
     }
     else if (doesRecordIdExist<ESM::Apparatus>(record.baseId))
     {
-        const ESM::Apparatus *baseData = world->getStore().get<ESM::Apparatus>().search(record.baseId);
+        const ESM::Apparatus *baseData = world->getStore().get<ESM::Apparatus>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Apparatus finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -113,7 +153,8 @@ void RecordHelper::overrideRecord(const mwmp::ApparatusRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::ArmorRecord& record)
 {
-    const ESM::Armor &recordData = record.data;
+    ESM::Armor recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -136,7 +177,7 @@ void RecordHelper::overrideRecord(const mwmp::ArmorRecord& record)
     }
     else if (doesRecordIdExist<ESM::Armor>(record.baseId))
     {
-        const ESM::Armor *baseData = world->getStore().get<ESM::Armor>().search(record.baseId);
+        const ESM::Armor *baseData = world->getStore().get<ESM::Armor>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Armor finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -197,7 +238,8 @@ void RecordHelper::overrideRecord(const mwmp::ArmorRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::BodyPartRecord& record)
 {
-    const ESM::BodyPart &recordData = record.data;
+    ESM::BodyPart recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -213,7 +255,7 @@ void RecordHelper::overrideRecord(const mwmp::BodyPartRecord& record)
     }
     else if (doesRecordIdExist<ESM::BodyPart>(record.baseId))
     {
-        const ESM::BodyPart *baseData = world->getStore().get<ESM::BodyPart>().search(record.baseId);
+        const ESM::BodyPart *baseData = world->getStore().get<ESM::BodyPart>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::BodyPart finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -246,7 +288,8 @@ void RecordHelper::overrideRecord(const mwmp::BodyPartRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::BookRecord& record)
 {
-    const ESM::Book &recordData = record.data;
+    ESM::Book recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -269,7 +312,7 @@ void RecordHelper::overrideRecord(const mwmp::BookRecord& record)
     }
     else if (doesRecordIdExist<ESM::Book>(record.baseId))
     {
-        const ESM::Book *baseData = world->getStore().get<ESM::Book>().search(record.baseId);
+        const ESM::Book *baseData = world->getStore().get<ESM::Book>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Book finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -360,7 +403,7 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
     }
     else if (doesRecordIdExist<ESM::Cell>(record.baseId))
     {
-        const ESM::Cell *baseData = world->getStore().get<ESM::Cell>().search(record.baseId);
+        const ESM::Cell *baseData = world->getStore().get<ESM::Cell>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Cell finalData = *baseData;
         finalData.mName = recordData.mName;
         finalData.mCellId.mWorldspace = Misc::StringUtils::lowerCase(recordData.mName);
@@ -372,7 +415,7 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
         // Create a Pathgrid record for this new Cell based on the base Cell's Pathgrid
         // Note: This has to be done after the new Cell has been created so the Pathgrid override
         //       can correctly determine whether the Cell is an interior or an exterior
-        const ESM::Pathgrid* basePathgrid = world->getStore().get<ESM::Pathgrid>().search(record.baseId);
+        const ESM::Pathgrid* basePathgrid = world->getStore().get<ESM::Pathgrid>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
 
         if (basePathgrid)
         {
@@ -399,7 +442,8 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::ClothingRecord& record)
 {
-    const ESM::Clothing &recordData = record.data;
+    ESM::Clothing recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -422,7 +466,7 @@ void RecordHelper::overrideRecord(const mwmp::ClothingRecord& record)
     }
     else if (doesRecordIdExist<ESM::Clothing>(record.baseId))
     {
-        const ESM::Clothing *baseData = world->getStore().get<ESM::Clothing>().search(record.baseId);
+        const ESM::Clothing *baseData = world->getStore().get<ESM::Clothing>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Clothing finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -475,7 +519,8 @@ void RecordHelper::overrideRecord(const mwmp::ClothingRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::ContainerRecord& record)
 {
-    const ESM::Container &recordData = record.data;
+    ESM::Container recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -492,7 +537,7 @@ void RecordHelper::overrideRecord(const mwmp::ContainerRecord& record)
     }
     else if (doesRecordIdExist<ESM::Container>(record.baseId))
     {
-        const ESM::Container *baseData = world->getStore().get<ESM::Container>().search(record.baseId);
+        const ESM::Container *baseData = world->getStore().get<ESM::Container>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Container finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -528,7 +573,8 @@ void RecordHelper::overrideRecord(const mwmp::ContainerRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::CreatureRecord& record)
 {
-    const ESM::Creature &recordData = record.data;
+    ESM::Creature recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -545,7 +591,7 @@ void RecordHelper::overrideRecord(const mwmp::CreatureRecord& record)
     }
     else if (doesRecordIdExist<ESM::Creature>(record.baseId))
     {
-        const ESM::Creature *baseData = world->getStore().get<ESM::Creature>().search(record.baseId);
+        const ESM::Creature *baseData = world->getStore().get<ESM::Creature>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Creature finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -634,7 +680,8 @@ void RecordHelper::overrideRecord(const mwmp::CreatureRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::DoorRecord& record)
 {
-    const ESM::Door &recordData = record.data;
+    ESM::Door recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -651,7 +698,7 @@ void RecordHelper::overrideRecord(const mwmp::DoorRecord& record)
     }
     else if (doesRecordIdExist<ESM::Door>(record.baseId))
     {
-        const ESM::Door *baseData = world->getStore().get<ESM::Door>().search(record.baseId);
+        const ESM::Door *baseData = world->getStore().get<ESM::Door>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Door finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -684,7 +731,8 @@ void RecordHelper::overrideRecord(const mwmp::DoorRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::EnchantmentRecord& record)
 {
-    const ESM::Enchantment &recordData = record.data;
+    ESM::Enchantment recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -706,7 +754,7 @@ void RecordHelper::overrideRecord(const mwmp::EnchantmentRecord& record)
     }
     else if (doesRecordIdExist<ESM::Enchantment>(record.baseId))
     {
-        const ESM::Enchantment *baseData = world->getStore().get<ESM::Enchantment>().search(record.baseId);
+        const ESM::Enchantment *baseData = world->getStore().get<ESM::Enchantment>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Enchantment finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -752,7 +800,7 @@ void RecordHelper::overrideRecord(const mwmp::GameSettingRecord& record)
     }
     else if (doesRecordIdExist<ESM::GameSetting>(record.baseId))
     {
-        const ESM::GameSetting* baseData = world->getStore().get<ESM::GameSetting>().search(record.baseId);
+        const ESM::GameSetting* baseData = world->getStore().get<ESM::GameSetting>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::GameSetting finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -767,7 +815,8 @@ void RecordHelper::overrideRecord(const mwmp::GameSettingRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::IngredientRecord& record)
 {
-    const ESM::Ingredient &recordData = record.data;
+    ESM::Ingredient recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -784,7 +833,7 @@ void RecordHelper::overrideRecord(const mwmp::IngredientRecord& record)
     }
     else if (doesRecordIdExist<ESM::Ingredient>(record.baseId))
     {
-        const ESM::Ingredient *baseData = world->getStore().get<ESM::Ingredient>().search(record.baseId);
+        const ESM::Ingredient *baseData = world->getStore().get<ESM::Ingredient>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Ingredient finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -832,7 +881,8 @@ void RecordHelper::overrideRecord(const mwmp::IngredientRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::LightRecord& record)
 {
-    const ESM::Light &recordData = record.data;
+    ESM::Light recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -849,7 +899,7 @@ void RecordHelper::overrideRecord(const mwmp::LightRecord& record)
     }
     else if (doesRecordIdExist<ESM::Light>(record.baseId))
     {
-        const ESM::Light *baseData = world->getStore().get<ESM::Light>().search(record.baseId);
+        const ESM::Light *baseData = world->getStore().get<ESM::Light>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Light finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -900,7 +950,8 @@ void RecordHelper::overrideRecord(const mwmp::LightRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::LockpickRecord& record)
 {
-    const ESM::Lockpick &recordData = record.data;
+    ESM::Lockpick recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -917,7 +968,7 @@ void RecordHelper::overrideRecord(const mwmp::LockpickRecord& record)
     }
     else if (doesRecordIdExist<ESM::Lockpick>(record.baseId))
     {
-        const ESM::Lockpick *baseData = world->getStore().get<ESM::Lockpick>().search(record.baseId);
+        const ESM::Lockpick *baseData = world->getStore().get<ESM::Lockpick>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Lockpick finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -959,7 +1010,8 @@ void RecordHelper::overrideRecord(const mwmp::LockpickRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::MiscellaneousRecord& record)
 {
-    const ESM::Miscellaneous &recordData = record.data;
+    ESM::Miscellaneous recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -976,7 +1028,7 @@ void RecordHelper::overrideRecord(const mwmp::MiscellaneousRecord& record)
     }
     else if (doesRecordIdExist<ESM::Miscellaneous>(record.baseId))
     {
-        const ESM::Miscellaneous *baseData = world->getStore().get<ESM::Miscellaneous>().search(record.baseId);
+        const ESM::Miscellaneous *baseData = world->getStore().get<ESM::Miscellaneous>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Miscellaneous finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1015,7 +1067,8 @@ void RecordHelper::overrideRecord(const mwmp::MiscellaneousRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::NpcRecord& record)
 {
-    const ESM::NPC &recordData = record.data;
+    ESM::NPC recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1043,7 +1096,7 @@ void RecordHelper::overrideRecord(const mwmp::NpcRecord& record)
     }
     else if (doesRecordIdExist<ESM::NPC>(record.baseId))
     {
-        const ESM::NPC *baseData = world->getStore().get<ESM::NPC>().search(record.baseId);
+        const ESM::NPC *baseData = world->getStore().get<ESM::NPC>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::NPC finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1137,7 +1190,8 @@ void RecordHelper::overrideRecord(const mwmp::NpcRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::PotionRecord& record)
 {
-    const ESM::Potion &recordData = record.data;
+    ESM::Potion recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1154,7 +1208,7 @@ void RecordHelper::overrideRecord(const mwmp::PotionRecord& record)
     }
     else if (doesRecordIdExist<ESM::Potion>(record.baseId))
     {
-        const ESM::Potion *baseData = world->getStore().get<ESM::Potion>().search(record.baseId);
+        const ESM::Potion *baseData = world->getStore().get<ESM::Potion>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Potion finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1196,7 +1250,8 @@ void RecordHelper::overrideRecord(const mwmp::PotionRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::ProbeRecord& record)
 {
-    const ESM::Probe &recordData = record.data;
+    ESM::Probe recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1213,7 +1268,7 @@ void RecordHelper::overrideRecord(const mwmp::ProbeRecord& record)
     }
     else if (doesRecordIdExist<ESM::Probe>(record.baseId))
     {
-        const ESM::Probe *baseData = world->getStore().get<ESM::Probe>().search(record.baseId);
+        const ESM::Probe *baseData = world->getStore().get<ESM::Probe>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Probe finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1255,7 +1310,8 @@ void RecordHelper::overrideRecord(const mwmp::ProbeRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::RepairRecord& record)
 {
-    const ESM::Repair &recordData = record.data;
+    ESM::Repair recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1272,7 +1328,7 @@ void RecordHelper::overrideRecord(const mwmp::RepairRecord& record)
     }
     else if (doesRecordIdExist<ESM::Repair>(record.baseId))
     {
-        const ESM::Repair *baseData = world->getStore().get<ESM::Repair>().search(record.baseId);
+        const ESM::Repair *baseData = world->getStore().get<ESM::Repair>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Repair finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1314,7 +1370,8 @@ void RecordHelper::overrideRecord(const mwmp::RepairRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::ScriptRecord& record)
 {
-    const ESM::Script &recordData = record.data;
+    ESM::Script recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1330,7 +1387,7 @@ void RecordHelper::overrideRecord(const mwmp::ScriptRecord& record)
     }
     else if (doesRecordIdExist<ESM::Script>(record.baseId))
     {
-        const ESM::Script *baseData = world->getStore().get<ESM::Script>().search(record.baseId);
+        const ESM::Script *baseData = world->getStore().get<ESM::Script>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Script finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1365,7 +1422,7 @@ void RecordHelper::overrideRecord(const mwmp::SoundRecord& record)
     }
     else if (doesRecordIdExist<ESM::Sound>(record.baseId))
     {
-        const ESM::Sound* baseData = world->getStore().get<ESM::Sound>().search(record.baseId);
+        const ESM::Sound* baseData = world->getStore().get<ESM::Sound>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Sound finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1395,7 +1452,8 @@ void RecordHelper::overrideRecord(const mwmp::SoundRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::SpellRecord& record)
 {
-    const ESM::Spell &recordData = record.data;
+    ESM::Spell recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1412,7 +1470,7 @@ void RecordHelper::overrideRecord(const mwmp::SpellRecord& record)
     }
     else if (doesRecordIdExist<ESM::Spell>(record.baseId))
     {
-        const ESM::Spell *baseData = world->getStore().get<ESM::Spell>().search(record.baseId);
+        const ESM::Spell *baseData = world->getStore().get<ESM::Spell>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Spell finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1442,7 +1500,8 @@ void RecordHelper::overrideRecord(const mwmp::SpellRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::StaticRecord& record)
 {
-    const ESM::Static &recordData = record.data;
+    ESM::Static recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1459,7 +1518,7 @@ void RecordHelper::overrideRecord(const mwmp::StaticRecord& record)
     }
     else if (doesRecordIdExist<ESM::Static>(record.baseId))
     {
-        const ESM::Static *baseData = world->getStore().get<ESM::Static>().search(record.baseId);
+        const ESM::Static *baseData = world->getStore().get<ESM::Static>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Static finalData = *baseData;
         finalData.mId = recordData.mId;
 
@@ -1480,7 +1539,8 @@ void RecordHelper::overrideRecord(const mwmp::StaticRecord& record)
 
 void RecordHelper::overrideRecord(const mwmp::WeaponRecord& record)
 {
-    const ESM::Weapon &recordData = record.data;
+    ESM::Weapon recordData;
+    mwmp::RecordConvert::toEngine(record.data, recordData);
 
     if (recordData.mId.empty())
     {
@@ -1503,7 +1563,7 @@ void RecordHelper::overrideRecord(const mwmp::WeaponRecord& record)
     }
     else if (doesRecordIdExist<ESM::Weapon>(record.baseId))
     {
-        const ESM::Weapon *baseData = world->getStore().get<ESM::Weapon>().search(record.baseId);
+        const ESM::Weapon *baseData = world->getStore().get<ESM::Weapon>().search(mwmp::RefIdCompat::fromWireCreate(record.baseId));
         ESM::Weapon finalData = *baseData;
         finalData.mId = recordData.mId;
 

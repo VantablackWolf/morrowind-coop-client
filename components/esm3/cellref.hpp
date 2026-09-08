@@ -35,7 +35,7 @@ namespace ESM
 
             Keep track of a multiplayer-only number unique to this object.
 
-            Migrated here from components/esm/cellref.hpp, which 0.51 replaced with this
+            Migrated here from components/esm3/cellref.hpp, which 0.51 replaced with this
             file. The old file survived the merge as a stale copy and was deleted.
         */
         unsigned int mMpNum;

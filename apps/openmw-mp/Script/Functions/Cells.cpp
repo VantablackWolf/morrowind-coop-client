@@ -109,7 +109,7 @@ void CellFunctions::SetExteriorCell(unsigned short pid, int x, int y) noexcept
     // If the player is currently in an interior, turn off the interior flag
     // from the cell
     if (!player->cell.isExterior())
-        player->cell.mData.mFlags &= ~records::Cell::Interior;
+        player->cell.mData.mFlags &= ~mwmp::records::Cell::Interior;
 
     player->cell.mData.mX = x;
     player->cell.mData.mY = y;

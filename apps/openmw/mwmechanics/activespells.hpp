@@ -112,7 +112,16 @@ namespace MWMechanics
 
                 Allow the purging of an effect for a specific arg (attribute or skill)
             */
-            void purgeEffectByArg(short effectId, int effectArg);
+            /*
+                Start of tes3mp change (major)
+
+                0.51 provides purgeEffect(ptr, effectId, effectArg) with RefId arguments,
+                which replaces this. Callers were migrated to it.
+            */
+            // void purgeEffectByArg(short effectId, int effectArg);
+            /*
+                End of tes3mp change (major)
+            */
             /*
                 End of tes3mp addition
             */

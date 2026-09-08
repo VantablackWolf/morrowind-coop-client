@@ -7,7 +7,7 @@
 #include "Player.hpp"
 #include "Script/Script.hpp"
 
-Cell::Cell(records::Cell cell) : cell(cell)
+Cell::Cell(mwmp::records::Cell cell) : cell(cell)
 {
     cellActorList.count = 0;
 }

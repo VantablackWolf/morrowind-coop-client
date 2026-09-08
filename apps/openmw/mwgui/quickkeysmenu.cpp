@@ -510,7 +510,7 @@ namespace MWGui
                 
                 if (!store.isEquipped(item))
                 {
-                    mwmp::Main::get().getLocalPlayer()->sendItemUse(item, false, shouldDraw ? MWMechanics::DrawState_Weapon : MWMechanics::DrawState_Nothing);
+                    mwmp::Main::get().getLocalPlayer()->sendItemUse(item, false, shouldDraw ? MWMechanics::DrawState::Weapon : MWMechanics::DrawState::Nothing);
                 }
                 /*
                     End of tes3mp change (major)
@@ -543,7 +543,7 @@ namespace MWGui
                     Instead of unilaterally using the enchanted item, send an
                     ID_PLAYER_ITEM_USE packet and let the server decide.
 
-                    0.51 renamed DrawState_Spell to DrawState::Spell.
+                    0.51 renamed DrawState::Spell to DrawState::Spell.
                 */
                 // MWBase::Environment::get().getWindowManager()->setSelectedEnchantItem(*it);
                 // MWBase::Environment::get().getWorld()->getPlayer().setDrawState(MWMechanics::DrawState::Spell);

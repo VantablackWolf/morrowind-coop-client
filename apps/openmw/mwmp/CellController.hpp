@@ -1,6 +1,7 @@
 #ifndef OPENMW_CELLCONTROLLER_HPP
 #define OPENMW_CELLCONTROLLER_HPP
 
+#include <components/openmw-mp/Base/records/PlayerState.hpp>
 #include "Cell.hpp"
 #include "ActorList.hpp"
 #include "LocalActor.hpp"
@@ -19,8 +20,8 @@ namespace mwmp
         void updateLocal(bool forceUpdate);
         void updateDedicated(float dt);
 
-        void initializeCell(const ESM::Cell& cell);
-        void uninitializeCell(const ESM::Cell& cell);
+        void initializeCell(const mwmp::records::Cell& cell);
+        void uninitializeCell(const mwmp::records::Cell& cell);
         void uninitializeCells();
 
         void readPositions(mwmp::ActorList& actorList);
@@ -61,15 +62,38 @@ namespace mwmp
         std::string generateMapIndex(MWWorld::Ptr ptr);
         std::string generateMapIndex(mwmp::BaseActor baseActor);
 
-        bool hasLocalAuthority(const ESM::Cell& cell);
+        bool hasLocalAuthority(const mwmp::records::Cell& cell);
         bool isInitializedCell(const std::string& cellDescription);
+        bool isInitializedCell(const mwmp::records::Cell& cell);
+        bool isActiveWorldCell(const mwmp::records::Cell& cell);
+        virtual Cell *getCell(const mwmp::records::Cell& cell);
+
+        virtual MWWorld::CellStore *getCellStore(const mwmp::records::Cell& cell);
+
+        bool isSameCell(const mwmp::records::Cell& cell, const mwmp::records::Cell& otherCell);
+
+        /*
+            Start of tes3mp change (major)
+
+            These take the protocol's mirror Cell, because that is what arrives from the
+            server and what BasePlayer/BaseActor hold. Engine code still calls them with an
+            ESM::Cell, so converting overloads are provided rather than making every caller
+            convert.
+        */
+        void initializeCell(const ESM::Cell& cell);
+        void uninitializeCell(const ESM::Cell& cell);
+        bool hasLocalAuthority(const ESM::Cell& cell);
         bool isInitializedCell(const ESM::Cell& cell);
         bool isActiveWorldCell(const ESM::Cell& cell);
-        virtual Cell *getCell(const ESM::Cell& cell);
-
-        virtual MWWorld::CellStore *getCellStore(const ESM::Cell& cell);
-
+        Cell* getCell(const ESM::Cell& cell);
+        MWWorld::CellStore* getCellStore(const ESM::Cell& cell);
         bool isSameCell(const ESM::Cell& cell, const ESM::Cell& otherCell);
+        // Mixed pairs occur where engine code compares a player's wire cell with a live one
+        bool isSameCell(const mwmp::records::Cell& cell, const ESM::Cell& otherCell);
+        bool isSameCell(const ESM::Cell& cell, const mwmp::records::Cell& otherCell);
+        /*
+            End of tes3mp change (major)
+        */
 
         int getCellSize() const;
 

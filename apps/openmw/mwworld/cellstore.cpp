@@ -508,7 +508,7 @@ namespace MWWorld
                 
                 LOG_MESSAGE_SIMPLE(TimedLog::LOG_ERROR, "Storage: %s owned %s which it gave to %s which isn't %s, which should result in a crash\n",
                     this->getCell()->getDescription().c_str(),
-                    object.getBase()->mRef.getRefId().c_str(),
+                    object.getBase()->mRef.getRefId().getRefIdString().c_str(),
                     found->second->getCell()->getDescription().c_str(),
                     from->getCell()->getDescription().c_str());
             }
@@ -568,7 +568,7 @@ namespace MWWorld
                     Add extra debug for multiplayer purposes
                 */
                 LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Storage: %s's original cell %s gives it from %s to %s\n",
-                    object.getBase()->mRef.getRefId().c_str(),
+                    object.getBase()->mRef.getRefId().getRefIdString().c_str(),
                     originalCell->getCell()->getDescription().c_str(),
                     this->getCell()->getDescription().c_str(),
                     cellToMoveTo->getCell()->getDescription().c_str());

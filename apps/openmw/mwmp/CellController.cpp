@@ -1,5 +1,5 @@
 #include <components/detournavigator/navigator.hpp>
-#include <components/esm/cellid.hpp>
+#include <components/esm3/cellid.hpp>
 #include <components/openmw-mp/TimedLog.hpp>
 #include <components/openmw-mp/Utils.hpp>
 
@@ -10,6 +10,7 @@
 #include "../mwworld/worldimp.hpp"
 
 #include "CellController.hpp"
+#include "RecordConvertPlayer.hpp"
 #include "Main.hpp"
 #include "LocalActor.hpp"
 #include "LocalPlayer.hpp"
@@ -83,7 +84,7 @@ void CellController::updateDedicated(float dt)
         cell.second->updateDedicated(dt);
 }
 
-void CellController::initializeCell(const ESM::Cell& cell)
+void CellController::initializeCell(const mwmp::records::Cell& cell)
 {
     std::string mapIndex = cell.getShortDescription();
 
@@ -103,7 +104,7 @@ void CellController::initializeCell(const ESM::Cell& cell)
     }
 }
 
-void CellController::uninitializeCell(const ESM::Cell& cell)
+void CellController::uninitializeCell(const mwmp::records::Cell& cell)
 {
     std::string mapIndex = cell.getShortDescription();
 
@@ -397,7 +398,7 @@ std::string CellController::generateMapIndex(BaseActor baseActor)
     return generateMapIndex(baseActor.refNum, baseActor.mpNum);
 }
 
-bool CellController::hasLocalAuthority(const ESM::Cell& cell)
+bool CellController::hasLocalAuthority(const mwmp::records::Cell& cell)
 {
     if (isInitializedCell(cell) && isActiveWorldCell(cell))
         return getCell(cell)->hasLocalAuthority();
@@ -410,22 +411,22 @@ bool CellController::isInitializedCell(const std::string& cellDescription)
     return (cellsInitialized.count(cellDescription) > 0);
 }
 
-bool CellController::isInitializedCell(const ESM::Cell& cell)
+bool CellController::isInitializedCell(const mwmp::records::Cell& cell)
 {
     return isInitializedCell(cell.getShortDescription());
 }
 
-bool CellController::isActiveWorldCell(const ESM::Cell& cell)
+bool CellController::isActiveWorldCell(const mwmp::records::Cell& cell)
 {
     return MWBase::Environment::get().getWorld()->isCellActive(cell);
 }
 
-Cell *CellController::getCell(const ESM::Cell& cell)
+Cell *CellController::getCell(const mwmp::records::Cell& cell)
 {
     return cellsInitialized.at(cell.getShortDescription());
 }
 
-MWWorld::CellStore *CellController::getCellStore(const ESM::Cell& cell)
+MWWorld::CellStore *CellController::getCellStore(const mwmp::records::Cell& cell)
 {
     MWWorld::CellStore *cellStore;
 
@@ -446,7 +447,7 @@ MWWorld::CellStore *CellController::getCellStore(const ESM::Cell& cell)
     return cellStore;
 }
 
-bool CellController::isSameCell(const ESM::Cell& cell, const ESM::Cell& otherCell)
+bool CellController::isSameCell(const mwmp::records::Cell& cell, const mwmp::records::Cell& otherCell)
 {
     if (&cell == nullptr || &otherCell == nullptr) return false;
 
@@ -478,4 +479,45 @@ bool CellController::isSameCell(const ESM::Cell& cell, const ESM::Cell& otherCel
 int CellController::getCellSize() const
 {
     return 8192;
+}
+
+/*
+    Start of tes3mp change (major)
+
+    Converting overloads: engine code still holds ESM::Cell, while the protocol layer holds
+    the mirror. Convert once here rather than at every call site.
+*/
+namespace
+{
+    mwmp::records::Cell toMirror(const ESM::Cell& cell)
+    {
+        mwmp::records::Cell mirror;
+        mwmp::RecordConvert::fromEngine(cell, mirror);
+        return mirror;
+    }
+}
+
+void CellController::initializeCell(const ESM::Cell& cell) { initializeCell(toMirror(cell)); }
+void CellController::uninitializeCell(const ESM::Cell& cell) { uninitializeCell(toMirror(cell)); }
+bool CellController::hasLocalAuthority(const ESM::Cell& cell) { return hasLocalAuthority(toMirror(cell)); }
+bool CellController::isInitializedCell(const ESM::Cell& cell) { return isInitializedCell(toMirror(cell)); }
+bool CellController::isActiveWorldCell(const ESM::Cell& cell) { return isActiveWorldCell(toMirror(cell)); }
+Cell* CellController::getCell(const ESM::Cell& cell) { return getCell(toMirror(cell)); }
+MWWorld::CellStore* CellController::getCellStore(const ESM::Cell& cell) { return getCellStore(toMirror(cell)); }
+bool CellController::isSameCell(const ESM::Cell& cell, const ESM::Cell& otherCell)
+{
+    return isSameCell(toMirror(cell), toMirror(otherCell));
+}
+/*
+    End of tes3mp change (major)
+*/
+
+bool CellController::isSameCell(const mwmp::records::Cell& cell, const ESM::Cell& otherCell)
+{
+    return isSameCell(cell, toMirror(otherCell));
+}
+
+bool CellController::isSameCell(const ESM::Cell& cell, const mwmp::records::Cell& otherCell)
+{
+    return isSameCell(toMirror(cell), otherCell);
 }

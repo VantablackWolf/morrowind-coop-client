@@ -201,7 +201,7 @@ namespace ESM
             Add a method that returns cell descriptions in OpenMW's previous way, because it was
             widely used in TES3MP.
 
-            Migrated from components/esm/loadcell.hpp, which 0.51 replaced with this file.
+            Migrated from components/esm3/loadcell.hpp, which 0.51 replaced with this file.
         */
         std::string getShortDescription() const;
         /*

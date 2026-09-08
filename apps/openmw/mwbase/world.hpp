@@ -17,7 +17,7 @@
 
     Include additional headers for multiplayer purposes
 */
-#include <components/esm/variant.hpp>
+#include <components/esm3/variant.hpp>
 /*
     End of tes3mp addition
 */
@@ -263,7 +263,15 @@ namespace MWBase
 
                 Make it possible to update all Ptrs in active cells that have a certain refId
             */
-            virtual void updatePtrsWithRefId(std::string refId) = 0;
+            /*
+                Start of tes3mp change (major)
+
+                0.51 keys records by ESM::RefId, and every caller of this now holds one.
+            */
+            virtual void updatePtrsWithRefId(const ESM::RefId& refId) = 0;
+            /*
+                End of tes3mp change (major)
+            */
             /*
                 End of tes3mp addition
             */
