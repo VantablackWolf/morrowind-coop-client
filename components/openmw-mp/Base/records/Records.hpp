@@ -22,7 +22,6 @@
     protocol; changing one is a wire-format break.
 */
 
-#include <components/openmw-mp/Base/records/Records.hpp>
 #include <cstdint>
 #include <string>
 #include <vector>
