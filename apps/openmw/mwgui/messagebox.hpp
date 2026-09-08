@@ -19,35 +19,31 @@ namespace MWGui
     class MessageBox;
     class MessageBoxManager
     {
-<<<<<<< HEAD
-        public:
-            MessageBoxManager (float timePerChar);
-            ~MessageBoxManager ();
-            void onFrame (float frameDuration);
-            void createMessageBox (const std::string& message, bool stat = false);
-            void removeStaticMessageBox ();
-            /*
-                Start of tes3mp change (major)
-
-                Add a hasServerOrigin boolean to the list of arguments so those messageboxes
-                can be differentiated from client-only ones
-            */
-            bool createInteractiveMessageBox (const std::string& message, const std::vector<std::string>& buttons, bool hasServerOrigin = false);
-            /*
-                End of tes3mp change (major)
-            */
-            bool isInteractiveMessageBox ();
-=======
     public:
         MessageBoxManager(float timePerChar);
         ~MessageBoxManager();
         void onFrame(float frameDuration);
         void createMessageBox(std::string_view message, bool stat = false);
         void removeStaticMessageBox();
+        /*
+            Start of tes3mp change (major)
+
+            Add a hasServerOrigin boolean so server-sent messageboxes can be told apart
+            from client-only ones
+        */
+        /*
+            Start of tes3mp change (major)
+
+            Add a hasServerOrigin boolean so messageboxes sent by the server can be told
+            apart from client-only ones. Appended after 0.51's own parameters so their
+            defaults are unaffected.
+        */
         bool createInteractiveMessageBox(std::string_view message, const std::vector<std::string>& buttons,
-            bool immediate = false, int defaultFocus = -1);
+            bool immediate = false, int defaultFocus = -1, bool hasServerOrigin = false);
+        /*
+            End of tes3mp change (major)
+        */
         bool isInteractiveMessageBox();
->>>>>>> omw51
 
         std::size_t getMessagesCount();
 

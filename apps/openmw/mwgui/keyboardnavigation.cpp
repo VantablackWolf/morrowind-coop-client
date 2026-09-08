@@ -50,34 +50,10 @@ namespace MWGui
         }
     }
 
-<<<<<<< HEAD
-bool isRootParent(MyGUI::Widget* widget, MyGUI::Widget* root)
-{
-    while (widget && widget->getParent())
-        widget = widget->getParent();
-    return widget == root;
-}
-
-void KeyboardNavigation::onFrame()
-{
-    if (!mEnabled)
-        return;
-
-    /*
-        Start of tes3mp change (major)
-
-        Don't clear key focus widget when not in menus if the chat is currently focused
-    */
-    if (!MWBase::Environment::get().getWindowManager()->isGuiMode() && !mwmp::Main::get().getGUIController()->getChatEditState())
-    /*
-        End of tes3mp change (major)
-    */
-=======
     KeyboardNavigation::KeyboardNavigation()
         : mCurrentFocus(nullptr)
         , mModalWindow(nullptr)
         , mEnabled(true)
->>>>>>> omw51
     {
         MyGUI::WidgetManager::getInstance().registerUnlinker(this);
     }
@@ -139,7 +115,16 @@ void KeyboardNavigation::onFrame()
         if (!mEnabled)
             return;
 
-        if (!MWBase::Environment::get().getWindowManager()->isGuiMode())
+        /*
+            Start of tes3mp change (major)
+
+            Don't clear the key focus widget outside menus while the chat box has focus
+        */
+        if (!MWBase::Environment::get().getWindowManager()->isGuiMode()
+            && !mwmp::Main::get().getGUIController()->getChatEditState())
+        /*
+            End of tes3mp change (major)
+        */
         {
             MWBase::Environment::get().getWindowManager()->setKeyFocusWidget(nullptr);
             return;

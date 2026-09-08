@@ -153,65 +153,6 @@ namespace MWGui
         center();
         // Reset scrollbars
         mList->setViewOffset(MyGUI::IntPoint(0, 0));
-<<<<<<< HEAD
-    else
-        mList->setViewOffset(MyGUI::IntPoint(0, static_cast<int>(mList->getViewOffset().top + _rel*0.3f)));
-}
-
-void MerchantRepair::onOpen()
-{
-    center();
-    // Reset scrollbars
-    mList->setViewOffset(MyGUI::IntPoint(0, 0));
-}
-
-void MerchantRepair::onRepairButtonClick(MyGUI::Widget *sender)
-{
-    MWWorld::Ptr player = MWMechanics::getPlayer();
-
-    int price = MyGUI::utility::parseInt(sender->getUserString("Price"));
-    if (price > player.getClass().getContainerStore(player).count(MWWorld::ContainerStore::sGoldId))
-        return;
-
-    // repair
-    MWWorld::Ptr item = *sender->getUserData<MWWorld::Ptr>();
-    item.getCellRef().setCharge(item.getClass().getItemMaxHealth(item));
-
-    player.getClass().getContainerStore(player).restack(item);
-
-    MWBase::Environment::get().getWindowManager()->playSound("Repair");
-
-    player.getClass().getContainerStore(player).remove(MWWorld::ContainerStore::sGoldId, price, player);
-
-    // add gold to NPC trading gold pool
-    MWMechanics::CreatureStats& actorStats = mActor.getClass().getCreatureStats(mActor);
-
-    /*
-        Start of tes3mp change (major)
-
-        Don't unilaterally change the merchant's gold pool on our client and instead let the server do it
-    */
-    //actorStats.setGoldPool(actorStats.getGoldPool() + price);
-
-    mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
-    objectList->reset();
-    objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-    objectList->addObjectMiscellaneous(mActor, actorStats.getGoldPool() + price, actorStats.getLastRestockTime().getHour(),
-        actorStats.getLastRestockTime().getDay());
-    objectList->sendObjectMiscellaneous();
-    /*
-        End of tes3mp change (major)
-    */
-
-    setPtr(mActor);
-}
-
-void MerchantRepair::onOkButtonClick(MyGUI::Widget *sender)
-{
-    MWBase::Environment::get().getWindowManager()->removeGuiMode(GM_MerchantRepair);
-}
-
-=======
     }
 
     void MerchantRepair::onRepairButtonClick(MyGUI::Widget* sender)
@@ -234,7 +175,16 @@ void MerchantRepair::onOkButtonClick(MyGUI::Widget *sender)
 
         // add gold to NPC trading gold pool
         MWMechanics::CreatureStats& actorStats = mActor.getClass().getCreatureStats(mActor);
-        actorStats.setGoldPool(actorStats.getGoldPool() + price);
+        /*
+            Start of tes3mp change (major)
+
+            Don't unilaterally change the merchant's gold pool on our client and instead let
+            the server do it
+        */
+        // actorStats.setGoldPool(actorStats.getGoldPool() + price);
+        /*
+            End of tes3mp change (major)
+        */
 
         setPtr(mActor);
     }
@@ -289,5 +239,4 @@ void MerchantRepair::onOkButtonClick(MyGUI::Widget *sender)
 
         return true;
     }
->>>>>>> omw51
 }

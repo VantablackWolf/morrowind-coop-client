@@ -321,14 +321,9 @@ namespace MWGui
             && MWBase::Environment::get().getWindowManager()->isSavingAllowed())
             buttons.emplace_back("savegame");
 
-<<<<<<< HEAD
         /*
-        if (MWBase::Environment::get().getStateManager()->characterBegin()!=
-            MWBase::Environment::get().getStateManager()->characterEnd())
-=======
         if (MWBase::Environment::get().getStateManager()->characterBegin()
             != MWBase::Environment::get().getStateManager()->characterEnd())
->>>>>>> omw51
             buttons.emplace_back("loadgame");
         */
 
