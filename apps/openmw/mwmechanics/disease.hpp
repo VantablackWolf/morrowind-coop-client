@@ -86,7 +86,8 @@ namespace MWMechanics
 
                     Send an ID_PLAYER_SPELLBOOK packet every time a player gains a disease
                 */
-                mwmp::Main::get().getLocalPlayer()->sendSpellChange(it->first->mId, mwmp::SpellbookChanges::ADD);
+                // 0.51 iterates the spell records directly rather than a map of them.
+                mwmp::Main::get().getLocalPlayer()->sendSpellChange(spell->mId, mwmp::SpellbookChanges::ADD);
                 /*
                     End of tes3mp addition
                 */

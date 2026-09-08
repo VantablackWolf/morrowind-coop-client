@@ -108,7 +108,7 @@ namespace MWPhysics
             End of tes3mp change (major)
         */
         float mDefaultPhysicsDt;
-        float mPhysicsDt;
+        // mPhysicsDt is declared public above by the hook; the merge kept this copy too.
         float mTimeAccum;
         btCollisionWorld* mCollisionWorld;
         MWRender::DebugDrawer* mDebugDrawer;
