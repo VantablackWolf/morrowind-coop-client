@@ -98,6 +98,17 @@ upstream code out, and mechanically taking "hook plus upstream code" silently
 restores behaviour TES3MP disabled on purpose. It compiles, it runs, and it is
 wrong only in play.
 
+### Check binaries for conflict markers
+
+git will happily write conflict markers into a binary file. On the 0.51 port it
+did exactly that to `files/data/fonts/DejaVuLGCSansMono.ttf`, which still parsed
+as valid TrueType afterwards — nothing complains until the font fails to load at
+runtime, long after you have stopped thinking about the merge.
+
+After merging, scan the tree for files that contain both a conflict marker and a
+NUL byte in their first few KB, and restore those from upstream rather than
+editing them.
+
 ### The dangerous engine changes are the ones that still compile
 
 Renames and deletions fail loudly and are safe. What corrupts data silently is a
