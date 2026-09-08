@@ -83,6 +83,21 @@ region, the `IF` can vanish into a resolved hunk while the `ENDIF` survives.
 Two orphaned `ENDIF`s appeared this way. Always re-check `IF`/`ENDIF` balance in
 a CMake file you have edited â€” the parser reports it far from the real line.
 
+### Hook blocks span conflict hunks
+
+A single `Start of tes3mp … End of tes3mp` block is routinely split across two
+or three conflict hunks. A hunk can therefore look like plain 0.47-vs-0.51
+divergence while actually being the middle of a `change (major)` block, and
+resolving it in isolation drops half a hook or re-enables code the fork
+deliberately suppressed.
+
+Classify hunks by reading the surrounding region, not the hunk alone. Anything
+that resolves conflicts mechanically must skip files containing
+`change (major)` hooks entirely — those hooks usually work by commenting
+upstream code out, and mechanically taking "hook plus upstream code" silently
+restores behaviour TES3MP disabled on purpose. It compiles, it runs, and it is
+wrong only in play.
+
 ### The dangerous engine changes are the ones that still compile
 
 Renames and deletions fail loudly and are safe. What corrupts data silently is a
