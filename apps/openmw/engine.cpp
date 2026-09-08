@@ -547,18 +547,18 @@ OMW::Engine::~Engine()
 
     SDL_Quit();
 
+    Log(Debug::Info) << "Quitting peacefully.";
+
     /*
         Start of tes3mp addition
 
-        Free up memory allocated by multiplayer's logger
+        Free up memory allocated by multiplayer's logger.
+        Last thing in the destructor: nothing below may log through it.
     */
     LOG_QUIT();
     /*
         End of tes3mp addition
     */
-}
-
-    Log(Debug::Info) << "Quitting peacefully.";
 }
 
 // Set data dir

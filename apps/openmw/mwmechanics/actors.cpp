@@ -1671,6 +1671,18 @@ namespace MWMechanics
                     the packet should be prepared. Until then MELEE/RANGED attacks are NOT
                     sent to the server, so combat will not synchronise.
                 */
+
+                // If dead or no longer in combat, no longer store any actors who attempted to hit us. Also remove for
+                // the player.
+                if (!isPlayer
+                    && (actor.getPtr().getClass().getCreatureStats(actor.getPtr()).isDead()
+                        || !actor.getPtr().getClass().getCreatureStats(actor.getPtr()).getAiSequence().isInCombat()
+                        || !inProcessingRange))
+                {
+                    actor.getPtr().getClass().getCreatureStats(actor.getPtr()).setHitAttemptActor({});
+                    ESM::RefNum playerHitNum = player.getClass().getCreatureStats(player).getHitAttemptActor();
+                    if (playerHitNum.isSet() && playerHitNum == actor.getPtr().getCellRef().getRefNum())
+                        player.getClass().getCreatureStats(player).setHitAttemptActor({});
                 }
                 /*
                     End of tes3mp change (major)
@@ -1747,6 +1759,11 @@ namespace MWMechanics
                                 updateGreetingState(actor.getPtr(), actor, mTimerUpdateHello > 0);
                                 playIdleDialogue(actor.getPtr());
                                 updateMovementSpeed(actor.getPtr());
+                            }
+                        }
+                    }
+                    else if (aiActive && !isPlayer && isConscious(actor.getPtr())
+                        && !(luaControls && luaControls->mDisableAI))
                     {
                         CreatureStats& stats = actor.getPtr().getClass().getCreatureStats(actor.getPtr());
                         stats.getAiSequence().execute(actor.getPtr(), ctrl, duration, /*outOfRange*/ true);
