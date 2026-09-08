@@ -15,6 +15,7 @@
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/ObjectList.hpp"
+#include "../mwmp/RecordConvertPlayer.hpp"
 #include "../mwmp/CellController.hpp"
 /*
     End of tes3mp addition
@@ -143,13 +144,13 @@ namespace MWGui
         mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
         objectList->reset();
         objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        objectList->cell = *mPtr.getCell()->getCell();
+        objectList->cell = mwmp::RecordConvert::toMirror(*mPtr.getCell()->getCell());
         objectList->action = mwmp::BaseObjectList::REMOVE;
         objectList->containerSubAction = mwmp::BaseObjectList::DRAG;
 
         mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(mPtr);
         MWWorld::Ptr itemPtr = mModel->getItem(mSelectedItem).mBase;
-        objectList->addContainerItem(baseObject, itemPtr, itemPtr.getRefData().getCount(), count);
+        objectList->addContainerItem(baseObject, itemPtr, itemPtr.getCellRef().getCount(), count);
         objectList->addBaseObject(baseObject);
         objectList->sendContainer();
         /*
@@ -200,7 +201,7 @@ namespace MWGui
             mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
             objectList->reset();
             objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-            objectList->cell = *mPtr.getCell()->getCell();
+            objectList->cell = mwmp::RecordConvert::toMirror(*mPtr.getCell()->getCell());
             objectList->action = mwmp::BaseObjectList::ADD;
             objectList->containerSubAction = mwmp::BaseObjectList::DROP;
 
@@ -347,7 +348,7 @@ namespace MWGui
         mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
         objectList->reset();
         objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        objectList->cell = *mPtr.getCell()->getCell();
+        objectList->cell = mwmp::RecordConvert::toMirror(*mPtr.getCell()->getCell());
         objectList->action = mwmp::BaseObjectList::REMOVE;
         objectList->containerSubAction = mwmp::BaseObjectList::TAKE_ALL;
         mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(mPtr);
@@ -357,10 +358,10 @@ namespace MWGui
             const ItemStack& item = mModel->getItem(i);
 
             // Trigger crimes related to the attempted taking of these items, if applicable
-            if (!onTakeItem(item, item.mCount))
+            if (!mModel->onTakeItem(item.mBase, static_cast<int>(item.mCount)))
                 break;
 
-            objectList->addContainerItem(baseObject, item, item.mCount, item.mCount);
+            objectList->addContainerItem(baseObject, item, static_cast<int>(item.mCount), static_cast<int>(item.mCount));
         }
 
         if (baseObject.containerItems.size() > 0)
