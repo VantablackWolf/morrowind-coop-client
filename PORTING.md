@@ -109,6 +109,23 @@ After merging, scan the tree for files that contain both a conflict marker and a
 NUL byte in their first few KB, and restore those from upstream rather than
 editing them.
 
+### Verify the suppression survived, every time
+
+Most `change (major)` hooks work by commenting an upstream call out —
+`enable()`, `lock()`, `deleteObject()` — because the server, not the client,
+decides when that happens. Resolving such a hunk by pasting in upstream's whole
+function silently restores the live call, and the result compiles, runs, and
+desyncs.
+
+Two of these slipped through on the 0.51 port before being caught. After
+resolving a file, grep it for the calls the hooks are supposed to suppress and
+confirm each one is still commented out.
+
+A related mechanical trap: these hunks often begin *partway into* a class body,
+after `public:` and the `execute()` signature. Pasting a complete replacement
+function therefore duplicates the prefix, which shows up as a brace imbalance
+somewhere far below. Check `{` / `}` balance per file after editing.
+
 ### The dangerous engine changes are the ones that still compile
 
 Renames and deletions fail loudly and are safe. What corrupts data silently is a
