@@ -6,6 +6,7 @@
 
 #include <components/esm3/esmwriter.hpp>
 #include <components/files/configurationmanager.hpp>
+#include <components/files/conversion.hpp>
 /*
     Start of tes3mp change (major)
 
@@ -84,9 +85,10 @@ std::string loadSettings(Settings::Manager& settings)
         throw std::runtime_error ("No default settings file found! Make sure the file \"tes3mp-client-default.cfg\" was properly installed.");
 
     // load user settings if they exist
-    const std::string settingspath = (mCfgMgr.getUserConfigPath() / "tes3mp-client.cfg").string();
-    if (boost::filesystem::exists(settingspath))
-        settings.loadUser(settingspath);
+    const std::filesystem::path settingsFile = mCfgMgr.getUserConfigPath() / "tes3mp-client.cfg";
+    const std::string settingspath = Files::pathToUnicodeString(settingsFile);
+    if (std::filesystem::exists(settingsFile))
+        settings.loadUser(settingsFile);
 
     return settingspath;
 }

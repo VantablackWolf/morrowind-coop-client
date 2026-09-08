@@ -202,6 +202,12 @@ namespace Settings
         SettingsFileParser parser;
         parser.loadSettingsFile(file, mDefaultSettings, base64encoded);
     }
+
+    void Manager::loadUser(const std::filesystem::path& file, bool base64encoded)
+    {
+        SettingsFileParser parser;
+        parser.loadSettingsFile(file, mUserSettings, base64encoded);
+    }
     /*
         End of tes3mp change (major)
     */

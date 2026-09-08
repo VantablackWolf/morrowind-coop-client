@@ -58,6 +58,9 @@ namespace Settings
         */
         static void loadDefault(const std::filesystem::path& file, bool base64encoded = true);
         ///< load a file as default settings (can be overridden by user settings)
+
+        static void loadUser(const std::filesystem::path& file, bool base64encoded = false);
+        ///< load a file as user settings
         /*
             End of tes3mp change (major)
         */

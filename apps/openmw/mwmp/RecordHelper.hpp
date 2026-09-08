@@ -47,7 +47,12 @@ namespace RecordHelper
     {
         MWBase::World *world = MWBase::Environment::get().getWorld();
 
-        return world->createRecord(record);
+        /*
+            0.51 removed World::createRecord; ESMStore::insert() is what it forwarded to,
+            and is now the supported entry point. Same behaviour: a generated id that
+            cannot clash with a pre-existing record.
+        */
+        return world->getModifiableStore().insert(record);
     }
 
     template<class RecordType>

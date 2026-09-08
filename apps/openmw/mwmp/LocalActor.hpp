@@ -7,6 +7,7 @@
 #include "WinAPIConflicts.hpp"
 
 #include "../mwmechanics/creaturestats.hpp"
+#include "../mwmechanics/drawstate.hpp"
 #include "../mwmechanics/activespells.hpp"
 #include "../mwworld/manualref.hpp"
 #include "../mwworld/timestamp.hpp"

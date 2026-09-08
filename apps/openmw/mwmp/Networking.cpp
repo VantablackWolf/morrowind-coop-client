@@ -278,7 +278,12 @@ void Networking::connect(const std::string &ip, unsigned short port, std::vector
     std::stringstream sstr;
     sstr << TES3MP_VERSION;
     sstr << TES3MP_PROTO_VERSION;
-    std::string commitHashString = Version::getOpenmwVersion(Main::getResDir()).mCommitHash;
+    /*
+        0.51 dropped the Version struct that getOpenmwVersion(resDir) parsed out of the
+        resources directory; the same values are now compiled in and read with free
+        functions, so the resource path is no longer needed here.
+    */
+    std::string commitHashString(Version::getCommitHash());
     // Remove carriage returns added to version file on Windows
     commitHashString.erase(std::remove(commitHashString.begin(), commitHashString.end(), '\r'), commitHashString.end());
     sstr << commitHashString;
