@@ -10,6 +10,7 @@
     Include additional headers for multiplayer purposes
 */
 #include "../mwmp/Main.hpp"
+#include "../mwmp/CellController.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 #include <components/openmw-mp/TimedLog.hpp>
@@ -335,14 +336,18 @@ MWWorld::ContainerStoreIterator MWWorld::ContainerStore::unstack(const Ptr& ptr,
 
         Send an ID_PLAYER_INVENTORY packet every time an item stack gets added for a player here
     */
+    /*
+        0.51 dropped unstack()'s container argument; the store knows its owner through
+        getPtr(), and the count moved from RefData onto CellRef.
+    */
     Ptr player = MWBase::Environment::get().getWorld()->getPlayerPtr();
 
-    if (container == player && this == &player.getClass().getContainerStore(player))
+    if (getPtr() == player && this == &player.getClass().getContainerStore(player))
     {
         mwmp::LocalPlayer *localPlayer = mwmp::Main::get().getLocalPlayer();
 
         if (!localPlayer->avoidSendingInventoryPackets)
-            localPlayer->sendItemChange(ptr, ptr.getRefData().getCount() - count, mwmp::InventoryChanges::ADD);
+            localPlayer->sendItemChange(ptr, ptr.getCellRef().getCount() - count, mwmp::InventoryChanges::ADD);
     }
     /*
         End of tes3mp addition
@@ -523,8 +528,10 @@ MWWorld::ContainerStoreIterator MWWorld::ContainerStore::add(
         Only fire inventory events for actors in loaded cells to avoid crashes
     */
     // we should not fire event for InventoryStore yet - it has some custom logic
-    if (mListener && typeid(*this) == typeid(ContainerStore)
-        && MWBase::Environment::get().getWorld()->isCellActive(*contPtr.getCell()->getCell()))
+    const Ptr& owner = getPtr();
+
+    if (mListener && typeid(*this) == typeid(ContainerStore) && !owner.isEmpty() && owner.isInCell()
+        && mwmp::Main::get().getCellController()->isActiveWorldCell(*owner.getCell()->getCell()))
         mListener->itemAdded(item, count);
     /*
         End of tes3mp change (major)
@@ -785,8 +792,10 @@ int MWWorld::ContainerStore::remove(const Ptr& item, int count, bool equipReplac
 
         Only fire inventory events for actors in loaded cells to avoid crashes
     */
-    if (mListener && typeid(*this) == typeid(ContainerStore)
-        && MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
+    const Ptr& owner = getPtr();
+
+    if (mListener && typeid(*this) == typeid(ContainerStore) && !owner.isEmpty() && owner.isInCell()
+        && mwmp::Main::get().getCellController()->isActiveWorldCell(*owner.getCell()->getCell()))
         mListener->itemRemoved(item, count - toRemove);
     MWBase::Environment::get().getWindowManager()->inventoryUpdated(getPtr());
     /*
