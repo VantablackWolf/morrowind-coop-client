@@ -40,6 +40,7 @@
 */
 #include <components/openmw-mp/TimedLog.hpp>
 #include "../mwmp/Main.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/LocalActor.hpp"
 #include "../mwmp/PlayerList.hpp"
@@ -908,24 +909,49 @@ namespace MWMechanics
             || (mAnimation && !mAnimation->hasAnimation(deathStateToAnimGroup(mDeathState))))
             mDeathState = chooseRandomDeathState();
 
+        /*
+            Start of tes3mp addition
+
+            If this is the local player, send a PlayerDeath packet with the decided-upon
+            death animation
+
+            If this is a local actor, send an ActorDeath packet with the animation
+
+            The merge left this between chooseRandomAttackAnimation and the constructor, at
+            namespace scope. It belongs here, straight after the death state is decided.
+        */
+        if (mPtr == getPlayer())
+        {
+            mwmp::Main::get().getLocalPlayer()->sendDeath(mDeathState);
+        }
+        else if (!mPtr.getClass().getCreatureStats(mPtr).isDeathAnimationFinished()
+            && mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+        {
+            mwmp::Main::get().getCellController()->getLocalActor(mPtr)->sendDeath(mDeathState);
+        }
+        /*
+            End of tes3mp addition
+        */
+
         // Do not interrupt scripted animation by death
         if (!mAnimation || isScriptedAnimPlaying())
             return;
 
-    /*
-        Start of tes3mp addition
+        /*
+            Start of tes3mp addition
 
-        If this is a LocalActor or DedicatedActor whose death animation is supposed to be finished,
-        set the startpoint to the animation's end
-    */
-    if (mPtr.getClass().getCreatureStats(mPtr).isDeathAnimationFinished() &&
-        (mwmp::Main::get().getCellController()->isLocalActor(mPtr) || mwmp::Main::get().getCellController()->isDedicatedActor(mPtr)))
-    {
-        startpoint = 1.F;
-    }
-    /*
-        End of tes3mp addition
-    */
+            If this is a LocalActor or DedicatedActor whose death animation is supposed to be finished,
+            set the startpoint to the animation's end
+        */
+        if (mPtr.getClass().getCreatureStats(mPtr).isDeathAnimationFinished()
+            && (mwmp::Main::get().getCellController()->isLocalActor(mPtr)
+                || mwmp::Main::get().getCellController()->isDedicatedActor(mPtr)))
+        {
+            startpoint = 1.F;
+        }
+        /*
+            End of tes3mp addition
+        */
         playDeath(startpoint, mDeathState);
     }
 
@@ -943,25 +969,6 @@ namespace MWMechanics
         return result;
     }
 
-    /*
-        Start of tes3mp addition
-
-        If this is the local player, send a PlayerDeath packet with the decided-upon
-        death animation
-
-        If this is a local actor, send an ActorDeath packet with the animation
-    */
-    if (mPtr == getPlayer())
-    {
-        mwmp::Main::get().getLocalPlayer()->sendDeath(mDeathState);
-    }
-    else if (!mPtr.getClass().getCreatureStats(mPtr).isDeathAnimationFinished() && mwmp::Main::get().getCellController()->isLocalActor(mPtr))
-    {
-        mwmp::Main::get().getCellController()->getLocalActor(mPtr)->sendDeath(mDeathState);
-    }
-    /*
-        End of tes3mp addition
-    */
     CharacterController::CharacterController(const MWWorld::Ptr& ptr, MWRender::Animation& anim)
         : mPtr(ptr)
         , mAnimation(&anim)
@@ -1645,7 +1652,7 @@ namespace MWMechanics
                     {
                         MechanicsHelper::resetCast(localCast);
                         localCast->type = mwmp::Cast::REGULAR;
-                        localCast->spellId = spellid;
+                        localCast->spellId = mwmp::RefIdCompat::toWire(spellid);
                         localCast->pressed = true;
                         localCast->shouldSend = true;
 
@@ -2038,37 +2045,6 @@ namespace MWMechanics
                 shouldPlayOrRestart = !mAnimation->getInfo(mAnimQueue.front().mGroup)
                     && mAnimation->hasAnimation(mAnimQueue.front().mGroup);
 
-        /*
-            Start of tes3mp addition
-
-            Character movement setting rotations get reset here, so we have to assign movement
-            settings to the LocalPlayer or a LocalActor now
-        */
-        if (world->getPlayerPtr() == mPtr)
-        {
-            mwmp::LocalPlayer *localPlayer = mwmp::Main::get().getLocalPlayer();
-            MWMechanics::Movement &movementSettings = cls.getMovementSettings(mPtr);
-            localPlayer->direction.pos[0] = movementSettings.mPosition[0];
-            localPlayer->direction.pos[1] = movementSettings.mPosition[1];
-            localPlayer->direction.pos[2] = movementSettings.mPosition[2];
-            localPlayer->direction.rot[0] = movementSettings.mRotation[0];
-            localPlayer->direction.rot[1] = movementSettings.mRotation[1];
-            localPlayer->direction.rot[2] = movementSettings.mRotation[2];
-        }
-        else if (mwmp::Main::get().getCellController()->isLocalActor(mPtr))
-        {
-            mwmp::LocalActor *localActor = mwmp::Main::get().getCellController()->getLocalActor(mPtr);
-            MWMechanics::Movement &movementSettings = cls.getMovementSettings(mPtr);
-            localActor->direction.pos[0] = movementSettings.mPosition[0];
-            localActor->direction.pos[1] = movementSettings.mPosition[1];
-            localActor->direction.pos[2] = movementSettings.mPosition[2];
-            localActor->direction.rot[0] = movementSettings.mRotation[0];
-            localActor->direction.rot[1] = movementSettings.mRotation[1];
-            localActor->direction.rot[2] = movementSettings.mRotation[2];
-        }
-        /*
-            End of tes3mp addition
-        */
             if (shouldPlayOrRestart)
             {
                 // Move on to the remaining items of the queue
@@ -2169,6 +2145,38 @@ namespace MWMechanics
                 if (stats.getMovementFlag(MWMechanics::CreatureStats::Flag_ForceMoveJump) && isMoving)
                     movementSettings.mPosition[2] = onground ? 1.f : 0.f;
             }
+
+            /*
+                Start of tes3mp addition
+
+                Character movement setting rotations get reset here, so we have to assign movement
+                settings to the LocalPlayer or a LocalActor now
+            */
+            if (world->getPlayerPtr() == mPtr)
+            {
+                mwmp::LocalPlayer *localPlayer = mwmp::Main::get().getLocalPlayer();
+                MWMechanics::Movement &movementSettings = cls.getMovementSettings(mPtr);
+                localPlayer->direction.pos[0] = movementSettings.mPosition[0];
+                localPlayer->direction.pos[1] = movementSettings.mPosition[1];
+                localPlayer->direction.pos[2] = movementSettings.mPosition[2];
+                localPlayer->direction.rot[0] = movementSettings.mRotation[0];
+                localPlayer->direction.rot[1] = movementSettings.mRotation[1];
+                localPlayer->direction.rot[2] = movementSettings.mRotation[2];
+            }
+            else if (mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+            {
+                mwmp::LocalActor *localActor = mwmp::Main::get().getCellController()->getLocalActor(mPtr);
+                MWMechanics::Movement &movementSettings = cls.getMovementSettings(mPtr);
+                localActor->direction.pos[0] = movementSettings.mPosition[0];
+                localActor->direction.pos[1] = movementSettings.mPosition[1];
+                localActor->direction.pos[2] = movementSettings.mPosition[2];
+                localActor->direction.rot[0] = movementSettings.mRotation[0];
+                localActor->direction.rot[1] = movementSettings.mRotation[1];
+                localActor->direction.rot[2] = movementSettings.mRotation[2];
+            }
+            /*
+                End of tes3mp addition
+            */
 
             osg::Vec3f rot = cls.getRotationVector(mPtr);
             osg::Vec3f vec(movementSettings.asVec3());
@@ -2802,6 +2810,28 @@ namespace MWMechanics
         if (playImmediately)
             playAnimQueue(mode == 2);
 
+        /*
+            Start of tes3mp addition
+
+            If we are the cell authority over this actor, we need to record this new
+            animation for it
+
+            The merge left this inside clearAnimQueue(), which has none of these arguments.
+            0.8.1's "persist" is 0.51's "scripted", and the count has already been
+            decremented for actors by this point -- entry.mLoopCount is what was queued.
+        */
+        if (mwmp::Main::get().getCellController()->isLocalActor(mPtr))
+        {
+            mwmp::LocalActor *actor = mwmp::Main::get().getCellController()->getLocalActor(mPtr);
+            actor->animation.groupname = std::string(groupname);
+            actor->animation.mode = mode;
+            actor->animation.count = static_cast<int>(count);
+            actor->animation.persist = scripted;
+        }
+        /*
+            End of tes3mp addition
+        */
+
         return true;
     }
 
@@ -2886,23 +2916,6 @@ namespace MWMechanics
         if (mAnimation && (!isScriptedAnimPlaying() || clearScriptedAnims) && !mAnimQueue.empty())
             mAnimation->disable(mAnimQueue.front().mGroup);
 
-        /*
-            Start of tes3mp addition
-
-            If we are the cell authority over this actor, we need to record this new
-            animation for it
-        */
-        if (mwmp::Main::get().getCellController()->isLocalActor(mPtr))
-        {
-            mwmp::LocalActor *actor = mwmp::Main::get().getCellController()->getLocalActor(mPtr);
-            actor->animation.groupname = groupname;
-            actor->animation.mode = mode;
-            actor->animation.count = count;
-            actor->animation.persist = persist;
-        }
-        /*
-            End of tes3mp addition
-        */
         /*
             Start of tes3mp addition
         */
