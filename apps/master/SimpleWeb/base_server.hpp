@@ -1,7 +1,23 @@
 #ifndef BASE_SERVER_HPP
 #define BASE_SERVER_HPP
 
+/*
+    Start of tes3mp change (major)
+
+    This vendored copy of SimpleWeb predates Boost 1.66. boost::asio::io_service was
+    a typedef for io_context, deprecated for years and finally removed by the Boost
+    this toolchain uses, so it has been renamed throughout.
+
+    deadline_timer and boost::posix_time are still supported but are no longer pulled
+    in by <boost/asio.hpp> on their own, so they are included explicitly rather than
+    switching to steady_timer -- keeping the timeout semantics exactly as they were.
+*/
 #include <boost/asio.hpp>
+#include <boost/asio/deadline_timer.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+/*
+    End of tes3mp change (major)
+*/
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/functional/hash.hpp>
 
@@ -195,22 +211,24 @@ namespace SimpleWeb
 
         virtual void start()
         {
-            if (!io_service)
-                io_service = std::make_shared<boost::asio::io_service>();
+            if (!io_context)
+                io_context = std::make_shared<boost::asio::io_context>();
 
-            if (io_service->stopped())
-                io_service->reset();
+            // io_context::reset() was renamed restart() when io_service became io_context.
+            if (io_context->stopped())
+                io_context->restart();
 
             boost::asio::ip::tcp::endpoint endpoint;
             if (config.address.size() > 0)
-                endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(config.address),
+                // ip::address::from_string() was removed in favour of make_address().
+                endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(config.address),
                                                           config.port);
             else
                 endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), config.port);
 
             if (!acceptor)
                 acceptor = std::unique_ptr<boost::asio::ip::tcp::acceptor>(
-                        new boost::asio::ip::tcp::acceptor(*io_service));
+                        new boost::asio::ip::tcp::acceptor(*io_context));
             acceptor->open(endpoint.protocol());
             acceptor->set_option(boost::asio::socket_base::reuse_address(config.reuse_address));
             acceptor->bind(endpoint);
@@ -224,13 +242,13 @@ namespace SimpleWeb
             {
                 threads.emplace_back([this]()
                                      {
-                                         io_service->run();
+                                         io_context->run();
                                      });
             }
 
             //Main thread
             if (config.thread_pool_size > 0)
-                io_service->run();
+                io_context->run();
 
             //Wait for the rest of the threads, if any, to finish as well
             for (auto &t: threads)
@@ -243,7 +261,7 @@ namespace SimpleWeb
         {
             acceptor->close();
             if (config.thread_pool_size > 0)
-                io_service->stop();
+                io_context->stop();
         }
 
         ///Use this function if you need to recursively send parts of a longer message
@@ -258,9 +276,9 @@ namespace SimpleWeb
             });
         }
 
-        /// If you have your own boost::asio::io_service, store its pointer here before running start().
+        /// If you have your own boost::asio::io_context, store its pointer here before running start().
         /// You might also want to set config.thread_pool_size to 0.
-        std::shared_ptr<boost::asio::io_service> io_service;
+        std::shared_ptr<boost::asio::io_context> io_context;
     protected:
         std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
         std::vector<std::thread> threads;
@@ -276,7 +294,7 @@ namespace SimpleWeb
             if (seconds == 0)
                 return nullptr;
 
-            auto timer = std::make_shared<boost::asio::deadline_timer>(*io_service);
+            auto timer = std::make_shared<boost::asio::deadline_timer>(*io_context);
             timer->expires_from_now(boost::posix_time::seconds(seconds));
             timer->async_wait([socket](const boost::system::error_code &ec)
                               {
