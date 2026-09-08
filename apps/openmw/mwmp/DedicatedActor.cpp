@@ -25,7 +25,12 @@
 #include "../mwworld/inventorystore.hpp"
 #include "../mwworld/worldimp.hpp"
 
+#include <components/settings/values.hpp>
+#include <components/vfs/pathutil.hpp>
+
 #include "DedicatedActor.hpp"
+#include "RefIdCompat.hpp"
+#include "RecordConvertPlayer.hpp"
 #include "Main.hpp"
 #include "CellController.hpp"
 #include "MechanicsHelper.hpp"
@@ -34,7 +39,7 @@ using namespace mwmp;
 
 DedicatedActor::DedicatedActor()
 {
-    drawState = MWMechanics::DrawState::Nothing;
+    drawState = static_cast<char>(MWMechanics::DrawState::Nothing);
     movementFlags = 0;
     animation.groupname = "";
     sound = "";
@@ -69,7 +74,7 @@ void DedicatedActor::setCell(MWWorld::CellStore *cellStore)
 {
     MWBase::World *world = MWBase::Environment::get().getWorld();
 
-    ptr = world->moveObject(ptr, cellStore, position.pos[0], position.pos[1], position.pos[2]);
+    ptr = world->moveObject(ptr, cellStore, osg::Vec3f(position.pos[0], position.pos[1], position.pos[2]));
     setMovementSettings();
 
     hasChangedCell = true;
@@ -89,12 +94,13 @@ void DedicatedActor::move(float dt)
     if (shouldInterpolate && !hasChangedCell)
     {
         static const int timeMultiplier = 15;
-        osg::Vec3f lerp = MechanicsHelper::getLinearInterpolation(refPos.asVec3(), position.asVec3(), dt * timeMultiplier);
+        osg::Vec3f lerp = MechanicsHelper::getLinearInterpolation(refPos.asVec3(),
+            osg::Vec3f(position.pos[0], position.pos[1], position.pos[2]), dt * timeMultiplier);
         refPos.pos[0] = lerp.x();
         refPos.pos[1] = lerp.y();
         refPos.pos[2] = lerp.z();
 
-        world->moveObject(ptr, refPos.pos[0], refPos.pos[1], refPos.pos[2]);
+        world->moveObject(ptr, osg::Vec3f(refPos.pos[0], refPos.pos[1], refPos.pos[2]));
     }
     else
     {
@@ -103,7 +109,7 @@ void DedicatedActor::move(float dt)
     }
 
     setMovementSettings();
-    world->rotateObject(ptr, position.rot[0], position.rot[1], position.rot[2]);
+    world->rotateObject(ptr, osg::Vec3f(position.rot[0], position.rot[1], position.rot[2]));
 }
 
 void DedicatedActor::setMovementSettings()
@@ -125,7 +131,7 @@ void DedicatedActor::setMovementSettings()
 void DedicatedActor::setPosition()
 {
     MWBase::World *world = MWBase::Environment::get().getWorld();
-    world->moveObject(ptr, position.pos[0], position.pos[1], position.pos[2]);
+    world->moveObject(ptr, osg::Vec3f(position.pos[0], position.pos[1], position.pos[2]));
 }
 
 void DedicatedActor::setAnimFlags()
@@ -156,7 +162,11 @@ void DedicatedActor::setStatsDynamic()
 
     for (int i = 0; i < 3; ++i)
     {
-        value.readState(creatureStats.mDynamic[i]);
+        // The mirror keeps the 0.47 layout; the engine reads its own StatState.
+        ESM::StatState<float> dynamicState;
+        mwmp::RecordConvert::toEngine(creatureStats.mDynamic[i], dynamicState);
+
+        value.readState(dynamicState);
         ptrCreatureStats->setDynamic(i, value);
     }
 }
@@ -184,10 +194,10 @@ void DedicatedActor::setEquipment()
 
         if (it != invStore.end())
         {
-            storeRefId = it->getCellRef().getRefId();
+            storeRefId = mwmp::RefIdCompat::toWire(it->getCellRef().getRefId());
 
-            if (!Misc::StringUtils::ciEqual(storeRefId, packetRefId)) // if other item equiped
-                invStore.unequipSlot(slot, ptr);
+            if (storeRefId != packetRefId) // if other item equiped
+                invStore.unequipSlot(slot);
             else
                 equal = true;
         }
@@ -197,7 +207,7 @@ void DedicatedActor::setEquipment()
 
         if (!hasItem(packetRefId, packetCharge))
         {
-            ptr.getClass().getContainerStore(ptr).add(packetRefId, count, ptr);
+            ptr.getClass().getContainerStore(ptr).add(mwmp::RefIdCompat::fromWireCreate(packetRefId), count);
         }
 
         // Equip items silently if this is the first time equipment is being set for this character
@@ -210,7 +220,7 @@ void DedicatedActor::setEquipment()
 void DedicatedActor::setAi()
 {
     MWMechanics::CreatureStats *ptrCreatureStats = &ptr.getClass().getCreatureStats(ptr);
-    ptrCreatureStats->setAiSetting(MWMechanics::CreatureStats::AI_Fight, 0);
+    ptrCreatureStats->setAiSetting(MWMechanics::AiSetting::Fight, 0);
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "- actor cellRef: %s %i-%i",
         ptr.getCellRef().getRefId().getRefIdString().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
@@ -226,7 +236,7 @@ void DedicatedActor::setAi()
         LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Travelling to %f, %f, %f",
             aiCoordinates.pos[0], aiCoordinates.pos[1], aiCoordinates.pos[2]);
 
-        MWMechanics::AiTravel package(aiCoordinates.pos[0], aiCoordinates.pos[1], aiCoordinates.pos[2]);
+        MWMechanics::AiTravel package(aiCoordinates.pos[0], aiCoordinates.pos[1], aiCoordinates.pos[2], false);
         ptrCreatureStats->getAiSequence().stack(package, ptr, true);
     }
     else if (aiAction == mwmp::BaseActorList::WANDER)
@@ -248,7 +258,7 @@ void DedicatedActor::setAi()
             targetPtr = MechanicsHelper::getPlayerPtr(aiTarget);
 
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Has player target %s",
-                targetPtr.getClass().getName(targetPtr).c_str());
+                std::string(targetPtr.getClass().getName(targetPtr)).c_str());
         }
         else
         {
@@ -259,7 +269,7 @@ void DedicatedActor::setAi()
             else if (aiAction == mwmp::BaseActorList::ACTIVATE)
                 targetPtr = MWBase::Environment::get().getWorld()->searchPtrViaUniqueIndex(aiTarget.refNum, aiTarget.mpNum);
 
-            if (targetPtr)
+            if (!targetPtr.isEmpty())
             {
                 LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Has actor target %s %i-%i",
                     targetPtr.getCellRef().getRefId().getRefIdString().c_str(), aiTarget.refNum, aiTarget.mpNum);
@@ -272,7 +282,7 @@ void DedicatedActor::setAi()
 
         }
 
-        if (targetPtr)
+        if (!targetPtr.isEmpty())
         {
             if (aiAction == mwmp::BaseActorList::ACTIVATE)
             {
@@ -294,8 +304,9 @@ void DedicatedActor::setAi()
                 LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Being escorted by target, for duration %i, to coordinates %f, %f, %f",
                     aiDuration, aiCoordinates.pos[0], aiCoordinates.pos[1], aiCoordinates.pos[2]);
 
-                MWMechanics::AiEscort package(targetPtr.getCellRef().getRefId(), aiDuration,
-                    aiCoordinates.pos[0], aiCoordinates.pos[1], aiCoordinates.pos[2]);
+                MWMechanics::AiEscort package(targetPtr.getCellRef().getRefNum(),
+                    targetPtr.getCell()->getCell()->getNameId(), aiDuration,
+                    aiCoordinates.pos[0], aiCoordinates.pos[1], aiCoordinates.pos[2], false);
                 ptrCreatureStats->getAiSequence().stack(package, ptr, true);
             }
             else if (aiAction == mwmp::BaseActorList::FOLLOW)
@@ -325,10 +336,11 @@ void DedicatedActor::playSound()
 {
     if (!sound.empty())
     {
-        MWBase::Environment::get().getSoundManager()->say(ptr, sound);
+        MWBase::Environment::get().getSoundManager()->say(ptr, VFS::Path::Normalized(sound));
 
         MWBase::WindowManager *winMgr = MWBase::Environment::get().getWindowManager();
-        if (winMgr->getSubtitlesEnabled())
+        // 0.51 reads subtitles straight from the settings index.
+        if (Settings::gui().mSubtitles)
             winMgr->messageBox(MWBase::Environment::get().getDialogueManager()->getVoiceCaption(sound), MWGui::ShowInDialogueMode_Never);
 
         sound.clear();
@@ -339,7 +351,7 @@ bool DedicatedActor::hasItem(std::string itemId, int charge)
 {
     for (const auto &itemPtr : ptr.getClass().getInventoryStore(ptr))
     {
-        if (::Misc::StringUtils::ciEqual(itemPtr.getCellRef().getRefId(), itemId) && itemPtr.getCellRef().getCharge() == charge)
+        if (mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getRefId()) == itemId && itemPtr.getCellRef().getCharge() == charge)
             return true;
     }
 
@@ -350,7 +362,7 @@ void DedicatedActor::equipItem(std::string itemId, int charge, bool noSound)
 {
     for (const auto &itemPtr : ptr.getClass().getInventoryStore(ptr))
     {
-        if (::Misc::StringUtils::ciEqual(itemPtr.getCellRef().getRefId(), itemId) && itemPtr.getCellRef().getCharge() == charge)
+        if (mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getRefId()) == itemId && itemPtr.getCellRef().getCharge() == charge)
         {
             std::shared_ptr<MWWorld::Action> action = itemPtr.getClass().use(itemPtr);
             action->execute(ptr, noSound);
@@ -366,12 +378,12 @@ void DedicatedActor::addSpellsActive()
     for (const auto& activeSpell : spellsActiveChanges.activeSpells)
     {
         MWWorld::TimeStamp timestamp = MWWorld::TimeStamp(activeSpell.timestampHour, activeSpell.timestampDay);
-        int casterActorId = MechanicsHelper::getActorId(activeSpell.caster);
-
-        MechanicsHelper::createSpellGfx(getPtr(), activeSpell.params.mEffects);
+        std::vector<ESM::ActiveEffect> effects;
+        mwmp::RecordConvert::toEngine(activeSpell.params.mEffects, effects);
+        MechanicsHelper::createSpellGfx(getPtr(), effects);
 
         // Don't do a check for a spell's existence, because active effects from potions need to be applied here too
-        activeSpells.addSpell(activeSpell.id, activeSpell.isStackingSpell, activeSpell.params.mEffects, activeSpell.params.mDisplayName, casterActorId, timestamp, false);
+        activeSpells.addSpell(MechanicsHelper::makeActiveSpellParams(activeSpell), timestamp, false);
     }
 }
 
@@ -385,11 +397,13 @@ void DedicatedActor::removeSpellsActive()
         if (activeSpell.isStackingSpell)
         {
             MWWorld::TimeStamp timestamp = MWWorld::TimeStamp(activeSpell.timestampHour, activeSpell.timestampDay);
-            activeSpells.removeSpellByTimestamp(activeSpell.id, timestamp);
+            activeSpells.removeSpellByTimestamp(
+                ptr, mwmp::RefIdCompat::fromWireCreate(activeSpell.id), timestamp);
         }
         else
         {
-            activeSpells.removeEffects(activeSpell.id);
+            // 0.51 renamed removeEffects() to say which id it matches on.
+            activeSpells.removeEffectsBySourceSpellId(ptr, mwmp::RefIdCompat::fromWireCreate(activeSpell.id));
         }
     }
 }
@@ -397,7 +411,8 @@ void DedicatedActor::removeSpellsActive()
 void DedicatedActor::setSpellsActive()
 {
     MWMechanics::ActiveSpells& activeSpells = getPtr().getClass().getCreatureStats(getPtr()).getActiveSpells();
-    activeSpells.clear();
+    // 0.51's clear() needs the owning actor so it can undo the effects.
+    activeSpells.clear(getPtr());
 
     // Proceed by adding spells active
     addSpellsActive();
@@ -412,12 +427,12 @@ void DedicatedActor::setPtr(const MWWorld::Ptr& newPtr)
 {
     ptr = newPtr;
 
-    refId = ptr.getCellRef().getRefId();
+    refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
     refNum = ptr.getCellRef().getRefNum().mIndex;
     mpNum = ptr.getCellRef().getMpNum();
 
-    position = ptr.getRefData().getPosition();
-    drawState = ptr.getClass().getCreatureStats(ptr).getDrawState();
+    position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
+    drawState = static_cast<char>(ptr.getClass().getCreatureStats(ptr).getDrawState());
 }
 
 void DedicatedActor::reloadPtr()

@@ -738,10 +738,9 @@ void LocalPlayer::addSpellsActive()
     for (const auto& activeSpell : spellsActiveChanges.activeSpells)
     {
         MWWorld::TimeStamp timestamp = MWWorld::TimeStamp(activeSpell.timestampHour, activeSpell.timestampDay);
-        int casterActorId = MechanicsHelper::getActorId(activeSpell.caster);
 
         // Don't do a check for a spell's existence, because active effects from potions need to be applied here too
-        activeSpells.addSpell(activeSpell.id, activeSpell.isStackingSpell, activeSpell.params.mEffects, activeSpell.params.mDisplayName, casterActorId, timestamp, false);
+        activeSpells.addSpell(MechanicsHelper::makeActiveSpellParams(activeSpell), timestamp, false);
     }
 }
 
@@ -849,7 +848,8 @@ void LocalPlayer::removeSpellsActive()
         if (activeSpell.isStackingSpell)
         {
             MWWorld::TimeStamp timestamp = MWWorld::TimeStamp(activeSpell.timestampHour, activeSpell.timestampDay);
-            bool foundSpell = activeSpells.removeSpellByTimestamp(activeSpell.id, timestamp);
+            bool foundSpell = activeSpells.removeSpellByTimestamp(
+                ptrPlayer, mwmp::RefIdCompat::fromWireCreate(activeSpell.id), timestamp);
 
             if (!foundSpell)
             {
@@ -858,7 +858,8 @@ void LocalPlayer::removeSpellsActive()
         }
         else
         {
-            activeSpells.removeEffects(activeSpell.id);
+            // 0.51 renamed removeEffects() to say which id it matches on.
+            activeSpells.removeEffectsBySourceSpellId(ptrPlayer, mwmp::RefIdCompat::fromWireCreate(activeSpell.id));
         }
     }
 }

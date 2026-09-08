@@ -3,6 +3,8 @@
 
 #include <components/openmw-mp/Base/BaseStructs.hpp>
 
+#include "../mwmechanics/activespells.hpp"
+
 #include "../mwworld/containerstore.hpp"
 
 #include <osg/Vec3f>
@@ -31,6 +33,21 @@ namespace MechanicsHelper
         engine handle was only ever local.
     */
     ESM::RefNum getActorRefNum(const mwmp::Target& target);
+
+    /*
+        Resolve a wire Target to the live Ptr it names, or an empty Ptr.
+    */
+    MWWorld::Ptr getTargetPtr(const mwmp::Target& target);
+
+    /*
+        Build a 0.51 ActiveSpellParams from what an ID_*_SPELLS_ACTIVE packet carries.
+
+        Three files did this inline against the 0.8.1 seven-argument addSpell overload.
+        0.51 takes the params object instead, so the construction is shared here rather
+        than repeated -- and it is the one place that has to change if upstream reshapes
+        ActiveSpellParams again.
+    */
+    MWMechanics::ActiveSpells::ActiveSpellParams makeActiveSpellParams(const mwmp::ActiveSpell& activeSpell);
 
     mwmp::Item getItem(const MWWorld::Ptr& itemPtr, int count);
     mwmp::Target getTarget(const MWWorld::Ptr& ptr);

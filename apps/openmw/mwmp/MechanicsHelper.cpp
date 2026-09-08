@@ -184,31 +184,47 @@ MWWorld::Ptr MechanicsHelper::getPlayerPtr(const Target& target)
     return nullptr;
 }
 
+MWWorld::Ptr MechanicsHelper::getTargetPtr(const mwmp::Target& target)
+{
+    if (target.isPlayer)
+        return getPlayerPtr(target);
+
+    auto controller = mwmp::Main::get().getCellController();
+
+    if (controller->isLocalActor(target.refNum, target.mpNum))
+        return controller->getLocalActor(target.refNum, target.mpNum)->getPtr();
+
+    if (controller->isDedicatedActor(target.refNum, target.mpNum))
+        return controller->getDedicatedActor(target.refNum, target.mpNum)->getPtr();
+
+    return MWWorld::Ptr();
+}
+
 ESM::RefNum MechanicsHelper::getActorRefNum(const mwmp::Target& target)
 {
-    MWWorld::Ptr targetPtr;
-
-    if (target.isPlayer)
-    {
-        targetPtr = getPlayerPtr(target);
-    }
-    else
-    {
-        auto controller = mwmp::Main::get().getCellController();
-        if (controller->isLocalActor(target.refNum, target.mpNum))
-        {
-            targetPtr = controller->getLocalActor(target.refNum, target.mpNum)->getPtr();
-        }
-        else if (controller->isDedicatedActor(target.refNum, target.mpNum))
-        {
-            targetPtr = controller->getDedicatedActor(target.refNum, target.mpNum)->getPtr();
-        }
-    }
+    const MWWorld::Ptr targetPtr = getTargetPtr(target);
 
     if (targetPtr.isEmpty())
         return {};
 
     return targetPtr.getCellRef().getRefNum();
+}
+
+MWMechanics::ActiveSpells::ActiveSpellParams MechanicsHelper::makeActiveSpellParams(const mwmp::ActiveSpell& activeSpell)
+{
+    /*
+        The engine assigns mActiveSpellId itself when the spell is promoted out of the
+        queue, so it is deliberately not set here.
+
+        The item RefNum is left unset: these packets describe spells and potion effects,
+        not enchanted items, and 0.8.1 carried no item identity either.
+    */
+    MWMechanics::ActiveSpells::ActiveSpellParams params(getTargetPtr(activeSpell.caster),
+        mwmp::RefIdCompat::fromWireCreate(activeSpell.id), activeSpell.params.mDisplayName, ESM::RefNum{});
+
+    mwmp::RecordConvert::toEngine(activeSpell.params.mEffects, params.getEffects());
+
+    return params;
 }
 
 mwmp::Item MechanicsHelper::getItem(const MWWorld::Ptr& itemPtr, int count)
