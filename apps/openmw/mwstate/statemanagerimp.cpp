@@ -381,6 +381,8 @@ void MWState::StateManager::quickSave(std::string name)
         End of tes3mp change (major)
     */
 
+    if (!(mState == State_Running
+            && MWBase::Environment::get().getWorld()->getGlobalInt(MWWorld::Globals::sCharGenState) == -1 // char gen
             && MWBase::Environment::get().getWindowManager()->isSavingAllowed()))
     {
         // You can not save your game right now
@@ -725,6 +727,7 @@ void MWState::StateManager::quickLoad()
         End of tes3mp change (major)
     */
 
+    if (Character* currentCharacter = getCurrentCharacter())
     {
         if (currentCharacter->begin() == currentCharacter->end())
             return;
