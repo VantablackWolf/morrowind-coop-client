@@ -657,7 +657,17 @@ namespace MWMechanics
         const osg::Vec3f actor1Pos(actor1.getRefData().getPosition().asVec3());
         const osg::Vec3f actor2Pos(actor2.getRefData().getPosition().asVec3());
         const float sqrDist = (actor1Pos - actor2Pos).length2();
-        const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+        /*
+            Start of tes3mp change (major)
+
+            Multiplayer needs AI processing to have effectively no distance limit; the
+            0.51 setting is clamped too low to express it. See mwmp/ProcessingRange.hpp.
+        */
+        // const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+        const int actorsProcessingRange = mwmp::getActorsProcessingRange();
+        /*
+            End of tes3mp change (major)
+        */
 
         if (sqrDist > actorsProcessingRange * actorsProcessingRange)
             return;
@@ -1334,7 +1344,17 @@ namespace MWMechanics
 
         const float dist
             = (player.getRefData().getPosition().asVec3() - ptr.getRefData().getPosition().asVec3()).length();
-        const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+        /*
+            Start of tes3mp change (major)
+
+            Multiplayer needs AI processing to have effectively no distance limit; the
+            0.51 setting is clamped too low to express it. See mwmp/ProcessingRange.hpp.
+        */
+        // const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+        const int actorsProcessingRange = mwmp::getActorsProcessingRange();
+        /*
+            End of tes3mp change (major)
+        */
         if (dist > actorsProcessingRange)
         {
             ptr.getRefData().getBaseNode()->setNodeMask(0);
@@ -1639,7 +1659,17 @@ namespace MWMechanics
                 if (!playerHitAttemptActor.isInCell())
                     player.getClass().getCreatureStats(player).setHitAttemptActor({});
             }
-            const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+            /*
+            Start of tes3mp change (major)
+
+            Multiplayer needs AI processing to have effectively no distance limit; the
+            0.51 setting is clamped too low to express it. See mwmp/ProcessingRange.hpp.
+        */
+        // const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+        const int actorsProcessingRange = mwmp::getActorsProcessingRange();
+        /*
+            End of tes3mp change (major)
+        */
 
             // AI and magic effects update
             for (Actor& actor : mActors)
@@ -2072,7 +2102,17 @@ namespace MWMechanics
 
         const MWWorld::Ptr player = MWBase::Environment::get().getWorld()->getPlayerPtr();
         const osg::Vec3f playerPos = player.getRefData().getPosition().asVec3();
-        const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+        /*
+            Start of tes3mp change (major)
+
+            Multiplayer needs AI processing to have effectively no distance limit; the
+            0.51 setting is clamped too low to express it. See mwmp/ProcessingRange.hpp.
+        */
+        // const int actorsProcessingRange = Settings::game().mActorsProcessingRange;
+        const int actorsProcessingRange = mwmp::getActorsProcessingRange();
+        /*
+            End of tes3mp change (major)
+        */
 
         for (const Actor& actor : mActors)
         {

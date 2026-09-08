@@ -55,8 +55,22 @@ for f in "$@"; do
     done < <(awk '/Start of tes3mp change \(major\)/,/End of tes3mp change \(major\)/' "$f" \
              | grep '^[[:space:]]*//[[:space:]]*[A-Za-z_]' )
 
+    # Hook count against the pre-port tree. Resolving a hunk by taking upstream's
+    # version of a function silently drops any hook that lived inside it -- two
+    # were lost this way in mwclass/creature.cpp before this check existed.
     hooks=$(grep -c 'Start of tes3mp' "$f" || true)
-    echo "   ok: braces balanced, ${hooks} hook blocks present"
+    if [ -n "${TES3MP_OLD_TREE:-}" ] && [ -f "${TES3MP_OLD_TREE}/$f" ]; then
+        was=$(grep -c 'Start of tes3mp' "${TES3MP_OLD_TREE}/$f" || true)
+        if [ "$hooks" -lt "$was" ]; then
+            echo "   FAIL: hook blocks ${was} -> ${hooks}; $((was - hooks)) lost in resolution"
+            status=1
+        else
+            echo "   ok: braces balanced, ${hooks} hooks (was ${was})"
+        fi
+    else
+        echo "   ok: braces balanced, ${hooks} hook blocks present"
+        echo "        (set TES3MP_OLD_TREE=/path/to/previous/tes3mp to also check for lost hooks)"
+    fi
 done
 
 exit $status

@@ -628,6 +628,22 @@ namespace MWScript
                 {
                     wm->unsetSelectedSpell();
                 }
+
+                /*
+                    Start of tes3mp change (major)
+
+                    Send an ID_PLAYER_SPELLBOOK packet every time a player loses a spell here.
+
+                    Note: 0.8.1 did not gate this on ptr being the local player, unlike the
+                    matching AddSpell hook. Kept as-is rather than "fixed" -- changing it is a
+                    behaviour decision for the maintainers, not a port decision.
+                */
+                if (mwmp::Main::get().getLocalPlayer()->isLoggedIn())
+                    mwmp::Main::get().getLocalPlayer()->sendSpellChange(
+                        mwmp::RefIdCompat::toWire(id), mwmp::SpellbookChanges::REMOVE);
+                /*
+                    End of tes3mp change (major)
+                */
                 }
             }
         };

@@ -310,7 +310,6 @@ namespace MWClass
         if (otherstats.isDead()) // Can't hit dead actors
             return;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
@@ -319,7 +318,7 @@ namespace MWClass
         */
         if (!victim.getClass().isActor())
         {
-            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
             objectList->reset();
             objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
             objectList->addObjectHit(victim, ptr);
@@ -330,9 +329,8 @@ namespace MWClass
             End of tes3mp change (major)
         */
 
-        osg::Vec3f hitPosition (result.second);
-
-        float hitchance = MWMechanics::getHitChance(ptr, victim, ref->mBase->mData.mCombat);
+        if (!MWMechanics::isInMeleeReach(ptr, victim, MWMechanics::getMeleeWeaponReach(ptr, weapon)))
+            return;
 
         /*
             Start of tes3mp addition
@@ -340,7 +338,7 @@ namespace MWClass
             If the attacker is a LocalPlayer or LocalActor, get their Attack to assign its
             hit position and target
         */
-        mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(ptr);
+        mwmp::Attack* localAttack = MechanicsHelper::getLocalAttack(ptr);
 
         if (localAttack)
         {
@@ -353,7 +351,7 @@ namespace MWClass
             End of tes3mp addition
         */
 
-        if(Misc::Rng::roll0to99() >= hitchance)
+        if (!success)
         {
             /*
                 Start of tes3mp addition
@@ -369,7 +367,7 @@ namespace MWClass
                 localAttack->success = false;
                 localAttack->shouldSend = true;
 
-                mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
                 objectList->reset();
                 objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
                 objectList->addObjectHit(victim, ptr, *localAttack);
@@ -379,16 +377,8 @@ namespace MWClass
                 End of tes3mp addition
             */
 
-            victim.getClass().onHit(victim, 0.0f, false, MWWorld::Ptr(), ptr, osg::Vec3f(), false);
-=======
-        if (!MWMechanics::isInMeleeReach(ptr, victim, MWMechanics::getMeleeWeaponReach(ptr, weapon)))
-            return;
-
-        if (!success)
-        {
             MWBase::Environment::get().getLuaManager()->onHit(ptr, victim, weapon, MWWorld::Ptr(), type, attackStrength,
                 0.0f, false, hitPosition, false, MWMechanics::DamageSourceType::Melee);
->>>>>>> omw51
             MWMechanics::reduceWeaponCondition(0.f, false, weapon, ptr);
             return;
         }
@@ -500,35 +490,30 @@ namespace MWClass
             */
 
             // First handle the attacked actor
-<<<<<<< HEAD
-            if ((stats.getHitAttemptActorId() == -1)
-                && (statsAttacker.getAiSequence().isInCombat(ptr)
-                    || attacker == MWMechanics::getPlayer()
+            /*
+                Start of tes3mp change (minor)
+
+                Also track hit attempts from dedicated players, and never track them between
+                team members.
+
+                0.51 identifies the attacker by ESM::RefNum instead of the old integer actor
+                id, so the "unset" test is isSet() rather than a comparison against -1.
+            */
+            if (!stats.getHitAttemptActor().isSet()
+                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()
                     || mwmp::PlayerList::isDedicatedPlayer(attacker))
                 && !MechanicsHelper::isTeamMember(attacker, ptr))
-                stats.setHitAttemptActorId(statsAttacker.getActorId());
-
-            // Next handle the attacking actor
-            if ((statsAttacker.getHitAttemptActorId() == -1)
-                && (statsAttacker.getAiSequence().isInCombat(ptr)
-                    || attacker == MWMechanics::getPlayer()
-                    || mwmp::PlayerList::isDedicatedPlayer(attacker))
-                && !MechanicsHelper::isTeamMember(ptr, attacker))
-                statsAttacker.setHitAttemptActorId(stats.getActorId());
-
-            /*
-                End of tes3mp change (minor)
-            */
-=======
-            if (!stats.getHitAttemptActor().isSet()
-                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()))
                 stats.setHitAttemptActor(attacker.getCellRef().getRefNum());
 
             // Next handle the attacking actor
             if (!statsAttacker.getHitAttemptActor().isSet()
-                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()))
+                && (statsAttacker.getAiSequence().isInCombat(ptr) || attacker == MWMechanics::getPlayer()
+                    || mwmp::PlayerList::isDedicatedPlayer(attacker))
+                && !MechanicsHelper::isTeamMember(ptr, attacker))
                 statsAttacker.setHitAttemptActor(ptr.getCellRef().getRefNum());
->>>>>>> omw51
+            /*
+                End of tes3mp change (minor)
+            */
         }
 
         if (!object.empty())
@@ -590,8 +575,8 @@ namespace MWClass
                 float agilityTerm = stats.getAttribute(ESM::Attribute::Agility).getModified()
                     * getGmst().fKnockDownMult->mValue.getFloat();
                 float knockdownTerm = stats.getAttribute(ESM::Attribute::Agility).getModified()
-<<<<<<< HEAD
-                    * getGmst().iKnockDownOddsMult->mValue.getInteger() * 0.01f + getGmst().iKnockDownOddsBase->mValue.getInteger();
+                        * getGmst().iKnockDownOddsMult->mValue.getInteger() * 0.01f
+                    + getGmst().iKnockDownOddsBase->mValue.getInteger();
 
                 /*
                     Start of tes3mp change (major)
@@ -603,7 +588,7 @@ namespace MWClass
 
                     Default to hit recovery if no knockdown has taken place, like in regular OpenMW
                 */
-                mwmp::Attack *dedicatedAttack = MechanicsHelper::getDedicatedAttack(attacker);
+                mwmp::Attack* dedicatedAttack = MechanicsHelper::getDedicatedAttack(attacker);
 
                 if (dedicatedAttack)
                 {
@@ -611,13 +596,8 @@ namespace MWClass
                         stats.setKnockedDown(true);
                 }
 
-                if (ishealth && agilityTerm <= damage && knockdownTerm <= Misc::Rng::roll0to99())
-=======
-                        * getGmst().iKnockDownOddsMult->mValue.getInteger() * 0.01f
-                    + getGmst().iKnockDownOddsBase->mValue.getInteger();
                 auto& prng = MWBase::Environment::get().getWorld()->getPrng();
                 if (hasHealthDamage && agilityTerm <= healthDamage && knockdownTerm <= Misc::Rng::roll0to99(prng))
->>>>>>> omw51
                     stats.setKnockedDown(true);
                 else
                 {

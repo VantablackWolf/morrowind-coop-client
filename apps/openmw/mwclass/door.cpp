@@ -6,6 +6,7 @@
     Include additional headers for multiplayer purposes
 */
 #include "../mwmp/Main.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/ObjectList.hpp"
 /*
@@ -168,9 +169,8 @@ namespace MWClass
 
         if (isLocked && hasKey)
         {
-<<<<<<< HEAD
-            if(actor == MWMechanics::getPlayer())
-                MWBase::Environment::get().getWindowManager()->messageBox(keyName + " #{sKeyUsed}");
+            if (actor == MWMechanics::getPlayer())
+                MWBase::Environment::get().getWindowManager()->messageBox(std::string{ keyName } + " #{sKeyUsed}");
 
             /*
                 Start of tes3mp change (major)
@@ -178,37 +178,27 @@ namespace MWClass
                 Disable unilateral unlocking on this client and expect the server's reply to our
                 packet to do it instead
             */
-            //ptr.getCellRef().unlock(); //Call the function here. because that makes sense.
+            // ptr.getCellRef().unlock(); // Call the function here. because that makes sense.
             /*
                 End of tes3mp change (major)
             */
 
-=======
-            if (actor == MWMechanics::getPlayer())
-                MWBase::Environment::get().getWindowManager()->messageBox(std::string{ keyName } + " #{sKeyUsed}");
-            ptr.getCellRef().unlock(); // Call the function here. because that makes sense.
->>>>>>> omw51
             // using a key disarms the trap
             if (isTrapped)
             {
-<<<<<<< HEAD
                 /*
                     Start of tes3mp change (major)
 
                     Disable unilateral trap disarming on this client and expect the server's reply to our
                     packet to do it instead
                 */
-                //ptr.getCellRef().setTrap("");
-                //MWBase::Environment::get().getSoundManager()->playSound3D(ptr, "Disarm Trap", 1.0f, 1.0f);
+                // ptr.getCellRef().setTrap(ESM::RefId());
+                // MWBase::Environment::get().getSoundManager()->playSound3D(
+                //     ptr, ESM::RefId::stringRefId("Disarm Trap"), 1.0f, 1.0f);
                 /*
                     End of tes3mp change (major)
                 */
 
-=======
-                ptr.getCellRef().setTrap(ESM::RefId());
-                MWBase::Environment::get().getSoundManager()->playSound3D(
-                    ptr, ESM::RefId::stringRefId("Disarm Trap"), 1.0f, 1.0f);
->>>>>>> omw51
                 isTrapped = false;
 
                 /*
@@ -266,27 +256,29 @@ namespace MWClass
                 }
                 else
                 {
-<<<<<<< HEAD
                     /*
                         Start of tes3mp change (major)
 
                         If there is a destination override in the mwmp::Worldstate for this door's original
-                        destination, use it
+                        destination, use it.
+
+                        destinationOverrides is keyed by the wire form of the cell name, so the RefId that
+                        0.51's getDestCell() returns is converted through RefIdCompat in both directions.
                     */
-                    std::string destinationCell = ptr.getCellRef().getDestCell();
+                    std::string destinationCell = mwmp::RefIdCompat::toWire(ptr.getCellRef().getDestCell());
 
-                    if (mwmp::Main::get().getNetworking()->getWorldstate()->destinationOverrides.count(destinationCell) != 0)
-                        destinationCell = mwmp::Main::get().getNetworking()->getWorldstate()->destinationOverrides[destinationCell];
+                    auto& destinationOverrides
+                        = mwmp::Main::get().getNetworking()->getWorldstate()->destinationOverrides;
 
-                    std::shared_ptr<MWWorld::Action> action(new MWWorld::ActionTeleport(destinationCell, ptr.getCellRef().getDoorDest(), true));
+                    if (destinationOverrides.count(destinationCell) != 0)
+                        destinationCell = destinationOverrides[destinationCell];
+
+                    std::unique_ptr<MWWorld::Action> action = std::make_unique<MWWorld::ActionTeleport>(
+                        mwmp::RefIdCompat::fromWireCreate(destinationCell), ptr.getCellRef().getDoorDest(), true);
                     /*
                         End of tes3mp change (major)
                     */
 
-=======
-                    std::unique_ptr<MWWorld::Action> action = std::make_unique<MWWorld::ActionTeleport>(
-                        ptr.getCellRef().getDestCell(), ptr.getCellRef().getDoorDest(), true);
->>>>>>> omw51
                     action->setSound(openSound);
                     return action;
                 }
