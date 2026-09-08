@@ -1229,27 +1229,7 @@ void WeatherManager::sendWeather()
         }
     }
 
-<<<<<<< HEAD
-inline bool WeatherManager::updateWeatherTime()
-{
-    /*
-        Start of tes3mp change (major)
-
-        Avoid creating any weather changes on this client unless approved by the server
-    */
-    if (!mWeatherCreationState)
-        return false;
-    /*
-        End of tes3mp change (major)
-    */
-
-    mWeatherUpdateTime -= mTimePassed;
-
-    mTimePassed = 0.0f;
-    if(mWeatherUpdateTime <= 0.0f)
-=======
     inline void WeatherManager::regionalWeatherChanged(const ESM::RefId& regionID, RegionWeather& region)
->>>>>>> omw51
     {
         // If the region is current, then add a weather transition for it.
         MWWorld::ConstPtr player = MWMechanics::getPlayer();
@@ -1264,6 +1244,17 @@ inline bool WeatherManager::updateWeatherTime()
 
     inline bool WeatherManager::updateWeatherTime()
     {
+        /*
+            Start of tes3mp change (major)
+
+            Avoid creating any weather changes on this client unless approved by the server
+        */
+        if (!mWeatherCreationState)
+            return false;
+        /*
+            End of tes3mp change (major)
+        */
+
         mWeatherUpdateTime -= mTimePassed;
         mTimePassed = 0.0f;
         if (mWeatherUpdateTime <= 0.0f)

@@ -535,35 +535,18 @@ namespace MWWorld
             throw std::runtime_error(
                 "moveTo: can't move object from a non-loaded cell (how did you get this object anyway?)");
 
-<<<<<<< HEAD
-        // Ensure that the object actually exists in the cell
-        if (searchViaRefNum(object.getCellRef().getRefNum()).isEmpty())
-            throw std::runtime_error("moveTo: object is not in this cell");
-
-
-        // Objects with no refnum can't be handled correctly in the merging process that happens
-        // on a save/load, so do a simple copy & delete for these objects.
-
         /*
             Start of tes3mp change (major)
 
-            Disable the following code because it breaks DedicatedPlayers
+            0.8.1 disabled the "objects with no refnum get copied and deleted" path here
+            because it broke DedicatedPlayers. 0.51 removed that path outright and registers
+            the moved object with the WorldModel instead, so there is nothing left to
+            disable -- the hook is retired.
         */
-        /*
-        if (!object.getCellRef().getRefNum().hasContentFile())
-        {
-            MWWorld::Ptr copied = object.getClass().copyToCell(object, *cellToMoveTo, object.getRefData().getCount());
-            object.getRefData().setCount(0);
-            object.getRefData().setBaseNode(nullptr);
-            return copied;
-        }
-        */
+        MWBase::Environment::get().getWorldModel()->registerPtr(MWWorld::Ptr(object.getBase(), cellToMoveTo));
         /*
             End of tes3mp change (major)
         */
-=======
-        MWBase::Environment::get().getWorldModel()->registerPtr(MWWorld::Ptr(object.getBase(), cellToMoveTo));
->>>>>>> omw51
 
         MovedRefTracker::iterator found = mMovedHere.find(object.getBase());
         if (found != mMovedHere.end())

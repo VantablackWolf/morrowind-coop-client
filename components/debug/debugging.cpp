@@ -103,63 +103,7 @@ namespace Debug
     static LogListener logListener;
     void setLogListener(LogListener listener)
     {
-<<<<<<< HEAD
-        if (size <= 0)
-            return size;
-        std::string_view msg{str, size_t(size)};
-
-        // Skip debug level marker
-        Level level = getLevelMarker(str);
-        if (level != NoLevel)
-            msg = msg.substr(1);
-
-        /*
-            Start of tes3mp change (major)
-
-            Don't use these timestamps, as TES3MP has its own
-        */
-        /*
-        char prefix[32];
-        int prefixSize;
-        {
-            prefix[0] = '[';
-            uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-            std::time_t t = ms / 1000;
-            prefixSize = std::strftime(prefix + 1, sizeof(prefix) - 1, "%T", std::localtime(&t)) + 1;
-            char levelLetter = " EWIVD*"[int(level)];
-            prefixSize += snprintf(prefix + prefixSize, sizeof(prefix) - prefixSize,
-                                   ".%03u %c] ", static_cast<unsigned>(ms % 1000), levelLetter);
-        }
-        */
-        /*
-            End of tes3mp change (major)
-        */
-
-        while (!msg.empty())
-        {
-            if (msg[0] == 0)
-                break;
-            size_t lineSize = 1;
-            while (lineSize < msg.size() && msg[lineSize - 1] != '\n')
-                lineSize++;
-            /*
-                Start of tes3mp change (major)
-
-                Don't use these timestamps, as TES3MP has its own
-            */
-            //writeImpl(prefix, prefixSize, level);
-            /*
-                End of tes3mp change (major)
-            */
-            writeImpl(msg.data(), lineSize, level);
-            msg = msg.substr(lineSize);
-        }
-
-        return size;
-=======
         logListener = std::move(listener);
->>>>>>> omw51
     }
 
     namespace
@@ -208,7 +152,20 @@ namespace Debug
                     size_t lineSize = 1;
                     while (lineSize < msg.size() && msg[lineSize - 1] != '\n')
                         lineSize++;
-                    writeImpl(prefix, prefixSize, level);
+                    /*
+                        Start of tes3mp change (major)
+
+                        Don't write OpenMW's timestamp prefix, as TES3MP has its own.
+
+                        0.8.1 needed TWO hooks here: one to skip building the prefix and one to
+                        skip writing it. 0.51 also passes the prefix to logListener, so building
+                        it is now load-bearing and only the direct write can be suppressed.
+                        One hook replaces the two.
+                    */
+                    // writeImpl(prefix, prefixSize, level);
+                    /*
+                        End of tes3mp change (major)
+                    */
                     writeImpl(msg.data(), lineSize, level);
                     if (logListener)
                         logListener(

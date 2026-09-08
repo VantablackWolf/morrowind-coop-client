@@ -274,22 +274,19 @@ namespace MWRender
         , mMinY(0)
         , mMaxY(0)
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
-            We need map tiles to have consistent sizes, because the server's map
-            is gradually filled in through tiles sent by players via WorldMap packets
+            Map tiles must have consistent sizes, because the server's map is filled in
+            gradually from tiles sent by players via WorldMap packets.
 
-            As a result, the default value is enforced for the time being
+            The default value is enforced rather than read from settings.
         */
-        //mCellSize = Settings::Manager::getInt("global map cell size", "Map");
+        // mCellSize = Settings::map().mGlobalMapCellSize;
         mCellSize = 18;
         /*
             End of tes3mp change (major)
         */
-=======
->>>>>>> omw51
     }
 
     GlobalMap::~GlobalMap()
