@@ -8,6 +8,9 @@
 
 #include "../mwworld/player.hpp"
 #include "../mwworld/worldimp.hpp"
+#include "../mwworld/worldmodel.hpp"
+
+#include <components/esm/exteriorcelllocation.hpp>
 
 #include "Worldstate.hpp"
 #include "Main.hpp"
@@ -16,6 +19,8 @@
 #include "DedicatedPlayer.hpp"
 #include "RecordHelper.hpp"
 #include "CellController.hpp"
+#include "RecordConvert.hpp"
+#include "RecordConvertPlayer.hpp"
 
 using namespace mwmp;
 
@@ -443,10 +448,15 @@ void Worldstate::setMapExplored()
 {
     for (const auto &mapTile : mapTiles)
     {
-        const MWWorld::CellStore *cellStore = MWBase::Environment::get().getWorld()->getExterior(mapTile.x, mapTile.y);
+        // 0.51: cell lookup lives on WorldModel, and exteriors are addressed by
+        // ExteriorCellLocation; MWWorld::Cell exposes the name through getNameId().
+        const MWWorld::CellStore& cellStore = MWBase::Environment::get().getWorldModel()->getExterior(
+            ESM::ExteriorCellLocation(mapTile.x, mapTile.y, ESM::Cell::sDefaultWorldspaceId));
 
-        if (!cellStore->getCell()->mName.empty())
-            MWBase::Environment::get().getWindowManager()->addVisitedLocation(cellStore->getCell()->mName, mapTile.x, mapTile.y);
+        const std::string cellName(cellStore.getCell()->getNameId());
+
+        if (!cellName.empty())
+            MWBase::Environment::get().getWindowManager()->addVisitedLocation(cellName, mapTile.x, mapTile.y);
 
         MWBase::Environment::get().getWindowManager()->setGlobalMapImage(mapTile.x, mapTile.y, mapTile.imageData);
 
@@ -478,7 +488,7 @@ void Worldstate::resetCells(std::vector<ESM::Cell>* cells)
     MWBase::World* world = MWBase::Environment::get().getWorld();
 
     bool haveUnloadedActiveCells = false;
-    ESM::Cell playerCell = *world->getPlayerPtr().getCell()->getCell();
+    const MWWorld::Cell playerCell = *world->getPlayerPtr().getCell()->getCell();
     ESM::Position playerPos = world->getPlayerPtr().getRefData().getPosition();
     std::vector<RakNet::RakNetGUID> playersInCell;
 
@@ -496,7 +506,9 @@ void Worldstate::resetCells(std::vector<ESM::Cell>* cells)
                     for (RakNet::RakNetGUID otherGuid : playersInCell)
                     {
                         DedicatedPlayer* dedicatedPlayer = mwmp::PlayerList::getPlayer(otherGuid);
-                        dedicatedPlayer->cell = *world->getInterior(RecordHelper::getPlaceholderInteriorCellName())->getCell();
+                        dedicatedPlayer->cell = mwmp::RecordConvert::toMirror(
+                            *MWBase::Environment::get().getWorldModel()->getInterior(
+                                RecordHelper::getPlaceholderInteriorCellName()).getCell());
                         dedicatedPlayer->setCell();
                     }
                 }
@@ -516,7 +528,7 @@ void Worldstate::resetCells(std::vector<ESM::Cell>* cells)
         for (RakNet::RakNetGUID otherGuid : playersInCell)
         {
             DedicatedPlayer* dedicatedPlayer = mwmp::PlayerList::getPlayer(otherGuid);
-            dedicatedPlayer->cell = cell;
+            dedicatedPlayer->cell = mwmp::RecordConvert::toMirror(cell);
             dedicatedPlayer->setCell();
         }
     }
@@ -524,10 +536,15 @@ void Worldstate::resetCells(std::vector<ESM::Cell>* cells)
     // Move the player from their temporary holding cell to their previous cell
     if (haveUnloadedActiveCells)
     {
+        /*
+            0.51 removed changeToExteriorCell(); changeToCell() takes a resolved cell id
+            for both cases, and an exterior id is built from the grid position.
+        */
         if (playerCell.isExterior())
-            world->changeToExteriorCell(playerPos, true, true);
+            world->changeToCell(
+                ESM::RefId::esm3ExteriorCell(playerCell.getGridX(), playerCell.getGridY()), playerPos, true, true);
         else
-            world->changeToInteriorCell(playerCell.mName, playerPos, true, true);
+            world->changeToInteriorCell(std::string(playerCell.getNameId()), playerPos, true, true);
     }
 }
 
@@ -616,7 +633,7 @@ void Worldstate::sendEnchantmentRecord(const ESM::Enchantment* enchantment)
     recordsType = mwmp::RECORD_TYPE::ENCHANTMENT;
 
     mwmp::EnchantmentRecord record;
-    record.data = *enchantment;
+    mwmp::RecordConvert::fromEngine(*enchantment, record.data);
     enchantmentRecords.push_back(record);
 
     getNetworking()->getWorldstatePacket(ID_RECORD_DYNAMIC)->setWorldstate(this);
@@ -632,7 +649,7 @@ void Worldstate::sendPotionRecord(const ESM::Potion* potion, unsigned int quanti
     recordsType = mwmp::RECORD_TYPE::POTION;
 
     mwmp::PotionRecord record;
-    record.data = *potion;
+    mwmp::RecordConvert::fromEngine(*potion, record.data);
     record.quantity = quantity;
     potionRecords.push_back(record);
 
@@ -649,7 +666,7 @@ void Worldstate::sendSpellRecord(const ESM::Spell* spell)
     recordsType = mwmp::RECORD_TYPE::SPELL;
 
     mwmp::SpellRecord record;
-    record.data = *spell;
+    mwmp::RecordConvert::fromEngine(*spell, record.data);
     spellRecords.push_back(record);
 
     getNetworking()->getWorldstatePacket(ID_RECORD_DYNAMIC)->setWorldstate(this);
@@ -665,7 +682,7 @@ void Worldstate::sendArmorRecord(const ESM::Armor* armor, std::string baseId)
     recordsType = mwmp::RECORD_TYPE::ARMOR;
 
     mwmp::ArmorRecord record;
-    record.data = *armor;
+    mwmp::RecordConvert::fromEngine(*armor, record.data);
     record.baseId = baseId;
     record.baseOverrides.hasName = true;
     record.baseOverrides.hasEnchantmentId = true;
@@ -685,7 +702,7 @@ void Worldstate::sendBookRecord(const ESM::Book* book, std::string baseId)
     recordsType = mwmp::RECORD_TYPE::BOOK;
 
     mwmp::BookRecord record;
-    record.data = *book;
+    mwmp::RecordConvert::fromEngine(*book, record.data);
     record.baseId = baseId;
     record.baseOverrides.hasName = true;
     record.baseOverrides.hasEnchantmentId = true;
@@ -705,7 +722,7 @@ void Worldstate::sendClothingRecord(const ESM::Clothing* clothing, std::string b
     recordsType = mwmp::RECORD_TYPE::CLOTHING;
 
     mwmp::ClothingRecord record;
-    record.data = *clothing;
+    mwmp::RecordConvert::fromEngine(*clothing, record.data);
     record.baseId = baseId;
     record.baseOverrides.hasName = true;
     record.baseOverrides.hasEnchantmentId = true;
@@ -725,7 +742,7 @@ void Worldstate::sendWeaponRecord(const ESM::Weapon* weapon, std::string baseId,
     recordsType = mwmp::RECORD_TYPE::WEAPON;
 
     mwmp::WeaponRecord record;
-    record.data = *weapon;
+    mwmp::RecordConvert::fromEngine(*weapon, record.data);
     record.quantity = quantity;
     record.baseId = baseId;
     record.baseOverrides.hasName = true;

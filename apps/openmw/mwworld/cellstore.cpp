@@ -13,6 +13,7 @@
 #include "../mwmp/Main.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/CellController.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 /*
     End of tes3mp addition
 */
@@ -507,10 +508,10 @@ namespace MWWorld
             {
                 
                 LOG_MESSAGE_SIMPLE(TimedLog::LOG_ERROR, "Storage: %s owned %s which it gave to %s which isn't %s, which should result in a crash\n",
-                    this->getCell()->getDescription().c_str(),
+                    std::string(this->getCell()->getDescription()).c_str(),
                     object.getBase()->mRef.getRefId().getRefIdString().c_str(),
-                    found->second->getCell()->getDescription().c_str(),
-                    from->getCell()->getDescription().c_str());
+                    std::string(found->second->getCell()->getDescription()).c_str(),
+                    std::string(from->getCell()->getDescription()).c_str());
             }
             /*
                 End of tes3mp addition
@@ -569,9 +570,9 @@ namespace MWWorld
                 */
                 LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Storage: %s's original cell %s gives it from %s to %s\n",
                     object.getBase()->mRef.getRefId().getRefIdString().c_str(),
-                    originalCell->getCell()->getDescription().c_str(),
-                    this->getCell()->getDescription().c_str(),
-                    cellToMoveTo->getCell()->getDescription().c_str());
+                    std::string(originalCell->getCell()->getDescription()).c_str(),
+                    std::string(this->getCell()->getDescription()).c_str(),
+                    std::string(cellToMoveTo->getCell()->getDescription()).c_str());
                 /*
                     End of tes3mp addition
                 */
@@ -823,7 +824,7 @@ namespace MWWorld
             {
                 if (!mActorsOnly || ptr.getClass().isActor())
                 {
-                    if (mRefIdToFind.empty() || Misc::StringUtils::ciEqual(ptr.getCellRef().getRefId(), mRefIdToFind))
+                    if (mRefIdToFind.empty() || ptr.getCellRef().getRefId() == mwmp::RefIdCompat::fromWireCreate(mRefIdToFind))
                     {
                         mFound = ptr;
                         return false;
@@ -873,7 +874,8 @@ namespace MWWorld
     */
     CellRefList<ESM::NPC> *CellStore::getNpcs()
     {
-        return &mNpcs;
+        // 0.51 replaced the named member lists with the get<T>() accessor.
+        return &get<ESM::NPC>();
     }
     /*
         End of tes3mp addition
@@ -885,7 +887,8 @@ namespace MWWorld
     */
     CellRefList<ESM::Creature> *CellStore::getCreatures()
     {
-        return &mCreatures;
+        // 0.51 replaced the named member lists with the get<T>() accessor.
+        return &get<ESM::Creature>();
     }
     /*
         End of tes3mp addition
@@ -897,7 +900,8 @@ namespace MWWorld
     */
     CellRefList<ESM::CreatureLevList> *CellStore::getCreatureLists()
     {
-        return &mCreatureLists;
+        // 0.51 replaced the named member lists with the get<T>() accessor.
+        return &get<ESM::CreatureLevList>();
     }
     /*
         End of tes3mp addition
@@ -909,7 +913,8 @@ namespace MWWorld
     */
     CellRefList<ESM::Container> *CellStore::getContainers()
     {
-        return &mContainers;
+        // 0.51 replaced the named member lists with the get<T>() accessor.
+        return &get<ESM::Container>();
     }
     /*
         End of tes3mp addition
