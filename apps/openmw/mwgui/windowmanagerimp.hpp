@@ -158,17 +158,6 @@ namespace MWGui
         End of tes3mp addition
     */
     /*
-        Start of tes3mp change (major)
-
-        Add a hasServerOrigin boolean to the list of arguments so those messageboxes
-        can be differentiated from client-only ones
-    */
-    void interactiveMessageBox(const std::string& message,
-        const std::vector<std::string>& buttons = std::vector<std::string>(), bool block = false, bool hasServerOrigin = false) override;
-    /*
-        End of tes3mp change (major)
-    */
-    /*
         Start of tes3mp addition
 
         Allow the execution of console commands from elsewhere in the code
@@ -370,8 +359,17 @@ namespace MWGui
             enum MWGui::ShowInDialogueMode showInDialogueMode = MWGui::ShowInDialogueMode_IfPossible) override;
         void staticMessageBox(std::string_view message) override;
         void removeStaticMessageBox() override;
+        /*
+            Start of tes3mp change (major)
+
+            Add a hasServerOrigin boolean so server-sent messageboxes can be told apart from
+            client-only ones
+        */
         void interactiveMessageBox(std::string_view message, const std::vector<std::string>& buttons = {},
-            bool block = false, int defaultFocus = -1) override;
+            bool block = false, int defaultFocus = -1, bool hasServerOrigin = false) override;
+        /*
+            End of tes3mp change (major)
+        */
 
         int readPressedButton() override; ///< returns the index of the pressed button or -1 if no button was pressed
                                           ///< (->MessageBoxmanager->InteractiveMessageBox)

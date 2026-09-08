@@ -689,32 +689,24 @@ namespace MWGui
 
         MWBase::Environment::get().getWindowManager()->playSound(ESM::RefId::stringRefId("Mysticism Hit"));
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
-            Don't create a record and don't add the spell to the player's spellbook;
-            instead just send its record to the server and expect the server to add it
-            to the player's spellbook
-        */
-        /*
-        const ESM::Spell* spell = MWBase::Environment::get().getWorld()->createRecord(mSpell);
-=======
-        const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->insert(mSpell);
->>>>>>> omw51
+            Don't create a record and don't add the spell to the player's spellbook; instead
+            send its record to the server and expect the server to add it.
 
-        MWMechanics::CreatureStats& stats = player.getClass().getCreatureStats(player);
-        MWMechanics::Spells& spells = stats.getSpells();
-        spells.add(spell->mId);
-<<<<<<< HEAD
+            0.51 replaced World::createRecord with ESMStore::insert, and Spells::add now
+            takes the ESM::Spell* rather than its id.
         */
+        // const ESM::Spell* spell = MWBase::Environment::get().getESMStore()->insert(mSpell);
+        // MWMechanics::CreatureStats& stats = player.getClass().getCreatureStats(player);
+        // MWMechanics::Spells& spells = stats.getSpells();
+        // spells.add(spell);
 
         mwmp::Main::get().getNetworking()->getWorldstate()->sendSpellRecord(&mSpell);
         /*
-            End of tes3mp addition
+            End of tes3mp change (major)
         */
-=======
->>>>>>> omw51
 
         MWBase::Environment::get().getWindowManager()->removeGuiMode(GM_SpellCreation);
     }

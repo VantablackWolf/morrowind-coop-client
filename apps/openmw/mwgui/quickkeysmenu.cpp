@@ -480,34 +480,22 @@ namespace MWGui
 
             if (key->type == ESM::QuickKeys::Type::Item)
             {
-<<<<<<< HEAD
-                bool isWeapon = item.getTypeName() == typeid(ESM::Weapon).name();
-                bool isTool = item.getTypeName() == typeid(ESM::Probe).name() ||
-                    item.getTypeName() == typeid(ESM::Lockpick).name();
-
-                // delay weapon switching if player is busy
-                if (isDelayNeeded && (isWeapon || isTool))
-                {
-                    mActivated = key;
-                    return;
-                }
-                else if (isReturnNeeded && (isWeapon || isTool))
-                {
-                    return;
-                }
-
                 /*
                     Start of tes3mp change (major)
 
-                    Instead of unilaterally using an item, send an ID_PLAYER_ITEM_USE packet and let the server
-                    decide if the item actually gets used
-                */
+                    Instead of unilaterally using an item, send an ID_PLAYER_ITEM_USE packet
+                    and let the server decide whether the item actually gets used.
 
+                    0.8.1 also delayed weapon switching while the player was busy; 0.51 no
+                    longer exposes that state here, and the server now arbitrates the switch
+                    anyway, so only the packet remains.
+                */
+                // if (!store.isEquipped(item.getCellRef().getRefId()))
+                //     MWBase::Environment::get().getWindowManager()->useItem(item);
+                mwmp::Main::get().getLocalPlayer()->sendItemUse(item);
                 /*
-                if (!store.isEquipped(item))
-=======
-                if (!store.isEquipped(item.getCellRef().getRefId()))
->>>>>>> omw51
+                    End of tes3mp change (major)
+                */
                     MWBase::Environment::get().getWindowManager()->useItem(item);
                 MWWorld::ConstContainerStoreIterator rightHand
                     = store.getSlot(MWWorld::InventoryStore::Slot_CarriedRight);
@@ -549,20 +537,20 @@ namespace MWGui
                 }
                 
                 store.setSelectedEnchantItem(it);
-<<<<<<< HEAD
-                MWBase::Environment::get().getWorld()->getPlayer().setDrawState(MWMechanics::DrawState_Spell);
-                */
+                /*
+                    Start of tes3mp change (major)
 
-                mwmp::Main::get().getLocalPlayer()->sendItemUse(item, true, MWMechanics::DrawState_Spell);
+                    Instead of unilaterally using the enchanted item, send an
+                    ID_PLAYER_ITEM_USE packet and let the server decide.
+
+                    0.51 renamed DrawState_Spell to DrawState::Spell.
+                */
+                // MWBase::Environment::get().getWindowManager()->setSelectedEnchantItem(*it);
+                // MWBase::Environment::get().getWorld()->getPlayer().setDrawState(MWMechanics::DrawState::Spell);
+                mwmp::Main::get().getLocalPlayer()->sendItemUse(item, true, MWMechanics::DrawState::Spell);
                 /*
                     End of tes3mp change (major)
                 */
-=======
-                // to reset WindowManager::mSelectedSpell immediately
-                MWBase::Environment::get().getWindowManager()->setSelectedEnchantItem(*it);
-
-                MWBase::Environment::get().getWorld()->getPlayer().setDrawState(MWMechanics::DrawState::Spell);
->>>>>>> omw51
             }
         }
         else if (key->type == ESM::QuickKeys::Type::Magic)

@@ -326,21 +326,20 @@ namespace MWBase
             = 0;
         virtual void staticMessageBox(std::string_view message) = 0;
         virtual void removeStaticMessageBox() = 0;
+        /*
+            Start of tes3mp change (major)
+
+            Add a hasServerOrigin boolean so server-sent messageboxes can be told apart from
+            client-only ones. Appended after 0.51's own block/defaultFocus parameters so
+            their defaults are unaffected, and merged into the single declaration rather
+            than kept as a second overload.
+        */
         virtual void interactiveMessageBox(std::string_view message, const std::vector<std::string>& buttons = {},
-            bool block = false, int defaultFocus = -1)
+            bool block = false, int defaultFocus = -1, bool hasServerOrigin = false)
             = 0;
-
-            /*
-                Start of tes3mp change (major)
-
-                Add a hasServerOrigin boolean to the list of arguments so those messageboxes
-                can be differentiated from client-only ones
-            */
-            virtual void interactiveMessageBox (const std::string& message,
-                                                const std::vector<std::string>& buttons = std::vector<std::string>(), bool block=false, bool hasServerOrigin=false) = 0;
-            /*
-                End of tes3mp change (major)
-            */
+        /*
+            End of tes3mp change (major)
+        */
         /// returns the index of the pressed button or -1 if no button was pressed
         /// (->MessageBoxmanager->InteractiveMessageBox)
         virtual int readPressedButton() = 0;

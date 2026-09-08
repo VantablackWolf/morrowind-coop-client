@@ -400,27 +400,21 @@ namespace MWGui
         mGuiModeStates[GM_Dialogue] = GuiModeState(mDialogueWindow);
         mTradeWindow->eventTradeDone += MyGUI::newDelegate(mDialogueWindow, &DialogueWindow::onTradeComplete);
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
-            Use a member variable (mContainerWIndow) instead of a local one so
-            we can access it from elsewhere
+            0.8.1 hoisted the container window into a member so it could be reached from
+            elsewhere. 0.51 does that itself, so the hook is retired -- only the ownership
+            model changed (unique_ptr with a raw observer).
         */
-        mContainerWindow = new ContainerWindow(mDragAndDrop);
-        mWindows.push_back(mContainerWindow);
-        trackWindow(mContainerWindow, "container");
-        mGuiModeStates[GM_Container] = GuiModeState({mContainerWindow, mInventoryWindow});
-        /*
-            End of tes3mp change (major)
-        */
-=======
         auto containerWindow = std::make_unique<ContainerWindow>(*mDragAndDrop, *mItemTransfer);
         mContainerWindow = containerWindow.get();
         mWindows.push_back(std::move(containerWindow));
         trackWindow(mContainerWindow, makeContainerWindowSettingValues());
         mGuiModeStates[GM_Container] = GuiModeState({ mContainerWindow, mInventoryWindow });
->>>>>>> omw51
+        /*
+            End of tes3mp change (major)
+        */
 
         auto hud = std::make_unique<HUD>(mCustomMarkers, mDragAndDrop.get(), mLocalMapRender.get());
         mHud = hud.get();
@@ -815,27 +809,19 @@ namespace MWGui
         popGuiMode();
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp change (major)
 
-        Add a hasServerOrigin boolean to the list of arguments so those messageboxes
-        can be differentiated from client-only ones
-
-        Use the hasServerOrigin argument when creating an interactive message box
+        Thread the hasServerOrigin flag through so server-sent messageboxes can be told apart
+        from client-only ones. It is appended after 0.51's own block/defaultFocus parameters.
     */
-    void WindowManager::interactiveMessageBox(const std::string &message, const std::vector<std::string> &buttons, bool block, bool hasServerOrigin)
+    void WindowManager::interactiveMessageBox(std::string_view message, const std::vector<std::string>& buttons,
+        bool block, int defaultFocus, bool hasServerOrigin)
     {
-        mMessageBoxManager->createInteractiveMessageBox(message, buttons, hasServerOrigin);
+        mMessageBoxManager->createInteractiveMessageBox(message, buttons, block, defaultFocus, hasServerOrigin);
     /*
         End of tes3mp change (major)
     */
-=======
-    void WindowManager::interactiveMessageBox(
-        std::string_view message, const std::vector<std::string>& buttons, bool block, int defaultFocus)
-    {
-        mMessageBoxManager->createInteractiveMessageBox(message, buttons, block, defaultFocus);
->>>>>>> omw51
         updateVisible();
 
         if (block)
