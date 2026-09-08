@@ -144,6 +144,27 @@ namespace mwmp
             }
         }
 
+        /*
+            NPC core stats. ESM::NPC::NPDTstruct52 is nested in the NPC record.
+            0.51 spells the types as int16_t/uint16_t; the mirror uses the
+            equivalent short/unsigned short from 0.47.
+        */
+        inline void toEngine(const records::NPDTstruct& from, ESM::NPC::NPDTstruct52& to)
+        {
+            to.mLevel = from.mLevel;
+            to.mHealth = from.mHealth;
+            to.mMana = from.mMana;
+            to.mFatigue = from.mFatigue;
+        }
+
+        inline void fromEngine(const ESM::NPC::NPDTstruct52& from, records::NPDTstruct& to)
+        {
+            to.mLevel = from.mLevel;
+            to.mHealth = from.mHealth;
+            to.mMana = from.mMana;
+            to.mFatigue = from.mFatigue;
+        }
+
         // AI data -- member-wise copy, no type changes on the serialized subset.
         inline void toEngine(const records::AIData& from, ESM::AIData& to)
         {
