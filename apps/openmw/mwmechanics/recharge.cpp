@@ -109,25 +109,19 @@ namespace MWMechanics
             Start of tes3mp addition
 
             Send an ID_OBJECT_SOUND packet every time the player makes a sound here
-        */
-        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-        objectList->reset();
-        objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        objectList->addObjectSound(MWMechanics::getPlayer(), "Enchant Success", 1.0, 1.0);
-        objectList->sendObjectSound();
-        /*
-            End of tes3mp addition
-        */
-        /*
-            Start of tes3mp addition
 
-            Send an ID_OBJECT_SOUND packet every time the player makes a sound here
+            The merge stacked both of these in the success branch, so a successful
+            recharge reported success AND failure, and a failed one reported nothing --
+            the same mistake it made in enchantingdialog.cpp.
         */
-        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-        objectList->reset();
-        objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        objectList->addObjectSound(MWMechanics::getPlayer(), "Enchant Fail", 1.0, 1.0);
-        objectList->sendObjectSound();
+        {
+            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            objectList->reset();
+            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+            objectList->addObjectSound(
+                MWMechanics::getPlayer(), ESM::RefId::stringRefId("Enchant Success"), 1.0, 1.0);
+            objectList->sendObjectSound();
+        }
         /*
             End of tes3mp addition
         */
@@ -137,6 +131,20 @@ namespace MWMechanics
         }
         else
         {
+            /*
+                Start of tes3mp addition
+
+                Send an ID_OBJECT_SOUND packet every time the player makes a sound here
+            */
+            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            objectList->reset();
+            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+            objectList->addObjectSound(MWMechanics::getPlayer(), ESM::RefId::stringRefId("Enchant Fail"), 1.0, 1.0);
+            objectList->sendObjectSound();
+            /*
+                End of tes3mp addition
+            */
+
             MWBase::Environment::get().getWindowManager()->playSound(ESM::RefId::stringRefId("Enchant Fail"));
         }
 
