@@ -11,6 +11,7 @@
     Include additional headers for multiplayer purposes
 */
 #include "../mwmp/MechanicsHelper.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 /*
     End of tes3mp addition
 */
@@ -105,120 +106,6 @@ namespace MWRender
 
     void WeaponAnimation::detachArrow(MWWorld::Ptr actor)
     {
-    /*
-        Start of tes3mp addition
-
-        If this is an attack by a LocalPlayer or LocalActor, record its attackStrength and
-        rangedWeaponId and prepare an attack packet for sending.
-
-        Unlike melee attacks, ranged attacks require the weapon and ammo IDs to be recorded
-        because players and actors can have multiple projectiles in the air at the same time.
-
-        If it's an attack by a DedicatedPlayer or DedicatedActor, apply the attackStrength
-        from their latest attack packet.
-    */
-    mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(actor);
-
-    if (localAttack)
-    {
-        localAttack->attackStrength = attackStrength;
-        localAttack->rangedWeaponId = weapon->getCellRef().getRefId();
-        localAttack->shouldSend = true;
-    }
-    else
-    {
-        mwmp::Attack *dedicatedAttack = MechanicsHelper::getDedicatedAttack(actor);
-
-        if (dedicatedAttack)
-            attackStrength = dedicatedAttack->attackStrength;
-    }
-    /*
-        End of tes3mp addition
-    */
-        /*
-            Start of tes3mp addition
-
-            If this is a local attack, clear the rangedAmmoId used for it
-        */
-        if (localAttack)
-            localAttack->rangedAmmoId = "";
-        /*
-            End of tes3mp addition
-        */
-        /*
-            Start of tes3mp addition
-
-            If the actor shooting this is a LocalPlayer or LocalActor, track their projectile origin so it can be sent
-            in the next PlayerAttack or ActorAttack packet
-
-            Otherwise, set the projectileOrigin for a DedicatedPlayer or DedicatedActor
-        */
-        if (localAttack)
-        {
-            localAttack->projectileOrigin.origin[0] = launchPos.x();
-            localAttack->projectileOrigin.origin[1] = launchPos.y();
-            localAttack->projectileOrigin.origin[2] = launchPos.z();
-            localAttack->projectileOrigin.orientation[0] = orient.x();
-            localAttack->projectileOrigin.orientation[1] = orient.y();
-            localAttack->projectileOrigin.orientation[2] = orient.z();
-            localAttack->projectileOrigin.orientation[3] = orient.w();
-        }
-        else
-        {
-            mwmp::Attack* dedicatedAttack = MechanicsHelper::getDedicatedAttack(actor);
-
-            if (dedicatedAttack)
-            {
-                launchPos = osg::Vec3f(dedicatedAttack->projectileOrigin.origin[0], dedicatedAttack->projectileOrigin.origin[1], dedicatedAttack->projectileOrigin.origin[2]);
-                orient = osg::Quat(dedicatedAttack->projectileOrigin.orientation[0], dedicatedAttack->projectileOrigin.orientation[1], dedicatedAttack->projectileOrigin.orientation[2],
-                    dedicatedAttack->projectileOrigin.orientation[3]);
-            }
-        }
-        /*
-            End of tes3mp addition
-        */
-        /*
-            Start of tes3mp addition
-
-            If this is a local attack, record the rangedAmmoId used for it
-        */
-        if (localAttack)
-            localAttack->rangedAmmoId = ammo->getCellRef().getRefId();
-        /*
-            End of tes3mp addition
-        */
-        /*
-            Start of tes3mp addition
-
-            If the actor shooting this is a LocalPlayer or LocalActor, track their projectile origin so it can be sent
-            in the next PlayerAttack or ActorAttack packet
-
-            Otherwise, set the projectileOrigin for a DedicatedPlayer or DedicatedActor
-        */
-        if (localAttack)
-        {
-            localAttack->projectileOrigin.origin[0] = launchPos.x();
-            localAttack->projectileOrigin.origin[1] = launchPos.y();
-            localAttack->projectileOrigin.origin[2] = launchPos.z();
-            localAttack->projectileOrigin.orientation[0] = orient.x();
-            localAttack->projectileOrigin.orientation[1] = orient.y();
-            localAttack->projectileOrigin.orientation[2] = orient.z();
-            localAttack->projectileOrigin.orientation[3] = orient.w();
-        }
-        else
-        {
-            mwmp::Attack* dedicatedAttack = MechanicsHelper::getDedicatedAttack(actor);
-
-            if (dedicatedAttack)
-            {
-                launchPos = osg::Vec3f(dedicatedAttack->projectileOrigin.origin[0], dedicatedAttack->projectileOrigin.origin[1], dedicatedAttack->projectileOrigin.origin[2]);
-                orient = osg::Quat(dedicatedAttack->projectileOrigin.orientation[0], dedicatedAttack->projectileOrigin.orientation[1], dedicatedAttack->projectileOrigin.orientation[2],
-                    dedicatedAttack->projectileOrigin.orientation[3]);
-            }
-        }
-        /*
-            End of tes3mp addition
-        */
         mAmmunition.reset();
     }
 
@@ -230,6 +117,41 @@ namespace MWRender
             return;
         if (weapon->getType() != ESM::Weapon::sRecordId)
             return;
+
+        /*
+            Start of tes3mp addition
+
+            If this is an attack by a LocalPlayer or LocalActor, record its attackStrength and
+            rangedWeaponId and prepare an attack packet for sending.
+
+            Unlike melee attacks, ranged attacks require the weapon and ammo IDs to be recorded
+            because players and actors can have multiple projectiles in the air at the same time.
+
+            If it's an attack by a DedicatedPlayer or DedicatedActor, apply the attackStrength
+            from their latest attack packet.
+
+            The merge put this block, and the three that follow it, inside detachArrow() --
+            where attackStrength, weapon, launchPos and orient are all out of scope -- and
+            duplicated the projectile-origin one. Restored to the layout 0.8.1 has.
+        */
+        mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(actor);
+
+        if (localAttack)
+        {
+            localAttack->attackStrength = attackStrength;
+            localAttack->rangedWeaponId = mwmp::RefIdCompat::toWire(weapon->getCellRef().getRefId());
+            localAttack->shouldSend = true;
+        }
+        else
+        {
+            mwmp::Attack *dedicatedAttack = MechanicsHelper::getDedicatedAttack(actor);
+
+            if (dedicatedAttack)
+                attackStrength = dedicatedAttack->attackStrength;
+        }
+        /*
+            End of tes3mp addition
+        */
 
         // The orientation of the launched projectile. Always the same as the actor orientation, even if the ArrowBone's
         // orientation dictates otherwise.
@@ -244,6 +166,17 @@ namespace MWRender
         if (MWMechanics::getWeaponType(weapon->get<ESM::Weapon>()->mBase->mData.mType)->mWeaponClass
             == ESM::WeaponType::Thrown)
         {
+            /*
+                Start of tes3mp addition
+
+                If this is a local attack, clear the rangedAmmoId used for it
+            */
+            if (localAttack)
+                localAttack->rangedAmmoId = "";
+            /*
+                End of tes3mp addition
+            */
+
             // Thrown weapons get detached now
             osg::Node* weaponNode = getWeaponNode();
             if (!weaponNode)
@@ -252,6 +185,39 @@ namespace MWRender
             if (nodepaths.empty())
                 return;
             osg::Vec3f launchPos = osg::computeLocalToWorld(nodepaths[0]).getTrans();
+
+            /*
+                Start of tes3mp addition
+
+                If the actor shooting this is a LocalPlayer or LocalActor, track their projectile origin so it can be sent
+                in the next PlayerAttack or ActorAttack packet
+
+                Otherwise, set the projectileOrigin for a DedicatedPlayer or DedicatedActor
+            */
+            if (localAttack)
+            {
+                localAttack->projectileOrigin.origin[0] = launchPos.x();
+                localAttack->projectileOrigin.origin[1] = launchPos.y();
+                localAttack->projectileOrigin.origin[2] = launchPos.z();
+                localAttack->projectileOrigin.orientation[0] = orient.x();
+                localAttack->projectileOrigin.orientation[1] = orient.y();
+                localAttack->projectileOrigin.orientation[2] = orient.z();
+                localAttack->projectileOrigin.orientation[3] = orient.w();
+            }
+            else
+            {
+                mwmp::Attack* dedicatedAttack = MechanicsHelper::getDedicatedAttack(actor);
+
+                if (dedicatedAttack)
+                {
+                    launchPos = osg::Vec3f(dedicatedAttack->projectileOrigin.origin[0], dedicatedAttack->projectileOrigin.origin[1], dedicatedAttack->projectileOrigin.origin[2]);
+                    orient = osg::Quat(dedicatedAttack->projectileOrigin.orientation[0], dedicatedAttack->projectileOrigin.orientation[1], dedicatedAttack->projectileOrigin.orientation[2],
+                        dedicatedAttack->projectileOrigin.orientation[3]);
+                }
+            }
+            /*
+                End of tes3mp addition
+            */
 
             float fThrownWeaponMinSpeed = gmst.find("fThrownWeaponMinSpeed")->mValue.getFloat();
             float fThrownWeaponMaxSpeed = gmst.find("fThrownWeaponMaxSpeed")->mValue.getFloat();
