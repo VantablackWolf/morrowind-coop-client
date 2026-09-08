@@ -71,7 +71,7 @@ DedicatedPlayer *PlayerList::getPlayer(const MWWorld::Ptr &ptr)
         if (playerEntry.second == nullptr || playerEntry.second->getPtr().mRef == nullptr)
             continue;
         
-        std::string refId = ptr.getCellRef().getRefId();
+        const ESM::RefId& refId = ptr.getCellRef().getRefId();
         
         if (playerEntry.second->getPtr().getCellRef().getRefId() == refId)
             return playerEntry.second;
@@ -80,17 +80,23 @@ DedicatedPlayer *PlayerList::getPlayer(const MWWorld::Ptr &ptr)
     return nullptr;
 }
 
-DedicatedPlayer* PlayerList::getPlayer(int actorId)
+/*
+    0.51 replaced the integer actor id with ESM::RefNum, which every reference already
+    carries, so the lookup is now against the cell ref rather than against creature stats.
+*/
+DedicatedPlayer* PlayerList::getPlayer(ESM::RefNum actorRefNum)
 {
+    if (!actorRefNum.isSet())
+        return nullptr;
+
     for (auto& playerEntry : playerList)
     {
         if (playerEntry.second == nullptr || playerEntry.second->getPtr().mRef == nullptr)
             continue;
 
         MWWorld::Ptr playerPtr = playerEntry.second->getPtr();
-        int playerActorId = playerPtr.getClass().getCreatureStats(playerPtr).getActorId();
 
-        if (actorId == playerActorId)
+        if (playerPtr.getCellRef().getRefNum() == actorRefNum)
             return playerEntry.second;
     }
 
@@ -142,13 +148,19 @@ void PlayerList::enableMarkers(const ESM::Cell& cell)
 }
 
 /*
-    Go through all DedicatedPlayers checking if their mHitAttemptActorId matches this one
-    and set it to -1 if it does
+    Go through all DedicatedPlayers checking if their hit attempt actor matches this one
+    and clear it if it does
 
     This resets the combat target for a DedicatedPlayer's followers in Actors::update()
+
+    0.51 spells the identity as ESM::RefNum and the cleared value as a default-constructed
+    (unset) one, where 0.8.1 used an int and -1.
 */
-void PlayerList::clearHitAttemptActorId(int actorId)
+void PlayerList::clearHitAttemptActor(ESM::RefNum actorRefNum)
 {
+    if (!actorRefNum.isSet())
+        return;
+
     for (auto &playerEntry : playerList)
     {
         if (playerEntry.second == nullptr || playerEntry.second->getPtr().mRef == nullptr)
@@ -156,7 +168,7 @@ void PlayerList::clearHitAttemptActorId(int actorId)
 
         MWMechanics::CreatureStats &playerCreatureStats = playerEntry.second->getPtr().getClass().getCreatureStats(playerEntry.second->getPtr());
 
-        if (playerCreatureStats.getHitAttemptActorId() == actorId)
-            playerCreatureStats.setHitAttemptActorId(-1);
+        if (playerCreatureStats.getHitAttemptActor() == actorRefNum)
+            playerCreatureStats.setHitAttemptActor({});
     }
 }

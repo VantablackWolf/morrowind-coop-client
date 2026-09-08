@@ -256,7 +256,6 @@ namespace MWMechanics
         std::string_view getWeaponShortGroup(int weaponType) const;
 
         bool getAttackingOrSpell() const;
-        void setAttackingOrSpell(bool attackingOrSpell) const;
 
         std::string_view getDesiredAttackType() const;
 
@@ -326,6 +325,18 @@ namespace MWMechanics
         bool isRunning() const;
         bool isTurning() const;
         bool isAttackingOrSpell() const;
+
+        /*
+            Start of tes3mp change (minor)
+
+            Moved from the private section: Actors::setAttackingOrSpell() drives this from
+            network packets, so a remote player's attack animation plays on this client.
+            0.51 made it private when it stopped having any external caller upstream.
+        */
+        void setAttackingOrSpell(bool attackingOrSpell) const;
+        /*
+            End of tes3mp change (minor)
+        */
 
         void setVisibility(float visibility) const;
         void castSpell(const ESM::RefId& spellId, bool scriptedSpell = false);

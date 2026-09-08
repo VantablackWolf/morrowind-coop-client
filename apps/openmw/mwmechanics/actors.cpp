@@ -24,6 +24,8 @@
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/PlayerList.hpp"
+#include "../mwmp/ProcessingRange.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 #include "../mwmp/DedicatedPlayer.hpp"
 #include "../mwmp/CellController.hpp"
 #include "../mwmp/MechanicsHelper.hpp"
@@ -225,7 +227,26 @@ namespace
 
                 // Set the soul on just one of the gems, not the whole stack
                 gem->getContainerStore()->unstack(*gem);
+
+                /*
+                    Start of tes3mp change (minor)
+
+                    Send PlayerInventory packets that replace the original gem with the new one
+
+                    The merge stranded this block in the head-tracking code, where neither
+                    the gem nor the creature is in scope; it belongs here, around the
+                    setSoul() call it brackets. 0.51 renamed the creature parameter from
+                    mCreature to creature and dropped unstack()'s actor argument.
+                */
+                mwmp::LocalPlayer *localPlayer = mwmp::Main::get().getLocalPlayer();
+                localPlayer->sendItemChange(*gem, 1, mwmp::InventoryChanges::REMOVE);
+
                 gem->getCellRef().setSoul(creature.getCellRef().getRefId());
+
+                localPlayer->sendItemChange(*gem, 1, mwmp::InventoryChanges::ADD);
+                /*
+                    End of tes3mp change (minor)
+                */
 
                 // Restack the gem with other gems with the same soul
                 gem->getContainerStore()->restack(*gem);
@@ -373,20 +394,6 @@ namespace MWMechanics
                 }
             }
 
-            /*
-                Start of tes3mp change (minor)
-
-                Send PlayerInventory packets that replace the original gem with the new one
-            */
-            mwmp::LocalPlayer *localPlayer = mwmp::Main::get().getLocalPlayer();
-            localPlayer->sendItemChange(*gem, 1, mwmp::InventoryChanges::REMOVE);
-
-            gem->getCellRef().setSoul(mCreature.getCellRef().getRefId());
-
-            localPlayer->sendItemChange(*gem, 1, mwmp::InventoryChanges::ADD);
-            /*
-                End of tes3mp change (minor)
-            */
             ctrl.setHeadTrackTarget(headTrackTarget);
         }
 
@@ -876,13 +883,14 @@ namespace MWMechanics
                         */
                         mwmp::Target killer = MechanicsHelper::getTarget(caster);
 
-                        if (ptr == MWMechanics::getPlayer())
+                        // 0.51 names this function's actor parameter "creature", not "ptr".
+                        if (creature == MWMechanics::getPlayer())
                         {
                             mwmp::Main::get().getLocalPlayer()->killer = killer;
                         }
-                        else if (mwmp::Main::get().getCellController()->isLocalActor(ptr))
+                        else if (mwmp::Main::get().getCellController()->isLocalActor(creature))
                         {
-                            mwmp::Main::get().getCellController()->getLocalActor(ptr)->killer = killer;
+                            mwmp::Main::get().getCellController()->getLocalActor(creature)->killer = killer;
                         }
                         /*
                             End of tes3mp addition
@@ -1281,36 +1289,41 @@ namespace MWMechanics
                 creatureStats.setAlarmed(false);
                 creatureStats.setAiSetting(AiSetting::Fight, ptr.getClass().getBaseFightRating(ptr));
 
-                /*
-                    Start of tes3mp addition
-
-                    If the player has died since their crime was committed, stop combat
-                    with them as though they have paid their bounty
-                */
-                else if (mwmp::Main::get().getLocalPlayer()->diedSinceArrestAttempt && creatureStats.getAiSequence().isInCombat(player))
-                {
-                    if (difftime(mwmp::Main::get().getLocalPlayer()->deathTime, npcStats.getCrimeTime()) > 0)
-                    {
-                        creatureStats.getAiSequence().stopCombat();
-                        creatureStats.setAttacked(false);
-                        creatureStats.setAlarmed(false);
-                        creatureStats.setAiSetting(CreatureStats::AI_Fight, ptr.getClass().getBaseFightRating(ptr));
-
-                        npcStats.setCrimeId(-1);
-                        npcStats.setCrimeTime(time(0));
-                        LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "NPC %s %i-%i has forgiven player's crimes after the player's death",
-                            ptr.getCellRef().getRefId().getRefIdString().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
-                    }
-                }
-                /*
-                    End of tes3mp addition
-                */
                 // Restore original disposition
                 npcStats.setCrimeDispositionModifier(0);
 
                 // Update witness crime id
                 npcStats.setCrimeId(-1);
             }
+            /*
+                Start of tes3mp addition
+
+                If the player has died since their crime was committed, stop combat
+                with them as though they have paid their bounty
+
+                The merge placed this else-if INSIDE the preceding if's body, where it does
+                not parse. It is an alternative to "you have paid for your crimes", not a
+                continuation of it. 0.51 renamed CreatureStats::AI_Fight to
+                AiSetting::Fight and RefId no longer converts to a C string implicitly.
+            */
+            else if (mwmp::Main::get().getLocalPlayer()->diedSinceArrestAttempt && creatureStats.getAiSequence().isInCombat(player))
+            {
+                if (difftime(mwmp::Main::get().getLocalPlayer()->deathTime, npcStats.getCrimeTime()) > 0)
+                {
+                    creatureStats.getAiSequence().stopCombat();
+                    creatureStats.setAttacked(false);
+                    creatureStats.setAlarmed(false);
+                    creatureStats.setAiSetting(AiSetting::Fight, ptr.getClass().getBaseFightRating(ptr));
+
+                    npcStats.setCrimeId(-1);
+                    npcStats.setCrimeTime(time(0));
+                    LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "NPC %s %i-%i has forgiven player's crimes after the player's death",
+                        ptr.getCellRef().getRefId().getRefIdString().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
+                }
+            }
+            /*
+                End of tes3mp addition
+            */
         }
     }
 
@@ -1702,9 +1715,20 @@ namespace MWMechanics
                     sent to the server, so combat will not synchronise.
                 */
 
+                /*
+                    Two tes3mp modifications to this block were stranded by the merge and are
+                    restored here: skipping DedicatedPlayers, who are driven by their owning
+                    client and must not have their combat target cleared locally, and clearing
+                    the target on every OTHER DedicatedPlayer so their followers disengage.
+
+                    0.51 identifies the hit-attempt actor by ESM::RefNum rather than by an
+                    integer actor id, and clears it with a default-constructed (unset) one
+                    rather than -1.
+                */
+
                 // If dead or no longer in combat, no longer store any actors who attempted to hit us. Also remove for
                 // the player.
-                if (!isPlayer
+                if (!isPlayer && !mwmp::PlayerList::isDedicatedPlayer(actor.getPtr())
                     && (actor.getPtr().getClass().getCreatureStats(actor.getPtr()).isDead()
                         || !actor.getPtr().getClass().getCreatureStats(actor.getPtr()).getAiSequence().isInCombat()
                         || !inProcessingRange))
@@ -1713,6 +1737,8 @@ namespace MWMechanics
                     ESM::RefNum playerHitNum = player.getClass().getCreatureStats(player).getHitAttemptActor();
                     if (playerHitNum.isSet() && playerHitNum == actor.getPtr().getCellRef().getRefNum())
                         player.getClass().getCreatureStats(player).setHitAttemptActor({});
+
+                    mwmp::PlayerList::clearHitAttemptActor(actor.getPtr().getCellRef().getRefNum());
                 }
                 /*
                     End of tes3mp change (major)
@@ -1754,8 +1780,9 @@ namespace MWMechanics
 
                         Allow AI processing for LocalActors and partially for DedicatedActors
                     */
-                    bool isLocalActor = mwmp::Main::get().getCellController()->isLocalActor(actor);
-                    bool isDedicatedActor = mwmp::Main::get().getCellController()->isDedicatedActor(actor);
+                    // 0.51's loop variable is an Actor wrapper, not the Ptr itself.
+                    bool isLocalActor = mwmp::Main::get().getCellController()->isLocalActor(actor.getPtr());
+                    bool isDedicatedActor = mwmp::Main::get().getCellController()->isDedicatedActor(actor.getPtr());
 
                     if (inProcessingRange && (aiActive || isLocalActor || isDedicatedActor))
                     {
@@ -2266,7 +2293,8 @@ namespace MWMechanics
     */
     void Actors::setDeaths(const std::string& refId, int number)
     {
-        mDeathCount[refId] = number;
+        // The refId arrives from the server as a plain string; 0.51 keys deaths by RefId.
+        mDeathCount[mwmp::RefIdCompat::fromWireCreate(refId)] = number;
     }
     /*
         End of tes3mp addition
@@ -2401,22 +2429,24 @@ namespace MWMechanics
                 Alternatively, if we're checking a DedicatedPlayer and the iteratedActor is a LocalPlayer or DedicatedPlayer
                 belonging to their alliedPlayers, include the iteratedActor in the actors siding with them
             */
-            if (actor == getPlayer() && mwmp::PlayerList::isDedicatedPlayer(iteratedActor))
+            // 0.51 reuses the name "actor" for the loop's Actor wrapper; the subject of
+            // the check is actorPtr.
+            if (actorPtr == getPlayer() && mwmp::PlayerList::isDedicatedPlayer(iteratedActor))
             {
                 if (Utils::vectorContains(mwmp::Main::get().getLocalPlayer()->alliedPlayers, mwmp::PlayerList::getPlayer(iteratedActor)->guid))
                 {
                     list.push_back(iteratedActor);
                 }
             }
-            else if (mwmp::PlayerList::isDedicatedPlayer(actor))
+            else if (mwmp::PlayerList::isDedicatedPlayer(actorPtr))
             {
                 if (iteratedActor == getPlayer() &&
-                    Utils::vectorContains(mwmp::PlayerList::getPlayer(actor)->alliedPlayers, mwmp::Main::get().getLocalPlayer()->guid))
+                    Utils::vectorContains(mwmp::PlayerList::getPlayer(actorPtr)->alliedPlayers, mwmp::Main::get().getLocalPlayer()->guid))
                 {
                     list.push_back(iteratedActor);
                 }
                 else if (mwmp::PlayerList::isDedicatedPlayer(iteratedActor) &&
-                    Utils::vectorContains(mwmp::PlayerList::getPlayer(actor)->alliedPlayers, mwmp::PlayerList::getPlayer(iteratedActor)->guid))
+                    Utils::vectorContains(mwmp::PlayerList::getPlayer(actorPtr)->alliedPlayers, mwmp::PlayerList::getPlayer(iteratedActor)->guid))
                 {
                     list.push_back(iteratedActor);
                 }
@@ -2650,12 +2680,16 @@ namespace MWMechanics
     */
     void Actors::setAttackingOrSpell(const MWWorld::Ptr& ptr, bool state) const
     {
-        PtrActorMap::const_iterator it = mActors.find(ptr);
-        if (it == mActors.end())
+        /*
+            0.51 replaced the PtrActorMap keyed by Ptr with mIndex keyed by the underlying
+            LiveCellRefBase, and getCharacterController() returns a reference rather than a
+            pointer. Same lookup, spelled the way the neighbouring accessors here spell it.
+        */
+        const auto it = mIndex.find(ptr.mRef);
+        if (it == mIndex.end())
             return;
-        CharacterController* ctrl = it->second->getCharacterController();
 
-        ctrl->setAttackingOrSpell(state);
+        it->second->getCharacterController().setAttackingOrSpell(state);
     }
     /*
         End of tes3mp addition

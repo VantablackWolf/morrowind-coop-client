@@ -34,14 +34,26 @@ namespace mwmp
 
         static DedicatedPlayer *getPlayer(RakNet::RakNetGUID guid);
         static DedicatedPlayer *getPlayer(const MWWorld::Ptr &ptr);
-        static DedicatedPlayer* getPlayer(int actorId);
+        /*
+            0.8.1 called this from a hook inside World::searchPtrViaActorId, because that
+            function walked active cells and DedicatedPlayers were not findable there.
+
+            0.51 removed searchPtrViaActorId entirely: WorldModel keeps a PtrRegistry keyed
+            by ESM::RefNum, every reference is entered into it by registerPtr(), and
+            DedicatedPlayer creates its Ptr through placeObject() -- so
+            WorldModel::getPtr(refNum) already finds dedicated players and the hook is
+            superseded rather than lost. This is kept because it is still the right way for
+            mwmp code to ask "is this RefNum a dedicated player", which the registry cannot
+            answer.
+        */
+        static DedicatedPlayer* getPlayer(ESM::RefNum actorRefNum);
         static std::vector<RakNet::RakNetGUID> getPlayersInCell(const ESM::Cell& cell);
 
         static bool isDedicatedPlayer(const MWWorld::Ptr &ptr);
 
         static void enableMarkers(const ESM::Cell& cell);
 
-        static void clearHitAttemptActorId(int actorId);
+        static void clearHitAttemptActor(ESM::RefNum actorRefNum);
 
     private:
 
