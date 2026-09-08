@@ -14,6 +14,7 @@
 #include "../mwmp/ObjectList.hpp"
 #include "../mwmp/CellController.hpp"
 #include "../mwmp/ScriptController.hpp"
+#include "../mwmp/RecordConvertPlayer.hpp"
 /*
     End of tes3mp addition
 */
@@ -479,47 +480,6 @@ namespace MWScript
                     {
                         Log(Debug::Error) << error;
                         return;
-                        /*
-                            Start of tes3mp addition
-
-                            Track the original cell of this object in case we need to use it when sending a packet
-                        */
-                        ESM::Cell originalCell = *ptr.getCell()->getCell();
-                        /*
-                            End of tes3mp addition
-                        */
-                        /*
-                            Start of tes3mp addition
-
-                            Send ActorCellChange packets when actors are moved here, regardless of whether we're
-                            the cell authority or not; the server can decide if it wants to comply with them
-                        */
-                        if (ptr.getClass().isActor() && !mwmp::Main::get().getCellController()->isSameCell(originalCell, *store->getCell()))
-                        {
-                            mwmp::BaseActor baseActor;
-                            baseActor.refNum = ptr.getCellRef().getRefNum().mIndex;
-                            baseActor.mpNum = ptr.getCellRef().getMpNum();
-                            baseActor.cell = *store->getCell();
-                            baseActor.position = ptr.getRefData().getPosition();
-                            baseActor.isFollowerCellChange = true;
-
-                            mwmp::ActorList* actorList = mwmp::Main::get().getNetworking()->getActorList();
-                            actorList->reset();
-                            actorList->cell = originalCell;
-
-                            LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Sending ID_ACTOR_CELL_CHANGE about %s %i-%i to server",
-                                ptr.getCellRef().getRefId().getRefIdString().c_str(), baseActor.refNum, baseActor.mpNum);
-
-                            LOG_APPEND(TimedLog::LOG_INFO, "- Moved from %s to %s",
-                                actorList->cell.getShortDescription().c_str(),
-                                baseActor.cell.getShortDescription().c_str());
-
-                            actorList->addCellChangeActor(baseActor);
-                            actorList->sendCellChangeActors();
-                        }
-                        /*
-                            End of tes3mp addition
-                        */
                     }
                     Log(Debug::Warning) << error;
                     const ESM::ExteriorCellLocation cellIndex
@@ -527,8 +487,58 @@ namespace MWScript
                     store = &worldModel->getExterior(cellIndex);
                 }
 
+                /*
+                    Start of tes3mp addition
+
+                    Track the original cell of this object in case we need to use it when sending a packet
+
+                    The merge put this block, and the ActorCellChange packet that uses it,
+                    AFTER a return in the "cell not found" branch -- unreachable, and reading
+                    a cell that had not been resolved yet. It belongs where 0.8.1 has it:
+                    after the destination store is known and before the move.
+                */
+                const mwmp::records::Cell originalCell
+                    = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
+                /*
+                    End of tes3mp addition
+                */
+
                 MWWorld::Ptr base = ptr;
                 ptr = world->moveObject(ptr, store, osg::Vec3f(x, y, z));
+
+                /*
+                    Start of tes3mp addition
+
+                    Send ActorCellChange packets when actors are moved here, regardless of whether we're
+                    the cell authority or not; the server can decide if it wants to comply with them
+                */
+                if (ptr.getClass().isActor()
+                    && !mwmp::Main::get().getCellController()->isSameCell(originalCell, *store->getCell()))
+                {
+                    mwmp::BaseActor baseActor;
+                    baseActor.refNum = ptr.getCellRef().getRefNum().mIndex;
+                    baseActor.mpNum = ptr.getCellRef().getMpNum();
+                    baseActor.cell = mwmp::RecordConvert::toMirror(*store->getCell());
+                    baseActor.position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
+                    baseActor.isFollowerCellChange = true;
+
+                    mwmp::ActorList* actorList = mwmp::Main::get().getNetworking()->getActorList();
+                    actorList->reset();
+                    actorList->cell = originalCell;
+
+                    LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Sending ID_ACTOR_CELL_CHANGE about %s %i-%i to server",
+                        ptr.getCellRef().getRefId().getRefIdString().c_str(), baseActor.refNum, baseActor.mpNum);
+
+                    LOG_APPEND(TimedLog::LOG_INFO, "- Moved from %s to %s",
+                        actorList->cell.getShortDescription().c_str(),
+                        baseActor.cell.getShortDescription().c_str());
+
+                    actorList->addCellChangeActor(baseActor);
+                    actorList->sendCellChangeActors();
+                }
+                /*
+                    End of tes3mp addition
+                */
                 dynamic_cast<MWScript::InterpreterContext&>(runtime.getContext()).updatePtr(base, ptr);
 
                 auto rot = ptr.getRefData().getPosition().asRotationVec3();
