@@ -14,6 +14,7 @@
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/PlayerList.hpp"
 #include "../mwmp/ObjectList.hpp"
+#include "../mwmp/RecordConvertPlayer.hpp"
 #include "../mwmp/ScriptController.hpp"
 #include <components/interpreter/context.hpp>
 /*
@@ -207,7 +208,7 @@ namespace MWScript
                     objectList->reset();
                     objectList->packetOrigin = packetOrigin;
                     objectList->originClientScript = runtime.getContext().getCurrentScriptName();
-                    objectList->cell = *ptr.getCell()->getCell();
+                    objectList->cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
                     objectList->action = mwmp::BaseObjectList::ADD;
                     objectList->containerSubAction = mwmp::BaseObjectList::NONE;
                     mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(ptr);
@@ -371,47 +372,6 @@ namespace MWScript
                         msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage63}");
                         msgBox = ::Misc::StringUtils::format(msgBox, numRemoved, itemName);
                     }
-                    /*
-                        Start of tes3mp addition
-
-                        Send an ID_CONTAINER packet every time an item is removed from a Ptr
-                        that doesn't belong to a DedicatedPlayer
-                    */
-                    else if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() &&
-                        (!ptr.getClass().isActor() || !mwmp::PlayerList::isDedicatedPlayer(ptr)))
-                    {
-                        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-                        objectList->reset();
-                        objectList->packetOrigin = packetOrigin;
-                        objectList->originClientScript = runtime.getContext().getCurrentScriptName();
-                        objectList->cell = *ptr.getCell()->getCell();
-                        objectList->action = mwmp::BaseObjectList::REMOVE;
-                        objectList->containerSubAction = mwmp::BaseObjectList::NONE;
-
-                        mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(ptr);
-                        objectList->addContainerItem(baseObject, item, 0, count);
-                        objectList->addBaseObject(baseObject);
-                        objectList->sendContainer();
-                    }
-                    /*
-                        End of tes3mp addition
-                    */
-                }
-
-                int numRemoved = store.remove(item, count);
-
-                // Spawn a messagebox (only for items removed from player's inventory)
-                if ((numRemoved > 0) && (ptr == MWMechanics::getPlayer()))
-                {
-                    // The two GMST entries below expand to strings informing the player of what, and how many of it has
-                    // been removed from their inventory
-                    std::string msgBox;
-
-                    if (numRemoved > 1)
-                    {
-                        msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage63}");
-                        msgBox = ::Misc::StringUtils::format(msgBox, numRemoved, itemName);
-                    }
                     else
                     {
                         msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage62}");
@@ -419,6 +379,35 @@ namespace MWScript
                     }
                     MWBase::Environment::get().getWindowManager()->messageBox(msgBox, MWGui::ShowInDialogueMode_Only);
                 }
+                /*
+                    Start of tes3mp addition
+
+                    Send an ID_CONTAINER packet every time an item is removed from a Ptr
+                    that doesn't belong to a DedicatedPlayer
+
+                    This is an alternative to the messagebox branch above, not to the
+                    "one item or several" branch inside it -- the merge nested it one level
+                    too deep, and left a second unconditional store.remove() below.
+                */
+                else if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() &&
+                    (!ptr.getClass().isActor() || !mwmp::PlayerList::isDedicatedPlayer(ptr)))
+                {
+                    mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                    objectList->reset();
+                    objectList->packetOrigin = packetOrigin;
+                    objectList->originClientScript = runtime.getContext().getCurrentScriptName();
+                    objectList->cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
+                    objectList->action = mwmp::BaseObjectList::REMOVE;
+                    objectList->containerSubAction = mwmp::BaseObjectList::NONE;
+
+                    mwmp::BaseObject baseObject = objectList->getBaseObjectFromPtr(ptr);
+                    objectList->addContainerItem(baseObject, item, 0, count);
+                    objectList->addBaseObject(baseObject);
+                    objectList->sendContainer();
+                }
+                /*
+                    End of tes3mp addition
+                */
             }
         };
 

@@ -46,16 +46,6 @@ namespace MWMechanics
         mTargetActor = actor;
     }
 
-    /*
-        Start of tes3mp addition
-
-        If this follow package is set to allow for any distance, skip the checks below
-    */
-    if (mIgnoreDistance)
-        mActive = true;
-    /*
-        End of tes3mp addition
-    */
     AiFollow::AiFollow(
         const ESM::RefId& actorId, std::string_view cellId, float duration, float x, float y, float z, bool repeat)
         : TypedAiPackage<AiFollow>(repeat)
@@ -126,6 +116,19 @@ namespace MWMechanics
 
             return false;
         }
+
+        /*
+            Start of tes3mp addition
+
+            If this follow package is set to allow for any distance, skip the checks below
+
+            The merge left this between two constructors, at namespace indentation.
+        */
+        if (mIgnoreDistance)
+            mActive = true;
+        /*
+            End of tes3mp addition
+        */
 
         const osg::Vec3f actorPos(actor.getRefData().getPosition().asVec3());
         const osg::Vec3f targetPos(target.getRefData().getPosition().asVec3());

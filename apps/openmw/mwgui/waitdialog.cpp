@@ -159,6 +159,18 @@ namespace MWGui
             mProgressBar.setVisible(false);
         }
 
+        /*
+            Start of tes3mp addition
+
+            The rest permission is needed by the checks below; 0.51 computes it inside
+            setPtr() rather than leaving it in scope here.
+        */
+        const bool canSleep
+            = (MWBase::Environment::get().getWorld()->canRest() & MWBase::World::Rest_CanSleep) != 0;
+        /*
+            End of tes3mp addition
+        */
+
         if (!MWBase::Environment::get().getWindowManager()->getRestEnabled())
         {
             MWBase::Environment::get().getWindowManager()->popGuiMode();
@@ -167,14 +179,19 @@ namespace MWGui
             Start of tes3mp addition
 
             Prevent resting and waiting if they have been disabled by the server for the local player
+
+            0.47's canRest() returned one of an enum -- Rest_Allowed meaning "you may sleep
+            here", Rest_OnlyWaiting meaning "you may only wait". 0.51 returns a bitmask of
+            RestFlags instead, in which Rest_CanSleep carries that distinction, so the two
+            equality tests become one flag test and its negation.
         */
-        else if (canRest == MWBase::World::Rest_Allowed && !mwmp::Main::get().getLocalPlayer()->wildernessRestAllowed &&
+        else if (canSleep && !mwmp::Main::get().getLocalPlayer()->wildernessRestAllowed &&
             !mwmp::Main::get().getLocalPlayer()->isUsingBed)
         {
             MWBase::Environment::get().getWindowManager()->messageBox("You are not allowed to rest without a bed.");
             MWBase::Environment::get().getWindowManager()->popGuiMode();
         }
-        else if (canRest == MWBase::World::Rest_OnlyWaiting && !mwmp::Main::get().getLocalPlayer()->waitAllowed &&
+        else if (!canSleep && !mwmp::Main::get().getLocalPlayer()->waitAllowed &&
             !mwmp::Main::get().getLocalPlayer()->isUsingBed)
         {
             MWBase::Environment::get().getWindowManager()->messageBox("You are not allowed to wait.");
