@@ -2701,29 +2701,6 @@ namespace MWWorld
     /*
         Start of tes3mp addition
 
-        Make it possible to check whether a cell is active
-    */
-    bool World::isCellActive(const ESM::Cell& cell)
-    {
-        const Scene::CellStoreCollection& activeCells = mWorldScene->getActiveCells();
-        mwmp::CellController *cellController = mwmp::Main::get().getCellController();
-
-        for (auto it = activeCells.begin(); it != activeCells.end(); ++it)
-        {
-            if (cellController->isSameCell(cell, *(*it)->getCell()))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    /*
-        End of tes3mp addition
-    */
-    /*
-        Start of tes3mp addition
-
         Make it possible to unload a cell from elsewhere
     */
     void World::unloadCell(const ESM::Cell& cell)

@@ -91,6 +91,21 @@ namespace mwmp
         // Mixed pairs occur where engine code compares a player's wire cell with a live one
         bool isSameCell(const mwmp::records::Cell& cell, const ESM::Cell& otherCell);
         bool isSameCell(const ESM::Cell& cell, const mwmp::records::Cell& otherCell);
+
+        /*
+            0.51 introduced MWWorld::Cell and made CellStore::getCell() return it, so most
+            live cells now reach these functions in that form rather than as ESM::Cell.
+        */
+        void initializeCell(const MWWorld::Cell& cell);
+        void uninitializeCell(const MWWorld::Cell& cell);
+        bool hasLocalAuthority(const MWWorld::Cell& cell);
+        bool isInitializedCell(const MWWorld::Cell& cell);
+        bool isActiveWorldCell(const MWWorld::Cell& cell);
+        Cell* getCell(const MWWorld::Cell& cell);
+        MWWorld::CellStore* getCellStore(const MWWorld::Cell& cell);
+        bool isSameCell(const MWWorld::Cell& cell, const MWWorld::Cell& otherCell);
+        bool isSameCell(const mwmp::records::Cell& cell, const MWWorld::Cell& otherCell);
+        bool isSameCell(const MWWorld::Cell& cell, const mwmp::records::Cell& otherCell);
         /*
             End of tes3mp change (major)
         */

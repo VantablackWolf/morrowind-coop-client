@@ -715,15 +715,6 @@ namespace MWWorld
             /*
                 Start of tes3mp addition
 
-                Make it possible to check whether a cell is active
-            */
-            bool isCellActive(const ESM::Cell& cell) override;
-            /*
-                End of tes3mp addition
-            */
-            /*
-                Start of tes3mp addition
-
                 Make it possible to unload a cell from elsewhere
             */
             void unloadCell(const ESM::Cell& cell) override;

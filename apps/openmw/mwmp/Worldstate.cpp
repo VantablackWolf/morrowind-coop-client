@@ -486,7 +486,7 @@ void Worldstate::resetCells(std::vector<ESM::Cell>* cells)
     {
         if (!haveUnloadedActiveCells)
         {
-            if (world->isCellActive(cell))
+            if (Main::get().getCellController()->isActiveWorldCell(cell))
             {
                 playersInCell = mwmp::PlayerList::getPlayersInCell(cell);
 

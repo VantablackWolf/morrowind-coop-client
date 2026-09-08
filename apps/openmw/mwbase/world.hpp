@@ -700,15 +700,6 @@ namespace MWBase
             /*
                 Start of tes3mp addition
 
-                Make it possible to check whether a cell is active
-            */
-            virtual bool isCellActive(const ESM::Cell& cell) = 0;
-            /*
-                End of tes3mp addition
-            */
-            /*
-                Start of tes3mp addition
-
                 Make it possible to unload a cell from elsewhere
             */
             virtual void unloadCell(const ESM::Cell& cell) = 0;

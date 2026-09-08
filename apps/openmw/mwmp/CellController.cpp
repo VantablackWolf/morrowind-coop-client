@@ -9,6 +9,11 @@
 #include "../mwworld/class.hpp"
 #include "../mwworld/worldimp.hpp"
 
+#include <components/esm/exteriorcelllocation.hpp>
+
+#include "../mwworld/worldmodel.hpp"
+#include "../mwworld/scene.hpp"
+
 #include "CellController.hpp"
 #include "RecordConvertPlayer.hpp"
 #include "Main.hpp"
@@ -40,7 +45,7 @@ void CellController::updateLocal(bool forceUpdate)
     {
         mwmp::Cell *mpCell = it->second;
 
-        if (mpCell->getCellStore() == nullptr || mpCell->getCellStore()->getCell() == nullptr || !world->isCellActive(*mpCell->getCellStore()->getCell()))
+        if (mpCell->getCellStore() == nullptr || mpCell->getCellStore()->getCell() == nullptr || !isActiveWorldCell(*mpCell->getCellStore()->getCell()))
         {
             mpCell->uninitializeLocalActors();
             mpCell->uninitializeDedicatedActors();
@@ -71,11 +76,22 @@ void CellController::updateLocal(bool forceUpdate)
             }
         }
     }
-    // Otherwise, disable the DetourNavigator for advanced pathfinding for the time being
-    else
-    {
-        world->getNavigator()->setUpdatesEnabled(false);
-    }
+    /*
+        Start of tes3mp change (major)
+
+        0.8.1 disabled the DetourNavigator here when no cells were initialized, as a
+        performance hint.
+
+        0.51 replaced Navigator::setUpdatesEnabled(bool) with a scoped update guard --
+        updates are batched under makeUpdateGuard() rather than globally switched off, and
+        there is no longer a way to express "stop updating". Nothing is lost in
+        correctness: with no initialized cells the navigator has nothing to update anyway.
+
+        Dropped deliberately rather than approximated.
+    */
+    /*
+        End of tes3mp change (major)
+    */
 }
 
 void CellController::updateDedicated(float dt)
@@ -416,10 +432,32 @@ bool CellController::isInitializedCell(const mwmp::records::Cell& cell)
     return isInitializedCell(cell.getShortDescription());
 }
 
+/*
+    Start of tes3mp change (major)
+
+    0.8.1 put this loop behind a World::isCellActive() hook on MWBase::World. It never
+    needed to live there: the body is entirely mwmp logic -- it compares cells with
+    CellController's own isSameCell -- and the only reason for the hook was that
+    Scene::getActiveCells() was not reachable from outside MWWorld. 0.51 exposes the
+    scene through Environment::getWorldScene(), so the hook is gone and the logic is
+    here, which is one fewer engine interface to re-apply on the next port.
+*/
 bool CellController::isActiveWorldCell(const mwmp::records::Cell& cell)
 {
-    return MWBase::Environment::get().getWorld()->isCellActive(cell);
+    const MWWorld::Scene::CellStoreCollection& activeCells
+        = MWBase::Environment::get().getWorldScene()->getActiveCells();
+
+    for (const MWWorld::CellStore* activeCell : activeCells)
+    {
+        if (isSameCell(cell, *activeCell->getCell()))
+            return true;
+    }
+
+    return false;
 }
+/*
+    End of tes3mp change (major)
+*/
 
 Cell *CellController::getCell(const mwmp::records::Cell& cell)
 {
@@ -430,18 +468,25 @@ MWWorld::CellStore *CellController::getCellStore(const mwmp::records::Cell& cell
 {
     MWWorld::CellStore *cellStore;
 
-    if (cell.isExterior())
-        cellStore = MWBase::Environment::get().getWorld()->getExterior(cell.mData.mX, cell.mData.mY);
-    else
+    /*
+        0.51 moved cell lookup off MWBase::World and onto WorldModel, and exteriors are
+        now addressed by ExteriorCellLocation -- grid position plus a worldspace, so that
+        ESM4 worldspaces can coexist with Morrowind's. The protocol only ever describes
+        cells in the Morrowind worldspace, so that is what is named here.
+    */
+    MWWorld::WorldModel* worldModel = MWBase::Environment::get().getWorldModel();
+
+    try
     {
-        try
-        {
-            cellStore = MWBase::Environment::get().getWorld()->getInterior(cell.mName);
-        }
-        catch (std::exception&)
-        {
-            cellStore = nullptr;
-        }
+        if (cell.isExterior())
+            cellStore = &worldModel->getExterior(
+                ESM::ExteriorCellLocation(cell.mData.mX, cell.mData.mY, ESM::Cell::sDefaultWorldspaceId));
+        else
+            cellStore = &worldModel->getInterior(cell.mName);
+    }
+    catch (std::exception&)
+    {
+        cellStore = nullptr;
     }
 
     return cellStore;
@@ -491,9 +536,13 @@ namespace
 {
     mwmp::records::Cell toMirror(const ESM::Cell& cell)
     {
-        mwmp::records::Cell mirror;
-        mwmp::RecordConvert::fromEngine(cell, mirror);
-        return mirror;
+        return mwmp::RecordConvert::toMirror(cell);
+    }
+
+    // 0.51's unified cell view; CellStore::getCell() hands this out now.
+    mwmp::records::Cell toMirror(const MWWorld::Cell& cell)
+    {
+        return mwmp::RecordConvert::toMirror(cell);
     }
 }
 
@@ -518,6 +567,29 @@ bool CellController::isSameCell(const mwmp::records::Cell& cell, const ESM::Cell
 }
 
 bool CellController::isSameCell(const ESM::Cell& cell, const mwmp::records::Cell& otherCell)
+{
+    return isSameCell(toMirror(cell), otherCell);
+}
+
+void CellController::initializeCell(const MWWorld::Cell& cell) { initializeCell(toMirror(cell)); }
+void CellController::uninitializeCell(const MWWorld::Cell& cell) { uninitializeCell(toMirror(cell)); }
+bool CellController::hasLocalAuthority(const MWWorld::Cell& cell) { return hasLocalAuthority(toMirror(cell)); }
+bool CellController::isInitializedCell(const MWWorld::Cell& cell) { return isInitializedCell(toMirror(cell)); }
+bool CellController::isActiveWorldCell(const MWWorld::Cell& cell) { return isActiveWorldCell(toMirror(cell)); }
+Cell* CellController::getCell(const MWWorld::Cell& cell) { return getCell(toMirror(cell)); }
+MWWorld::CellStore* CellController::getCellStore(const MWWorld::Cell& cell) { return getCellStore(toMirror(cell)); }
+
+bool CellController::isSameCell(const MWWorld::Cell& cell, const MWWorld::Cell& otherCell)
+{
+    return isSameCell(toMirror(cell), toMirror(otherCell));
+}
+
+bool CellController::isSameCell(const mwmp::records::Cell& cell, const MWWorld::Cell& otherCell)
+{
+    return isSameCell(cell, toMirror(otherCell));
+}
+
+bool CellController::isSameCell(const MWWorld::Cell& cell, const mwmp::records::Cell& otherCell)
 {
     return isSameCell(toMirror(cell), otherCell);
 }

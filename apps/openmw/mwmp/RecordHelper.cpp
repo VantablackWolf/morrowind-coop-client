@@ -382,7 +382,7 @@ void RecordHelper::overrideRecord(const mwmp::CellRecord& record)
     ESM::Cell playerCell = *playerPtr.getCell()->getCell();
     ESM::Position playerPos = playerPtr.getRefData().getPosition();
 
-    bool isActiveCell = world->isCellActive(recordData);
+    bool isActiveCell = mwmp::Main::get().getCellController()->isActiveWorldCell(recordData);
 
     if (isActiveCell)
     {
