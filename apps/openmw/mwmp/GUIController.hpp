@@ -1,6 +1,8 @@
 #ifndef OPENMW_GUICONTROLLER_HPP
 #define OPENMW_GUICONTROLLER_HPP
 
+#include <memory>
+
 #include <components/settings/settings.hpp>
 
 #include "apps/openmw/mwgui/mode.hpp"
@@ -73,8 +75,13 @@ namespace mwmp
         int keyChatMode;
 
         long id;
-        TextInputDialog *mInputBox;
-        GUIDialogList *mListBox;
+        /*
+            0.51's WindowManager::removeDialog takes ownership via unique_ptr, so these are
+            owning pointers now rather than raw ones. Same lifetime as before -- the window
+            manager destroys the dialog -- just expressed in the type.
+        */
+        std::unique_ptr<TextInputDialog> mInputBox;
+        std::unique_ptr<GUIDialogList> mListBox;
         void onInputBoxDone(MWGui::WindowBase* parWindow);
         //MyGUI::Widget *oldFocusWidget, *currentFocusWidget;
     };
