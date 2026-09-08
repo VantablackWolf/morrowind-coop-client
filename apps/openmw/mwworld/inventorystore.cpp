@@ -170,7 +170,8 @@ MWWorld::ContainerStoreIterator MWWorld::InventoryStore::add(
 
         Only fire inventory events for actors in loaded cells to avoid crashes
     */
-    if (mListener && MWBase::Environment::get().getWorld()->isCellActive(*actorPtr.getCell()->getCell()))
+    if (mListener && !actor.isEmpty() && actor.isInCell()
+        && mwmp::Main::get().getCellController()->isActiveWorldCell(*actor.getCell()->getCell()))
         mListener->itemAdded(*retVal, count);
     /*
         End of tes3mp change (major)
@@ -542,8 +543,14 @@ void MWWorld::InventoryStore::autoEquip()
 
         We need DedicatedPlayers and DedicatedActors to wear exactly what they're wearing on their
         authority client, so don't auto-equip for them
+
+        0.51 dropped the actor argument from these functions; the store knows its own
+        owner through ContainerStore::getPtr(), which is where the actor comes from now.
     */
-    if (mwmp::PlayerList::isDedicatedPlayer(actor) || mwmp::Main::get().getCellController()->isDedicatedActor(actor))
+    const MWWorld::Ptr& actor = getPtr();
+
+    if (!actor.isEmpty()
+        && (mwmp::PlayerList::isDedicatedPlayer(actor) || mwmp::Main::get().getCellController()->isDedicatedActor(actor)))
         return;
     /*
         End of tes3mp addition
@@ -645,7 +652,8 @@ int MWWorld::InventoryStore::remove(const Ptr& item, int count, bool equipReplac
 
         Only fire inventory events for actors in loaded cells to avoid crashes
     */
-    if (mListener && MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
+    if (mListener && !actor.isEmpty() && actor.isInCell()
+        && mwmp::Main::get().getCellController()->isActiveWorldCell(*actor.getCell()->getCell()))
         mListener->itemRemoved(item, retCount);
     /*
         End of tes3mp change (major)
@@ -756,9 +764,13 @@ void MWWorld::InventoryStore::fireEquipmentChangedEvent()
 
         Only fire inventory events for local players or for other actors in loaded cells to avoid crashes
     */
-    if (mInventoryListener)
+    const MWWorld::Ptr& actor = getPtr();
+
+    if (mInventoryListener && !actor.isEmpty())
     {
-        if (actor == MWMechanics::getPlayer() || MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
+        if (actor == MWMechanics::getPlayer()
+            || (actor.isInCell()
+                && mwmp::Main::get().getCellController()->isActiveWorldCell(*actor.getCell()->getCell())))
         {
             mInventoryListener->equipmentChanged();
         }

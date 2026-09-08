@@ -80,6 +80,7 @@ namespace MWGui
         if (mFadeTimeRemaining <= 0)
         {
             MWWorld::Ptr player = MWMechanics::getPlayer();
+
             /*
                 Start of tes3mp change (minor)
 
@@ -87,16 +88,14 @@ namespace MWGui
             */
             if (!mwmp::Main::get().getLocalPlayer()->ignoreJailTeleportation)
             {
-                MWBase::Environment::get().getWorld()->teleportToClosestMarker(player, "prisonmarker");
-                MWBase::Environment::get().getWindowManager()->fadeScreenOut(0.f); // override fade-in caused by cell transition
+                MWBase::Environment::get().getWorld()->teleportToClosestMarker(
+                    player, ESM::RefId::stringRefId("prisonmarker"));
+                MWBase::Environment::get().getWindowManager()->fadeScreenOut(
+                    0.f); // override fade-in caused by cell transition
             }
             /*
                 End of tes3mp change (minor)
             */
-            MWBase::Environment::get().getWorld()->teleportToClosestMarker(
-                player, ESM::RefId::stringRefId("prisonmarker"));
-            MWBase::Environment::get().getWindowManager()->fadeScreenOut(
-                0.f); // override fade-in caused by cell transition
 
             setVisible(true);
             mTimeAdvancer.run(100);
@@ -134,43 +133,42 @@ namespace MWGui
 
             Multiplayer requires that time not get advanced here
         */
-        //MWBase::Environment::get().getWorld()->advanceTime(mDays * 24);
+        // MWBase::Environment::get().getWorld()->advanceTime(mDays * 24);
         /*
             End of tes3mp change (major)
         */
 
         // We should not worsen corprus when in prison
-            /*
-                Start of tes3mp change (minor)
+        player.getClass().getCreatureStats(player).getActiveSpells().skipWorsenings(mDays * 24);
 
-                Disable increases for Security and Sneak when using ignoreJailSkillIncreases
-            */
-            if (localPlayer->ignoreJailSkillIncreases)
-                value.setBase(std::max(0.f, value.getBase()-1));
-            else if (skill == ESM::Skill::Security || skill == ESM::Skill::Sneak)
-            /*
-                End of tes3mp change (minor)
-            */
         /*
-            Start of tes3mp addition
+            Start of tes3mp change (major)
 
-            If we've received a packet overriding the default jail end text, use the new text
+            UNRESOLVED -- NEEDS A DECISION, NOT AN ADAPTATION.
+
+            0.8.1 had three hooks in the body of this function, around code that no longer
+            exists here:
+
+              - suppressing the Security and Sneak increases when ignoreJailSkillIncreases
+                is set (two hooks, one for each branch of the increase)
+              - replacing the jail end message with jailEndText from a PlayerJail packet
+
+            0.51 moved all of it into Lua: the skill increases, the message, and the
+            "released from jail" bookkeeping are now what jailTimeServed() below does. There
+            is no C++ code left here to hook.
+
+            Reinstating this means deciding where the server's overrides belong -- most
+            likely as Lua-side settings that jailTimeServed consults, which is a design
+            question for a maintainer rather than a merge. Until then a PlayerJail packet's
+            ignoreJailSkillIncreases and jailEndText fields are accepted and ignored.
+
+            The teleportation override above is unaffected; that code is still here.
         */
-        if (!localPlayer->jailEndText.empty())
-            message = mwmp::Main::get().getLocalPlayer()->jailEndText;
+        MWBase::Environment::get().getLuaManager()->jailTimeServed(player, mDays);
         /*
-            End of tes3mp addition
+            End of tes3mp change (major)
         */
-            /*
-                Start of tes3mp change (minor)
 
-                Account for usage of ignoreJailSkillIncreases
-            */
-            if (!localPlayer->ignoreJailSkillIncreases &&
-                (skill == ESM::Skill::Sneak || skill == ESM::Skill::Security))
-            /*
-                End of tes3mp change (minor)
-            */
         /*
             Start of tes3mp addition
 
@@ -183,7 +181,5 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-        player.getClass().getCreatureStats(player).getActiveSpells().skipWorsenings(mDays * 24);
-        MWBase::Environment::get().getLuaManager()->jailTimeServed(player, mDays);
     }
 }
