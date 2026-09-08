@@ -65,10 +65,17 @@ namespace MWScript
             {
                 MWWorld::Ptr bed = R()(runtime, false);
 
+                if (bed.isEmpty()
+                    || !MWBase::Environment::get().getMechanicsManager()->sleepInBed(MWMechanics::getPlayer(), bed))
                 /*
                     Start of tes3mp change (minor)
 
                     Prevent resting if it has been disabled by the server for the local player
+
+                    This block IS the body of the condition above; it replaces upstream's single
+                    pushGuiMode call. The merge had detached it and left upstream's line below,
+                    so a player forbidden to rest was told so and then handed the rest menu
+                    anyway, and a player allowed to rest could be given it twice.
                 */
                 {
                     if (!mwmp::Main::get().getLocalPlayer()->bedRestAllowed)
@@ -82,9 +89,6 @@ namespace MWScript
                 /*
                     End of tes3mp change (minor)
                 */
-                if (bed.isEmpty()
-                    || !MWBase::Environment::get().getMechanicsManager()->sleepInBed(MWMechanics::getPlayer(), bed))
-                    MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Rest, bed);
             }
         };
 

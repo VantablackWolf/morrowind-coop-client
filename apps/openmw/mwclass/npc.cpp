@@ -694,6 +694,9 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
+        float damage = 0.0f;
+        if (!success)
+        {
             /*
                 Start of tes3mp addition
 
@@ -701,6 +704,10 @@ namespace MWClass
                 packet about it
 
                 Send an ID_OBJECT_HIT about it as well
+
+                Inside the failure branch. The merge had left this immediately after the
+                block that sets success = true, unconditionally, so it overwrote that with
+                false and reported every landed blow as a miss.
             */
             if (localAttack)
             {
@@ -708,7 +715,7 @@ namespace MWClass
                 localAttack->success = false;
                 localAttack->shouldSend = true;
 
-                mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
                 objectList->reset();
                 objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
                 objectList->addObjectHit(victim, ptr, *localAttack);
@@ -717,9 +724,7 @@ namespace MWClass
             /*
                 End of tes3mp addition
             */
-        float damage = 0.0f;
-        if (!success)
-        {
+
             MWBase::Environment::get().getLuaManager()->onHit(ptr, victim, weapon, MWWorld::Ptr(), type, attackStrength,
                 damage, false, hitPosition, false, MWMechanics::DamageSourceType::Melee);
             MWMechanics::reduceWeaponCondition(damage, false, weapon, ptr);
