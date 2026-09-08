@@ -249,7 +249,8 @@ namespace MWClass
         */
         if (mwmp::PlayerList::isDedicatedPlayer(ptr) || mwmp::Main::get().getCellController()->isDedicatedActor(ptr))
         {
-            return;
+            // 0.51's evaluateHit returns whether a hit was evaluated at all.
+            return false;
         }
         /*
             End of tes3mp addition
@@ -595,13 +596,18 @@ namespace MWClass
                     if (dedicatedAttack->knockdown)
                         stats.setKnockedDown(true);
                 }
-
-                auto& prng = MWBase::Environment::get().getWorld()->getPrng();
-                if (hasHealthDamage && agilityTerm <= healthDamage && knockdownTerm <= Misc::Rng::roll0to99(prng))
-                    stats.setKnockedDown(true);
                 else
                 {
-                    if (ishealth && agilityTerm <= damage && knockdownTerm <= Misc::Rng::roll0to99())
+                    /*
+                        0.51 replaced the single "ishealth"/"damage" pair with a per-stat
+                        damage map, so the local knockdown roll reads hasHealthDamage and
+                        healthDamage. The merge kept BOTH forms, one of them referring to
+                        variables that no longer exist -- and ran the local roll even for a
+                        dedicated attacker, which is exactly what this hook exists to stop.
+                    */
+                    auto& prng = MWBase::Environment::get().getWorld()->getPrng();
+                    if (hasHealthDamage && agilityTerm <= healthDamage
+                        && knockdownTerm <= Misc::Rng::roll0to99(prng))
                         stats.setKnockedDown(true);
                 }
 
@@ -628,7 +634,7 @@ namespace MWClass
         if (localAttack)
         {
             localAttack->pressed = false;
-            localAttack->damage = damage;
+            localAttack->damage = healthDamage;
             localAttack->knockdown = getCreatureStats(ptr).getKnockedDown();
 
             MechanicsHelper::assignAttackTarget(localAttack, ptr);
