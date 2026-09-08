@@ -1,5 +1,5 @@
 #include "manualref.hpp"
-#include <components/esm3/records.hpp>
+#include <components/esm/records.hpp>
 #include <components/esm4/loadstat.hpp>
 
 #include "esmstore.hpp"

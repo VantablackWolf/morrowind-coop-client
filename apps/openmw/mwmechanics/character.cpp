@@ -22,7 +22,7 @@
 #include <array>
 #include <unordered_set>
 
-#include <components/esm3/records.hpp>
+#include <components/esm/records.hpp>
 #include <components/misc/mathutil.hpp>
 #include <components/misc/resourcehelpers.hpp>
 #include <components/misc/rng.hpp>
