@@ -149,36 +149,27 @@ namespace MWMechanics
         static const int iBlockMinChance = gmst.find("iBlockMinChance")->mValue.getInteger();
         int x = std::clamp(static_cast<int>(blockerTerm - attackerTerm), iBlockMinChance, iBlockMaxChance);
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
-            Only calculate block chance for LocalPlayers and LocalActors; otherwise,
-            get the block state from the relevant DedicatedPlayer or DedicatedActor
+            Only calculate block chance for LocalPlayers and LocalActors; otherwise take the
+            block state from the relevant DedicatedPlayer or DedicatedActor
         */
-        mwmp::Attack *localAttack = MechanicsHelper::getLocalAttack(attacker);
+        mwmp::Attack* localAttack = MechanicsHelper::getLocalAttack(attacker);
 
         if (localAttack)
-        {
             localAttack->block = false;
-        }
 
-        mwmp::Attack *dedicatedAttack = MechanicsHelper::getDedicatedAttack(blocker);
+        mwmp::Attack* dedicatedAttack = MechanicsHelper::getDedicatedAttack(blocker);
 
-        if ((dedicatedAttack && dedicatedAttack->block == true) ||
-            Misc::Rng::roll0to99() < x)
+        auto& prng = MWBase::Environment::get().getWorld()->getPrng();
+        if ((dedicatedAttack && dedicatedAttack->block) || Misc::Rng::roll0to99(prng) < x)
         {
             if (localAttack)
-            {
                 localAttack->block = true;
-            }
         /*
             End of tes3mp change (major)
         */
-=======
-        auto& prng = MWBase::Environment::get().getWorld()->getPrng();
-        if (Misc::Rng::roll0to99(prng) < x)
-        {
             MWBase::SoundManager* sndMgr = MWBase::Environment::get().getSoundManager();
             const ESM::RefId skill = shield->getClass().getEquipmentSkill(*shield);
             if (skill == ESM::Skill::LightArmor)
@@ -187,7 +178,6 @@ namespace MWMechanics
                 sndMgr->playSound3D(blocker, ESM::RefId::stringRefId("Medium Armor Hit"), 1.0f, 1.0f);
             else if (skill == ESM::Skill::HeavyArmor)
                 sndMgr->playSound3D(blocker, ESM::RefId::stringRefId("Heavy Armor Hit"), 1.0f, 1.0f);
->>>>>>> omw51
 
             // Reduce shield durability by incoming damage
             int shieldhealth = shield->getClass().getItemHealth(*shield);
@@ -818,21 +808,46 @@ namespace MWMechanics
 
     bool friendlyHit(const MWWorld::Ptr& attacker, const MWWorld::Ptr& target, bool complain)
     {
+        /*
+            Start of tes3mp change (major)
+
+            Migrated here from MechanicsManager::actorAttacked, which 0.51 removed:
+
+            - Don't treat dedicated players as friendly-fire victims, to stop AI actors
+              reciprocating by starting combat with them.
+            - Allow collateral damage from dedicated players, not just the local player.
+            - Check siding in BOTH directions, so an NPC companion of one player forgives
+              another player when those players are allied.
+            - Allow more friendly hits (8 rather than 4) given how much more collateral
+              damage multiplayer produces.
+
+            TODO: let the server configure the friendly-hit count.
+        */
+        if (mwmp::PlayerList::isDedicatedPlayer(target))
+            return false;
+
         const MWWorld::Ptr& player = getPlayer();
-        if (attacker != player)
+        if (attacker != player && !mwmp::PlayerList::isDedicatedPlayer(attacker))
             return false;
 
         std::set<MWWorld::Ptr> followersAttacker;
         MWBase::Environment::get().getMechanicsManager()->getActorsSidingWith(attacker, followersAttacker);
-        if (followersAttacker.find(target) == followersAttacker.end())
+        std::set<MWWorld::Ptr> followersTarget;
+        MWBase::Environment::get().getMechanicsManager()->getActorsSidingWith(target, followersTarget);
+
+        if (followersAttacker.find(target) == followersAttacker.end()
+            && followersTarget.find(attacker) == followersTarget.end())
             return false;
 
         MWMechanics::CreatureStats& statsTarget = target.getClass().getCreatureStats(target);
         if (statsTarget.getAiSequence().isInCombat())
             return true;
         statsTarget.friendlyHit();
-        if (statsTarget.getFriendlyHits() >= 4)
+        if (statsTarget.getFriendlyHits() >= 8)
             return false;
+        /*
+            End of tes3mp change (major)
+        */
 
         if (complain)
             MWBase::Environment::get().getDialogueManager()->say(target, ESM::RefId::stringRefId("hit"));

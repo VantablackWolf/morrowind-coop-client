@@ -893,27 +893,9 @@ namespace MWMechanics
         */
     }
 
-<<<<<<< HEAD
-    /*
-        Start of tes3mp change (major)
-
-        Move boundItemIDCache outside of the original isBoundItem(const MWWorld::Ptr& item)
-        method so it can be reused in the new isBoundItem(std::string itemId) method
-    */
-    std::set<std::string> boundItemIDCache;
-
-    bool MechanicsManager::isBoundItem(const MWWorld::Ptr& item)
-    {
-    /*
-        End of tes3mp change (major)
-    */
-        // If this is empty then we haven't executed the GMST cache logic yet; or there isn't any sMagicBound* GMST's for some reason
-        if (boundItemIDCache.empty())
-=======
     namespace
     {
         std::set<ESM::RefId> makeBoundItemIdCache()
->>>>>>> omw51
         {
             std::set<ESM::RefId> boundItemIDCache;
 
@@ -945,12 +927,23 @@ namespace MWMechanics
     */
     bool MechanicsManager::isBoundItem(std::string itemId)
     {
-        Misc::StringUtils::lowerCaseInPlace(itemId);
+        /*
+            Start of tes3mp change (major)
 
-        if (boundItemIDCache.count(itemId) != 0)
-            return true;
+            0.8.1 hoisted boundItemIDCache to file scope so this id-based overload could
+            share it. 0.51 builds the cache in makeBoundItemIdCache() instead, so the
+            hoisting is no longer needed -- this overload just uses the same factory, and
+            the cache is keyed by ESM::RefId rather than a lowercased string.
 
-        return false;
+            The overload itself stays: it is called with ids that arrive from the server as
+            plain strings.
+        */
+        static const std::set<ESM::RefId> boundItemIdCache = makeBoundItemIdCache();
+
+        return boundItemIdCache.count(ESM::RefId::stringRefId(itemId)) != 0;
+        /*
+            End of tes3mp change (major)
+        */
     }
     /*
         End of tes3mp addition
@@ -1611,72 +1604,14 @@ namespace MWMechanics
         if (target == player || !attacker.getClass().isActor())
             return false;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp change (major)
 
-            Don't set DedicatedPlayers as being in combat with the attacker, to prevent
-            AI actors from deciding to reciprocate by also starting combat
+            0.51 removed the friendly-fire block that used to live here; the logic moved to
+            MWMechanics::friendlyHit() in combat.cpp. TES3MP's three changes to it --
+            ignoring dedicated players, checking siding in both directions, and allowing
+            more friendly hits -- were migrated there rather than kept as dead code here.
         */
-        if (mwmp::PlayerList::isDedicatedPlayer(target))
-            return false;
-        /*
-            End of tes3mp change (major)
-        */
-
-        MWMechanics::CreatureStats& statsTarget = target.getClass().getCreatureStats(target);
-        /*
-            Start of tes3mp change (major)
-
-            Allow collateral damage from dedicated players as well
-        */
-        if (attacker == player || mwmp::PlayerList::isDedicatedPlayer(attacker))
-        /*
-            End of tes3mp change (major)
-        */
-        {
-            std::set<MWWorld::Ptr> followersAttacker;
-            getActorsSidingWith(attacker, followersAttacker);
-
-            /*
-                Start of tes3mp change (major)
-
-                Check not only whether the target is on the same side as the attacker,
-                but also whether the attacker is on the same side as the target,
-                thus allowing for NPC companions of one player to forgive another player
-                when those players are allied
-            */
-            std::set<MWWorld::Ptr> followersTarget;
-            getActorsSidingWith(target, followersTarget);
-
-            if (followersAttacker.find(target) != followersAttacker.end() || followersTarget.find(attacker) != followersTarget.end())
-            /*
-                End of tes3mp change (major)
-            */
-            {
-                statsTarget.friendlyHit();
-
-                /*
-                    Start of tes3mp change (major)
-
-                    Due to a greater propensity for collateral damage in multiplayer,
-                    allow more friendly hits
-
-                    TODO: Allow the server to change the count of the friendly hits
-                */
-                if (statsTarget.getFriendlyHits() < 8)
-                /*
-                    End of tes3mp change (major)
-                */
-                {
-                    MWBase::Environment::get().getDialogueManager()->say(target, "hit");
-                    return false;
-                }
-            }
-        }
-
-=======
->>>>>>> omw51
         if (canCommitCrimeAgainst(target, attacker))
             commitCrime(attacker, target, MWBase::MechanicsManager::OT_Assault);
 
