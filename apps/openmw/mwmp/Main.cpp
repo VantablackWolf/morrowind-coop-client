@@ -74,13 +74,14 @@ std::string loadSettings(Settings::Manager& settings)
 {
     Files::ConfigurationManager mCfgMgr;
     // Create the settings manager and load default settings file
-    const std::string localdefault = (mCfgMgr.getLocalPath() / "tes3mp-client-default.cfg").string();
-    const std::string globaldefault = (mCfgMgr.getGlobalPath() / "tes3mp-client-default.cfg").string();
+    // 0.51 dropped the boost::filesystem dependency in favour of std::filesystem, so the boost library is no longer linked.
+    const std::filesystem::path localdefault = mCfgMgr.getLocalPath() / "tes3mp-client-default.cfg";
+    const std::filesystem::path globaldefault = mCfgMgr.getGlobalPath() / "tes3mp-client-default.cfg";
 
     // prefer local
-    if (boost::filesystem::exists(localdefault))
+    if (std::filesystem::exists(localdefault))
         settings.loadDefault(localdefault, false);
-    else if (boost::filesystem::exists(globaldefault))
+    else if (std::filesystem::exists(globaldefault))
         settings.loadDefault(globaldefault, false);
     else
         throw std::runtime_error ("No default settings file found! Make sure the file \"tes3mp-client-default.cfg\" was properly installed.");

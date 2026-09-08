@@ -1,3 +1,4 @@
+#include <components/files/conversion.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <string>
@@ -363,8 +364,10 @@ void Networking::preInit(std::vector<std::string> &content, Files::Collections &
     std::vector<std::string>::const_iterator it(content.begin());
     for (int idx = 0; it != content.end(); ++it, ++idx)
     {
-        boost::filesystem::path filename(*it);
-        const Files::MultiDirCollection& col = collections.getCollection(filename.extension().string());
+        // 0.51 dropped the boost::filesystem dependency in favour of std::filesystem, so the boost library is no longer linked.
+        const std::filesystem::path filename(*it);
+        const Files::MultiDirCollection& col = collections.getCollection(
+            Files::pathToUnicodeString(filename.extension()));
         if (col.doesExist(*it))
         {
             PacketPreInit::HashList hashList;

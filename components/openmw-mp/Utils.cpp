@@ -8,7 +8,8 @@
 #include <iostream>
 #include <sstream>
 #include <boost/crc.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 
 #ifdef _WIN32
@@ -159,7 +160,8 @@ long int Utils::getFileLength(const char* file)
 unsigned int ::Utils::crc32Checksum(const std::string &file)
 {
     boost::crc_32_type  crc32;
-    boost::filesystem::ifstream  ifs(file, std::ios_base::binary);
+    // 0.51 dropped the boost::filesystem dependency in favour of std::filesystem, so the boost library is no longer linked.
+    std::ifstream ifs(std::filesystem::path(file), std::ios_base::binary);
     if (ifs)
     {
         do

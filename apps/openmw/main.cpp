@@ -65,16 +65,21 @@ bool parseOptions(int argc, char** argv, OMW::Engine& engine, Files::Configurati
     namespace bpo = boost::program_options;
     typedef std::vector<std::string> StringsVector;
 
+    bpo::options_description desc = OpenMW::makeOptionsDescription();
+
     /*
         Start of tes3mp addition
 
         Parse options added by multiplayer
+
+        0.51 builds the description with makeOptionsDescription() rather than declaring it
+        inline, so this has to come after that call rather than before it.
     */
     mwmp::Main::optionsDesc(&desc);
     /*
         End of tes3mp addition
     */
-    bpo::options_description desc = OpenMW::makeOptionsDescription();
+
     bpo::variables_map variables;
 
     Files::parseArgs(argc, argv, variables, desc);
@@ -96,12 +101,19 @@ bool parseOptions(int argc, char** argv, OMW::Engine& engine, Files::Configurati
 
     cfgMgr.readConfiguration(variables, desc);
 
+    Debug::setupLogging(cfgMgr.getLogPath(), "OpenMW");
+
     /*
         Start of tes3mp addition
 
         Print the multiplayer version first
+
+        0.51 removed Version::getOpenmwVersion(resDir) and the struct it returned; the
+        commit hash is compiled in and read with a free function now. These also moved
+        below setupLogging, because before it they went nowhere.
     */
-    Log(Debug::Info) << Utils::getVersionInfo("TES3MP client", TES3MP_VERSION, v.mCommitHash, TES3MP_PROTO_VERSION);
+    Log(Debug::Info) << Utils::getVersionInfo(
+        "TES3MP client", TES3MP_VERSION, std::string(Version::getCommitHash()), TES3MP_PROTO_VERSION);
     /*
         End of tes3mp addition
     */
@@ -110,12 +122,11 @@ bool parseOptions(int argc, char** argv, OMW::Engine& engine, Files::Configurati
 
         Because there is no need to print the commit hash again, only print OpenMW's version
     */
-    Log(Debug::Info) << "OpenMW version " << v.mVersion;
+    Log(Debug::Info) << "OpenMW version " << Version::getVersion();
+    // Log(Debug::Info) << Version::getOpenmwVersionDescription();
     /*
         End of tes3mp change (minor)
     */
-    Debug::setupLogging(cfgMgr.getLogPath(), "OpenMW");
-    Log(Debug::Info) << Version::getOpenmwVersionDescription();
 
     Settings::Manager::load(cfgMgr);
 
