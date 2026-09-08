@@ -750,19 +750,6 @@ namespace MWGui
 
         switch (mode)
         {
-<<<<<<< HEAD
-        // FIXME: refactor chargen windows to use modes properly (or not use them at all)
-        case GM_Name:
-        case GM_Race:
-        case GM_Class:
-        case GM_ClassPick:
-        case GM_ClassCreate:
-        case GM_Birth:
-        case GM_ClassGenerate:
-        case GM_Review:
-            mCharGen->spawnDialog(mode);
-            break;
-        default:
             /*
                 Start of tes3mp addition
 
@@ -772,8 +759,6 @@ namespace MWGui
             /*
                 End of tes3mp addition
             */
-            break;
-=======
             // FIXME: refactor chargen windows to use modes properly (or not use them at all)
             case GM_Name:
             case GM_Race:
@@ -787,7 +772,6 @@ namespace MWGui
                 break;
             default:
                 break;
->>>>>>> omw51
         }
     }
 
@@ -1232,7 +1216,6 @@ namespace MWGui
         setActiveMap(*cellCommon);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -1246,11 +1229,7 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
-    void WindowManager::setActiveMap(int x, int y, bool interior)
-=======
     void WindowManager::setActiveMap(const MWWorld::Cell& cell)
->>>>>>> omw51
     {
         mMap->setActiveCell(cell);
         mHud->setActiveCell(cell);
@@ -1764,7 +1743,6 @@ namespace MWGui
         mConsole->executeFile(path);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -1777,12 +1755,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
-    MWGui::InventoryWindow* WindowManager::getInventoryWindow() { return mInventoryWindow; }
-    MWGui::CountDialog* WindowManager::getCountDialog() { return mCountDialog; }
-    MWGui::ConfirmationDialog* WindowManager::getConfirmationDialog() { return mConfirmationDialog; }
-    MWGui::TradeWindow* WindowManager::getTradeWindow() { return mTradeWindow; }
-
     /*
         Start of tes3mp addition
 
@@ -1793,7 +1765,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -1803,9 +1774,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
-    void WindowManager::useItem(const MWWorld::Ptr &item, bool bypassBeastRestrictions)
-=======
     std::vector<MWGui::WindowBase*> WindowManager::getGuiModeWindows(GuiMode mode)
     {
         return mGuiModeStates[mode].mWindows;
@@ -1836,7 +1804,6 @@ namespace MWGui
     }
 
     void WindowManager::useItem(const MWWorld::Ptr& item, bool bypassBeastRestrictions)
->>>>>>> omw51
     {
         if (mInventoryWindow)
             mInventoryWindow->useItem(item, bypassBeastRestrictions);
@@ -1967,7 +1934,6 @@ namespace MWGui
         mQuickKeysMenu->activateQuickKey(index);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -2001,11 +1967,7 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
-    bool WindowManager::getSubtitlesEnabled ()
-=======
     bool WindowManager::setHudVisibility(bool show)
->>>>>>> omw51
     {
         mHudEnabled = show;
         updateVisible();
@@ -2620,7 +2582,6 @@ namespace MWGui
         mConsole->setSelectedObject(object);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -2635,7 +2596,6 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -2649,11 +2609,7 @@ namespace MWGui
     /*
         End of tes3mp addition
     */
-
-    std::string WindowManager::correctIconPath(const std::string& path)
-=======
     MWWorld::Ptr WindowManager::getConsoleSelectedObject() const
->>>>>>> omw51
     {
         return mConsole->getSelectedObject();
     }

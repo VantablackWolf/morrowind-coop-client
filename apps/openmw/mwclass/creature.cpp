@@ -3,7 +3,6 @@
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -20,8 +19,6 @@
 /*
     End of tes3mp addition
 */
-
-=======
 #include <components/esm3/creaturestate.hpp>
 #include <components/esm3/loadclas.hpp>
 #include <components/esm3/loadcrea.hpp>
@@ -34,7 +31,6 @@
 #include "../mwmechanics/aisetting.hpp"
 #include "../mwmechanics/combat.hpp"
 #include "../mwmechanics/creaturecustomdataresetter.hpp"
->>>>>>> omw51
 #include "../mwmechanics/creaturestats.hpp"
 #include "../mwmechanics/difficultyscaling.hpp"
 #include "../mwmechanics/disease.hpp"
@@ -246,7 +242,6 @@ namespace MWClass
 
     bool Creature::evaluateHit(const MWWorld::Ptr& ptr, MWWorld::Ptr& victim, osg::Vec3f& hitPosition) const
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -259,18 +254,8 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-
-        MWWorld::LiveCellRef<ESM::Creature> *ref =
-            ptr.get<ESM::Creature>();
-        const MWWorld::Store<ESM::GameSetting> &gmst = MWBase::Environment::get().getWorld()->getStore().get<ESM::GameSetting>();
-        MWMechanics::CreatureStats &stats = getCreatureStats(ptr);
-
-        if (stats.getDrawState() != MWMechanics::DrawState_Weapon)
-            return;
-=======
         victim = MWWorld::Ptr();
         hitPosition = osg::Vec3f();
->>>>>>> omw51
 
         // Get the weapon used (if hand-to-hand, weapon = inv.end())
         MWWorld::Ptr weapon;

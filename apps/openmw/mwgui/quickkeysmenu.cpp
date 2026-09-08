@@ -13,7 +13,6 @@
 #include <components/resource/resourcesystem.hpp>
 #include <components/settings/values.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -25,10 +24,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwworld/inventorystore.hpp"
-=======
->>>>>>> omw51
 #include "../mwworld/class.hpp"
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/inventorystore.hpp"
@@ -585,11 +580,6 @@ namespace MWGui
             }
 
             store.setSelectedEnchantItem(store.end());
-<<<<<<< HEAD
-            MWBase::Environment::get().getWindowManager()
-                ->setSelectedSpell(spellId, int(MWMechanics::getSpellSuccessChance(spellId, player)));
-            MWBase::Environment::get().getWorld()->getPlayer().setDrawState(MWMechanics::DrawState_Spell);
-
             /*
                 Start of tes3mp addition
 
@@ -599,11 +589,9 @@ namespace MWGui
             /*
                 End of tes3mp addition
             */
-=======
             MWBase::Environment::get().getWindowManager()->setSelectedSpell(
                 spellId, int(MWMechanics::getSpellSuccessChance(spellId, player)));
             MWBase::Environment::get().getWorld()->getPlayer().setDrawState(MWMechanics::DrawState::Spell);
->>>>>>> omw51
         }
         else if (key->type == ESM::QuickKeys::Type::HandToHand)
         {

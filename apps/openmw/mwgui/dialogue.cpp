@@ -14,7 +14,6 @@
 #include <components/widgets/box.hpp>
 #include <components/widgets/list.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -27,13 +26,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/environment.hpp"
-#include "../mwbase/windowmanager.hpp"
-#include "../mwbase/mechanicsmanager.hpp"
-#include "../mwbase/world.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/dialoguemanager.hpp"
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"

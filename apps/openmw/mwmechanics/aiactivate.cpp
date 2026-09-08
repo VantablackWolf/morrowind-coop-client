@@ -2,7 +2,6 @@
 
 #include <components/esm3/aisequence.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -14,10 +13,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/world.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/luamanager.hpp"
 #include "../mwbase/world.hpp"

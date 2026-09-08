@@ -5,7 +5,6 @@
 #include <components/misc/rng.hpp>
 #include <components/settings/values.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -19,10 +18,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwworld/manualref.hpp"
-=======
->>>>>>> omw51
 #include "../mwworld/class.hpp"
 #include "../mwworld/containerstore.hpp"
 #include "../mwworld/esmstore.hpp"

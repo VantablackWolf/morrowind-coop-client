@@ -15,7 +15,6 @@
 
 #include <components/sceneutil/positionattitudetransform.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -29,11 +28,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwworld/esmstore.hpp"
-#include "../mwworld/inventorystore.hpp"
-=======
->>>>>>> omw51
 #include "../mwworld/class.hpp"
 #include "../mwworld/esmstore.hpp"
 #include "../mwworld/globals.hpp"
@@ -624,7 +618,6 @@ namespace MWMechanics
         return mActors.countDeaths(id);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -637,12 +630,8 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    void MechanicsManager::getPersuasionDispositionChange (const MWWorld::Ptr& npc, PersuasionType type, bool& success, float& tempChange, float& permChange)
-=======
     void MechanicsManager::getPersuasionDispositionChange(
         const MWWorld::Ptr& npc, PersuasionType type, bool& success, int& tempChange, int& permChange)
->>>>>>> omw51
     {
         const MWWorld::Store<ESM::GameSetting>& gmst
             = MWBase::Environment::get().getESMStore()->get<ESM::GameSetting>();
@@ -949,7 +938,6 @@ namespace MWMechanics
         }
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -967,9 +955,6 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    bool MechanicsManager::isAllowedToUse (const MWWorld::Ptr& ptr, const MWWorld::Ptr& target, MWWorld::Ptr& victim)
-=======
     bool MechanicsManager::isBoundItem(const MWWorld::Ptr& item)
     {
         static const std::set<ESM::RefId> boundItemIdCache = makeBoundItemIdCache();
@@ -978,7 +963,6 @@ namespace MWMechanics
     }
 
     bool MechanicsManager::isAllowedToUse(const MWWorld::Ptr& ptr, const MWWorld::Ptr& target, MWWorld::Ptr& victim)
->>>>>>> omw51
     {
         if (target.isEmpty())
             return true;
@@ -1582,7 +1566,6 @@ namespace MWMechanics
                 const std::map<ESM::RefId, int>& playerRanks = player.getClass().getNpcStats(player).getFactionRanks();
                 if (playerRanks.find(factionID) != playerRanks.end())
                 {
-<<<<<<< HEAD
                     /*
                         Start of tes3mp addition
 
@@ -1592,11 +1575,7 @@ namespace MWMechanics
                     /*
                         End of tes3mp addition
                     */
-
-                    player.getClass().getNpcStats(player).expell(factionID);
-=======
                     player.getClass().getNpcStats(player).expell(factionID, true);
->>>>>>> omw51
                 }
             }
             else if (!factionId.empty())

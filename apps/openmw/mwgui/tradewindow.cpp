@@ -10,7 +10,6 @@
 #include <components/misc/strings/format.hpp>
 #include <components/widgets/numericeditbox.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -22,13 +21,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/environment.hpp"
-#include "../mwbase/world.hpp"
-#include "../mwbase/windowmanager.hpp"
-#include "../mwbase/mechanicsmanager.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/dialoguemanager.hpp"
 #include "../mwbase/environment.hpp"
 #include "../mwbase/inputmanager.hpp"

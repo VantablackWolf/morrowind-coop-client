@@ -7,7 +7,6 @@
 #include <MyGUI_Gui.h>
 #include <MyGUI_ScrollView.h>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -19,10 +18,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/world.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
 #include "../mwbase/windowmanager.hpp"

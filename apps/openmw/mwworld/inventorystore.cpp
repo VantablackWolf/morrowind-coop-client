@@ -550,29 +550,6 @@ void MWWorld::InventoryStore::autoEquipArmor(TSlots& slots)
 
 void MWWorld::InventoryStore::autoEquip()
 {
-<<<<<<< HEAD
-    for (ContainerStoreIterator iter(begin(ContainerStore::Type_Armor)); iter != end(); ++iter)
-    {
-        if (iter->get<ESM::Armor>()->mBase->mData.mType != ESM::Armor::Shield)
-            continue;
-        if (iter->getClass().canBeEquipped(*iter, actor).first != 1)
-            continue;
-        std::pair<std::vector<int>, bool> shieldSlots =
-            iter->getClass().getEquipmentSlots(*iter);
-        int slot = shieldSlots.first[0];
-        const ContainerStoreIterator& shield = slots_[slot];
-        if (shield != end()
-                && shield.getType() == Type_Armor && shield->get<ESM::Armor>()->mBase->mData.mType == ESM::Armor::Shield)
-        {
-            if (shield->getClass().getItemHealth(*shield) >= iter->getClass().getItemHealth(*iter))
-                continue;
-        }
-        slots_[slot] = iter;
-    }
-}
-
-void MWWorld::InventoryStore::autoEquip (const MWWorld::Ptr& actor)
-{
     /*
         Start of tes3mp addition
 
@@ -584,13 +561,8 @@ void MWWorld::InventoryStore::autoEquip (const MWWorld::Ptr& actor)
     /*
         End of tes3mp addition
     */
-
-    TSlots slots_;
-    initSlots (slots_);
-=======
     TSlots slots;
     initSlots(slots);
->>>>>>> omw51
 
     // Disable model update during auto-equip
     mUpdatesEnabled = false;

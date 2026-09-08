@@ -22,7 +22,6 @@
 #include <components/settings/values.hpp>
 #include <components/vfs/pathutil.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -39,13 +38,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/environment.hpp"
-#include "../mwbase/world.hpp"
-#include "../mwbase/mechanicsmanager.hpp"
-#include "../mwbase/windowmanager.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/dialoguemanager.hpp"
 #include "../mwbase/environment.hpp"
 #include "../mwbase/luamanager.hpp"
@@ -595,7 +587,6 @@ namespace MWClass
 
     bool Npc::evaluateHit(const MWWorld::Ptr& ptr, MWWorld::Ptr& victim, osg::Vec3f& hitPosition) const
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -608,14 +599,8 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-
-        MWBase::World *world = MWBase::Environment::get().getWorld();
-
-        const MWWorld::Store<ESM::GameSetting> &store = world->getStore().get<ESM::GameSetting>();
-=======
         victim = MWWorld::Ptr();
         hitPosition = osg::Vec3f();
->>>>>>> omw51
 
         // Get the weapon used (if hand-to-hand, weapon = inv.end())
         MWWorld::InventoryStore& inv = getInventoryStore(ptr);
@@ -694,13 +679,6 @@ namespace MWClass
         if (ptr == MWMechanics::getPlayer())
             MWBase::Environment::get().getWindowManager()->setEnemy(victim);
 
-<<<<<<< HEAD
-        int weapskill = ESM::Skill::HandToHand;
-        if(!weapon.isEmpty())
-            weapskill = weapon.getClass().getEquipmentSkill(weapon);
-
-        float hitchance = MWMechanics::getHitChance(ptr, victim, getSkill(ptr, weapskill));
-
         /*
             Start of tes3mp addition
 
@@ -719,9 +697,6 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-
-        if (Misc::Rng::roll0to99() >= hitchance)
-        {
             /*
                 Start of tes3mp addition
 
@@ -745,10 +720,6 @@ namespace MWClass
             /*
                 End of tes3mp addition
             */
-
-            othercls.onHit(victim, 0.0f, false, weapon, ptr, osg::Vec3f(), false);
-            MWMechanics::reduceWeaponCondition(0.f, false, weapon, ptr);
-=======
         float damage = 0.0f;
         if (!success)
         {
@@ -756,7 +727,6 @@ namespace MWClass
                 damage, false, hitPosition, false, MWMechanics::DamageSourceType::Melee);
             MWMechanics::reduceWeaponCondition(damage, false, weapon, ptr);
             MWMechanics::resistNormalWeapon(victim, ptr, weapon, damage);
->>>>>>> omw51
             return;
         }
 

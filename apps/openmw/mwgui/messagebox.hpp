@@ -123,7 +123,6 @@ namespace MWGui
 
         bool mMarkedToDelete;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -133,12 +132,7 @@ namespace MWGui
             /*
                 End of tes3mp addition
             */
-
-        private:
-            void buttonActivated (MyGUI::Widget* _widget);
-=======
         bool onControllerButtonEvent(const SDL_ControllerButtonEvent& arg) override;
->>>>>>> omw51
 
     private:
         void buttonActivated(MyGUI::Widget* widget);

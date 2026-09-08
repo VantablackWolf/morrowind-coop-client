@@ -498,8 +498,6 @@ namespace MWWorld
         if (found != mMovedToAnotherCell.end())
         {
             // A cell we had previously moved an object to is returning it to us.
-<<<<<<< HEAD
-            
             /*
                 Start of tes3mp addition
 
@@ -517,11 +515,7 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-            
-            assert (found->second == from);
-=======
             assert(found->second == from);
->>>>>>> omw51
             mMovedToAnotherCell.erase(found);
         }
         else
@@ -688,8 +682,6 @@ namespace MWWorld
         MergeVisitor visitor(mMergedRefs, mMovedHere, mMovedToAnotherCell);
         CellStoreImp::forEachInternal(visitor, const_cast<CellStore&>(*this), includeDeleted);
         visitor.merge();
-<<<<<<< HEAD
-
         /*
             Start of tes3mp addition
 
@@ -706,9 +698,7 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-=======
         mMergedRefsNeedsUpdate = false;
->>>>>>> omw51
     }
 
     bool CellStore::movedHere(const MWWorld::Ptr& ptr) const
@@ -827,14 +817,6 @@ namespace MWWorld
         }
     };
 
-<<<<<<< HEAD
-    Ptr CellStore::searchViaRefNum(const ESM::RefNum& refNum)
-    {
-        RefNumSearchVisitor searchVisitor(refNum);
-        forEach(searchVisitor);
-        return searchVisitor.mFound;
-    }
-
     /*
         Start of tes3mp addition
 
@@ -871,7 +853,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -890,7 +871,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -903,7 +883,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -916,7 +895,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -929,7 +907,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -942,7 +919,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -955,9 +931,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-
-=======
->>>>>>> omw51
     float CellStore::getWaterLevel() const
     {
         if (isExterior())

@@ -103,7 +103,6 @@ namespace MWDialogue
         mKnownTopics.insert(topic);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -117,9 +116,6 @@ namespace MWDialogue
     /*
         End of tes3mp addition
     */
-
-    void DialogueManager::parseText (const std::string& text)
-=======
     const MWDialogue::KeywordSearch& DialogueManager::getKeywordSearch() const
     {
         const auto& dialogue = MWBase::Environment::get().getESMStore()->get<ESM::Dialogue>();
@@ -149,25 +145,11 @@ namespace MWDialogue
     }
 
     void DialogueManager::addTopicsFromText(const std::string& text)
->>>>>>> omw51
     {
         updateActorKnownTopics();
 
         for (const auto& topicId : parseTopicIdsFromText(text))
         {
-<<<<<<< HEAD
-            std::string topicId = Misc::StringUtils::lowerCase(tok->mText);
-
-            if (tok->isExplicitLink())
-            {
-                // calculation of standard form for all hyperlinks
-                size_t asterisk_count = HyperTextParser::removePseudoAsterisks(topicId);
-                for(; asterisk_count > 0; --asterisk_count)
-                    topicId.append("*");
-
-                topicId = mTranslationDataStorage.topicStandardForm(topicId);
-            }
-
             /*
                 Start of tes3mp addition
 
@@ -178,13 +160,8 @@ namespace MWDialogue
             /*
                 End of tes3mp addition
             */
-
-            if (mActorKnownTopics.count( topicId ))
-                mKnownTopics.insert( topicId );
-=======
             if (mActorKnownTopics.count(topicId))
                 mKnownTopics.insert(topicId);
->>>>>>> omw51
         }
     }
 
@@ -727,9 +704,6 @@ namespace MWDialogue
         const ESM::DialInfo* info = filter.search(*dial, false).second;
         if (info != nullptr)
         {
-<<<<<<< HEAD
-            MWBase::WindowManager *winMgr = MWBase::Environment::get().getWindowManager();
-            if (winMgr->getSubtitlesEnabled())
             /*
                 Start of tes3mp change (minor)
 
@@ -740,17 +714,13 @@ namespace MWDialogue
             /*
                 End of tes3mp change (minor)
             */
-=======
             MWBase::WindowManager* winMgr = MWBase::Environment::get().getWindowManager();
             if (Settings::gui().mSubtitles)
                 winMgr->messageBox(info->mResponse);
->>>>>>> omw51
             if (!info->mSound.empty())
                 sndMgr->say(actor, Misc::ResourceHelpers::correctSoundPath(VFS::Path::Normalized(info->mSound)));
             if (!info->mResultScript.empty())
                 executeScript(info->mResultScript, actor);
-<<<<<<< HEAD
-
             /*
                 Start of tes3mp addition
 
@@ -765,9 +735,7 @@ namespace MWDialogue
             /*
                 End of tes3mp addition
             */
-=======
             MWBase::Environment::get().getLuaManager()->onDialogueResponse(actor, *info, *dial);
->>>>>>> omw51
         }
         return info != nullptr;
     }

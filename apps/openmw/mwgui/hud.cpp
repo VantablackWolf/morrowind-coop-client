@@ -7,7 +7,6 @@
 #include <MyGUI_RenderManager.h>
 #include <MyGUI_ScrollView.h>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -20,16 +19,11 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/settings/settings.hpp>
-#include <components/openmw-mp/TimedLog.hpp>
-=======
 #include <components/esm3/loadgmst.hpp>
 #include <components/esm3/loadmgef.hpp>
 #include <components/misc/resourcehelpers.hpp>
 #include <components/resource/resourcesystem.hpp>
 #include <components/settings/values.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"

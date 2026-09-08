@@ -7,7 +7,6 @@
 
 #include <components/debug/debuglog.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -18,10 +17,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/windowmanager.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"
 

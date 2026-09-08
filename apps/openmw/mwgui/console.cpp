@@ -263,9 +263,6 @@ namespace MWGui
         {
             try
             {
-<<<<<<< HEAD
-                ConsoleInterpreterContext interpreterContext (*this, mPtr);
-
                 /*
                     Start of tes3mp addition
 
@@ -294,10 +291,7 @@ namespace MWGui
                 /*
                     End of tes3mp addition
                 */
-
-=======
                 ConsoleInterpreterContext interpreterContext(*this, mPtr);
->>>>>>> omw51
                 Interpreter::Interpreter interpreter;
                 MWScript::installOpcodes(interpreter, mConsoleOnlyScripts);
                 const Interpreter::Program program = output.getProgram();

@@ -446,7 +446,6 @@ namespace MWRender
         if (cellX > mMaxX || cellX < mMinX || cellY > mMaxY || cellY < mMinY)
             return;
 
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -457,12 +456,8 @@ namespace MWRender
         /*
             End of tes3mp addition
         */
-
-        requestOverlayTextureUpdate(originX, mHeight - originY, mCellSize, mCellSize, localMapTexture, false, true);
-=======
         requestOverlayTextureUpdate(
             originX, mHeight - originY, cellSize, cellSize, std::move(localMapTexture), false, true);
->>>>>>> omw51
     }
 
     void GlobalMap::clear()
@@ -738,7 +733,6 @@ namespace MWRender
         mRoot->removeChild(cam);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
@@ -784,7 +778,6 @@ namespace MWRender
     /*
         End of tes3mp addition
     */
-=======
     void GlobalMap::asyncWritePng()
     {
         if (mOverlayImage == nullptr)
@@ -793,5 +786,4 @@ namespace MWRender
         mWritePng = new WritePng(new osg::Image(*mOverlayImage, osg::CopyOp::DEEP_COPY_ALL));
         mWorkQueue->addWorkItem(mWritePng, /*front=*/true);
     }
->>>>>>> omw51
 }

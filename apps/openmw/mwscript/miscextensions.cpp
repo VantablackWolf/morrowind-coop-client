@@ -5,7 +5,6 @@
 #include <iomanip>
 #include <sstream>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -19,11 +18,7 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/compiler/opcodes.hpp>
-=======
 #include <components/compiler/extensions.hpp>
->>>>>>> omw51
 #include <components/compiler/locals.hpp>
 #include <components/compiler/opcodes.hpp>
 
@@ -287,7 +282,7 @@ namespace MWScript
                         Start of tes3mp addition
 
                         Send an ID_OBJECT_STATE packet whenever an object should be enabled, as long as the
-                        player is logged in on the server and — if triggered from a clientside script — our
+                        player is logged in on the server and  if triggered from a clientside script  our
                         last packet regarding its state did not already attempt to enable it (to prevent
                         packet spam)
                     */
@@ -349,7 +344,7 @@ namespace MWScript
                         Start of tes3mp addition
 
                         Send an ID_OBJECT_STATE packet whenever an object should be disabled, as long as the
-                        player is logged in on the server and — if triggered from a clientside script — our
+                        player is logged in on the server and  if triggered from a clientside script  our
                         last packet regarding its state did not already attempt to disable it (to prevent
                         packet spam)
                     */
@@ -429,7 +424,6 @@ namespace MWScript
                 bool allowSkipping = runtime[0].mInteger != 0;
                 runtime.pop();
 
-<<<<<<< HEAD
                 /*
                     Start of tes3mp addition
 
@@ -448,11 +442,7 @@ namespace MWScript
                 /*
                     End of tes3mp addition
                 */
-
-                MWBase::Environment::get().getWindowManager()->playVideo (name, allowSkipping);
-=======
                 MWBase::Environment::get().getWindowManager()->playVideo(name, allowSkipping);
->>>>>>> omw51
             }
         };
 

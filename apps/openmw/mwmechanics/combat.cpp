@@ -8,7 +8,6 @@
 
 #include <components/sceneutil/positionattitudetransform.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -23,14 +22,11 @@
 /*
     End of tes3mp addition
 */
-
-=======
 #include <components/esm3/loadench.hpp>
 #include <components/esm3/loadmgef.hpp>
 #include <components/esm3/loadsoun.hpp>
 
 #include "../mwbase/dialoguemanager.hpp"
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/luamanager.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
@@ -269,7 +265,6 @@ namespace MWMechanics
     void projectileHit(const MWWorld::Ptr& attacker, const MWWorld::Ptr& victim, MWWorld::Ptr weapon,
         const MWWorld::Ptr& projectile, const osg::Vec3f& hitPosition, float attackStrength)
     {
-<<<<<<< HEAD
         /*
             Start of tes3mp addition
 
@@ -291,13 +286,8 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-
-        MWBase::World *world = MWBase::Environment::get().getWorld();
-        const MWWorld::Store<ESM::GameSetting> &gmst = world->getStore().get<ESM::GameSetting>();
-=======
         MWBase::World* world = MWBase::Environment::get().getWorld();
         const MWWorld::Store<ESM::GameSetting>& gmst = world->getStore().get<ESM::GameSetting>();
->>>>>>> omw51
 
         bool validVictim = !victim.isEmpty() && victim.getClass().isActor();
 
@@ -313,9 +303,6 @@ namespace MWMechanics
 
             int skillValue = static_cast<int>(attacker.getClass().getSkill(attacker, weaponSkill));
 
-<<<<<<< HEAD
-            int skillValue = attacker.getClass().getSkill(attacker, weapon.getClass().getEquipmentSkill(weapon));
-
             /*
                 Start of tes3mp addition
 
@@ -326,9 +313,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            if (Misc::Rng::roll0to99() >= getHitChance(attacker, victim, skillValue))
-            {
                 /*
                     Start of tes3mp addition
 
@@ -339,14 +323,10 @@ namespace MWMechanics
                 /*
                     End of tes3mp addition
                 */
-
-                victim.getClass().onHit(victim, damage, false, projectile, attacker, osg::Vec3f(), false);
-=======
             if (Misc::Rng::roll0to99(world->getPrng()) >= getHitChance(attacker, victim, skillValue))
             {
                 MWBase::Environment::get().getLuaManager()->onHit(attacker, victim, weapon, projectile, 0,
                     attackStrength, damage, false, hitPosition, false, MWMechanics::DamageSourceType::Ranged);
->>>>>>> omw51
                 MWMechanics::reduceWeaponCondition(damage, false, weapon, attacker);
                 return;
             }

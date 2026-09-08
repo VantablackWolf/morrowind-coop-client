@@ -12,7 +12,6 @@
 #include <components/settings/values.hpp>
 #include <components/widgets/list.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -24,13 +23,8 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/windowmanager.hpp"
-#include "../mwbase/mechanicsmanager.hpp"
-=======
 #include <components/esm3/loadgmst.hpp>
 
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/inputmanager.hpp"
 #include "../mwbase/mechanicsmanager.hpp"

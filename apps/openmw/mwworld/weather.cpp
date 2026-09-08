@@ -773,7 +773,6 @@ namespace MWWorld
         // If the player teleports to an outdoors cell in a new region (for instance, by travelling), the weather needs
         // to be changed immediately, and any transitions for the previous region discarded.
         {
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -784,10 +783,6 @@ namespace MWWorld
             /*
                 End of tes3mp addition
             */
-
-            mCurrentRegion = playerRegion;
-            forceWeather(it->second.getWeather());
-        }
         /*
             Start of tes3mp addition
 
@@ -799,9 +794,6 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-    }
-}
-
 /*
     Start of tes3mp addition
 
@@ -850,38 +842,8 @@ void WeatherManager::setRegionWeather(const std::string& region, const int curre
 /*
     End of tes3mp addition
 */
-
-float WeatherManager::calculateWindSpeed(int weatherId, float currentSpeed)
-{
-    float targetSpeed = std::min(8.0f * mWeatherSettings[weatherId].mWindSpeed, 70.f);
-    if (currentSpeed == 0.f)
-        currentSpeed = targetSpeed;
-
-    float multiplier = mWeatherSettings[weatherId].mRainEffect.empty() ? 1.f : 0.5f;
-    float updatedSpeed = (Misc::Rng::rollClosedProbability() - 0.5f) * multiplier * targetSpeed + currentSpeed;
-
-    if (updatedSpeed > 0.5f * targetSpeed && updatedSpeed < 2.f * targetSpeed)
-        currentSpeed = updatedSpeed;
-
-    return currentSpeed;
-}
-
-void WeatherManager::update(float duration, bool paused, const TimeStamp& time, bool isExterior)
-{
-    MWWorld::ConstPtr player = MWMechanics::getPlayer();
-
-    if(!paused || mFastForward)
-    {
-        // Add new transitions when either the player's current external region changes.
-        std::string playerRegion = Misc::StringUtils::lowerCase(player.getCell()->getCell()->mRegion);
-        if(updateWeatherTime() || updateWeatherRegion(playerRegion))
-        {
-            std::map<std::string, RegionWeather>::iterator it = mRegions.find(mCurrentRegion);
-            if(it != mRegions.end())
-=======
             auto it = mRegions.find(playerRegion);
             if (it != mRegions.end() && playerRegion != mCurrentRegion)
->>>>>>> omw51
             {
                 mCurrentRegion = playerRegion;
                 forceWeather(it->second.getWeather());
@@ -1196,23 +1158,6 @@ void WeatherManager::update(float duration, bool paused, const TimeStamp& time, 
         return false;
     }
 
-<<<<<<< HEAD
-    return false;
-}
-
-void WeatherManager::clear()
-{
-    stopSounds();
-
-    mCurrentRegion = "";
-    mTimePassed = 0.0f;
-    mWeatherUpdateTime = 0.0f;
-    forceWeather(0);
-    mRegions.clear();
-    importRegions();
-}
-
-
 /*
     Start of tes3mp addition
 
@@ -1226,7 +1171,6 @@ bool WeatherManager::getWeatherCreationState()
 /*
     End of tes3mp addition
 */
-
 /*
     Start of tes3mp addition
 
@@ -1240,7 +1184,6 @@ void WeatherManager::setWeatherCreationState(bool state)
 /*
     End of tes3mp addition
 */
-
 /*
     Start of tes3mp addition
 
@@ -1255,24 +1198,7 @@ void WeatherManager::sendWeather()
 /*
     End of tes3mp addition
 */
-
-inline void WeatherManager::addWeather(const std::string& name,
-                                       float dlFactor, float dlOffset,
-                                       const std::string& particleEffect)
-{
-    static const float fStromWindSpeed = mStore.get<ESM::GameSetting>().find("fStromWindSpeed")->mValue.getFloat();
-
-    Weather weather(name, fStromWindSpeed, mRainSpeed, dlFactor, dlOffset, particleEffect);
-
-    mWeatherSettings.push_back(weather);
-}
-
-inline void WeatherManager::importRegions()
-{
-    for(const ESM::Region& region : mStore.get<ESM::Region>())
-=======
     void WeatherManager::clear()
->>>>>>> omw51
     {
         stopSounds();
 
@@ -1359,9 +1285,6 @@ inline bool WeatherManager::updateWeatherTime()
 
     inline bool WeatherManager::updateWeatherRegion(const ESM::RefId& playerRegion)
     {
-<<<<<<< HEAD
-        mCurrentRegion = playerRegion;
-
         /*
             Start of tes3mp addition
 
@@ -1372,15 +1295,6 @@ inline bool WeatherManager::updateWeatherTime()
         /*
             End of tes3mp addition
         */
-
-        return true;
-    }
-
-    return false;
-}
-
-inline void WeatherManager::updateWeatherTransitions(const float elapsedRealSeconds)
-{
     /*
         Start of tes3mp addition
 
@@ -1390,17 +1304,7 @@ inline void WeatherManager::updateWeatherTransitions(const float elapsedRealSeco
     /*
         End of tes3mp addition
     */
-
-    // When a player chooses to train, wait, or serves jail time, any transitions will be fast forwarded to the last
-    // weather type set, regardless of the remaining transition time.
-    if(!mFastForward && inTransition())
-    {
-        const float delta = mWeatherSettings[mNextWeather].transitionDelta();
-        mTransitionFactor -= elapsedRealSeconds * delta;
-        if(mTransitionFactor <= 0.0f)
-=======
         if (!playerRegion.empty() && playerRegion != mCurrentRegion)
->>>>>>> omw51
         {
             mCurrentRegion = playerRegion;
 
@@ -1451,20 +1355,6 @@ inline void WeatherManager::updateWeatherTransitions(const float elapsedRealSeco
 
             mNextWeather = invalidWeatherID;
             mQueuedWeather = invalidWeatherID;
-<<<<<<< HEAD
-
-            // We may have begun processing the queued transition, so we need to apply the remaining time towards it.
-            if(inTransition())
-            {
-                const float newDelta = mWeatherSettings[mNextWeather].transitionDelta();
-                const float remainingSeconds = -(mTransitionFactor / delta);
-                mTransitionFactor = 1.0f - (remainingSeconds * newDelta);
-            }
-            else
-            {
-                mTransitionFactor = 0.0f;
-            }
-
             /*
                 Start of tes3mp addition
 
@@ -1474,10 +1364,6 @@ inline void WeatherManager::updateWeatherTransitions(const float elapsedRealSeco
             /*
                 End of tes3mp addition
             */
-        }
-    }
-    else
-    {
         /*
             Start of tes3mp addition
 
@@ -1488,20 +1374,9 @@ inline void WeatherManager::updateWeatherTransitions(const float elapsedRealSeco
         /*
             End of tes3mp addition
         */
-
-        if(mQueuedWeather != invalidWeatherID)
-        {
-            mCurrentWeather = mQueuedWeather;
-        }
-        else if(mNextWeather != invalidWeatherID)
-        {
-            mCurrentWeather = mNextWeather;
-        }
-=======
             mFastForward = false;
         }
     }
->>>>>>> omw51
 
     inline void WeatherManager::forceWeather(const int weatherID)
     {
@@ -1510,8 +1385,6 @@ inline void WeatherManager::updateWeatherTransitions(const float elapsedRealSeco
         mNextWeather = invalidWeatherID;
         mQueuedWeather = invalidWeatherID;
     }
-<<<<<<< HEAD
-
     /*
         Start of tes3mp addition
 
@@ -1525,15 +1398,6 @@ inline void WeatherManager::updateWeatherTransitions(const float elapsedRealSeco
     /*
         End of tes3mp addition
     */
-}
-
-inline void WeatherManager::forceWeather(const int weatherID)
-{
-    mTransitionFactor = 0.0f;
-    mCurrentWeather = weatherID;
-    mNextWeather = invalidWeatherID;
-    mQueuedWeather = invalidWeatherID;
-
     /*
         Start of tes3mp addition
 
@@ -1547,25 +1411,8 @@ inline void WeatherManager::forceWeather(const int weatherID)
     /*
         End of tes3mp addition
     */
-}
-
-inline bool WeatherManager::inTransition()
-{
-    return mNextWeather != invalidWeatherID;
-}
-
-inline void WeatherManager::addWeatherTransition(const int weatherID)
-{
-    // In order to work like ChangeWeather expects, this method begins transitioning to the new weather immediately if
-    // no transition is in progress, otherwise it queues it to be transitioned.
-
-    assert(weatherID >= 0 && static_cast<size_t>(weatherID) < mWeatherSettings.size());
-
-    if(!inTransition() && (weatherID != mCurrentWeather))
-=======
 
     inline bool WeatherManager::inTransition() const
->>>>>>> omw51
     {
         return mNextWeather != invalidWeatherID;
     }
@@ -1587,8 +1434,6 @@ inline void WeatherManager::addWeatherTransition(const int weatherID)
             mQueuedWeather = weatherID;
         }
     }
-<<<<<<< HEAD
-
     /*
         Start of tes3mp addition
 
@@ -1602,9 +1447,6 @@ inline void WeatherManager::addWeatherTransition(const int weatherID)
     /*
         End of tes3mp addition
     */
-}
-=======
->>>>>>> omw51
 
     inline void WeatherManager::calculateWeatherResult(
         const float gameHour, const float elapsedSeconds, const bool isPaused)

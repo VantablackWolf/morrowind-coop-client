@@ -8,7 +8,6 @@
 #include <components/misc/rng.hpp>
 #include <components/misc/strings/format.hpp>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -25,12 +24,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwbase/windowmanager.hpp"
-#include "../mwbase/soundmanager.hpp"
-#include "../mwbase/mechanicsmanager.hpp"
-=======
->>>>>>> omw51
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
 #include "../mwbase/soundmanager.hpp"
@@ -238,7 +231,6 @@ namespace MWMechanics
             bool hasDuration = !(magicEffect->mData.mFlags & ESM::MagicEffect::NoDuration);
             effect.mDuration = hasDuration ? static_cast<float>(enam.mData.mDuration) : 1.f;
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -251,11 +243,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-
-            // Try resisting.
-            float magnitudeMult = getEffectMultiplier(effectIt->mEffectID, target, caster, spell, &targetEffects);
-            if (magnitudeMult == 0)
-=======
             effect.mTimeLeft = effect.mDuration;
 
             // add to list of active effects, to apply in next frame
@@ -264,7 +251,6 @@ namespace MWMechanics
             bool effectAffectsHealth = magicEffect->mData.mFlags & ESM::MagicEffect::Harmful
                 || enam.mData.mEffectID == ESM::MagicEffect::RestoreHealth;
             if (castByPlayer && target != mCaster && targetIsActor && !targetIsDeadActor && effectAffectsHealth)
->>>>>>> omw51
             {
                 // If player is attempting to cast a harmful spell on or is healing a living target, show the target's
                 // HP bar.
@@ -561,46 +547,6 @@ namespace MWMechanics
                 }
             }
         }
-<<<<<<< HEAD
-        else if (target.getClass().isActor() && effectId == ESM::MagicEffect::Dispel)
-        {
-            target.getClass().getCreatureStats(target).getActiveSpells().purgeAll(magnitude, true);
-            return true;
-        }
-        else if (target.getClass().isActor() && target == getPlayer())
-        {
-            MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(mCaster);
-            bool teleportingEnabled = MWBase::Environment::get().getWorld()->isTeleportingEnabled();
-
-            if (effectId == ESM::MagicEffect::DivineIntervention || effectId == ESM::MagicEffect::AlmsiviIntervention)
-            {
-                if (!teleportingEnabled)
-                {
-                    if (caster == getPlayer())
-                        MWBase::Environment::get().getWindowManager()->messageBox("#{sTeleportDisabled}");
-                    return true;
-                }
-                std::string marker = (effectId == ESM::MagicEffect::DivineIntervention) ? "divinemarker" : "templemarker";
-                MWBase::Environment::get().getWorld()->teleportToClosestMarker(target, marker);
-                anim->removeEffect(effectId);
-                const ESM::Static* fx = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>()
-                    .search("VFX_Summon_end");
-                if (fx)
-                    anim->addEffect("meshes\\" + fx->mModel, -1);
-                return true;
-            }
-            else if (effectId == ESM::MagicEffect::Mark)
-            {
-                if (teleportingEnabled)
-                {
-                    MWBase::Environment::get().getWorld()->getPlayer().markPosition(
-                        target.getCell(), target.getRefData().getPosition());
-                }
-                else if (caster == getPlayer())
-                {
-                    MWBase::Environment::get().getWindowManager()->messageBox("#{sTeleportDisabled}");
-                }
-
                 /*
                     Start of tes3mp addition
 
@@ -610,35 +556,6 @@ namespace MWMechanics
                 /*
                     End of tes3mp addition
                 */
-
-                return true;
-            }
-            else if (effectId == ESM::MagicEffect::Recall)
-            {
-                if (!teleportingEnabled)
-                {
-                    if (caster == getPlayer())
-                        MWBase::Environment::get().getWindowManager()->messageBox("#{sTeleportDisabled}");
-                    return true;
-                }
-
-                MWWorld::CellStore* markedCell = nullptr;
-                ESM::Position markedPosition;
-
-                MWBase::Environment::get().getWorld()->getPlayer().getMarkedPosition(markedCell, markedPosition);
-                if (markedCell)
-                {
-                    MWWorld::ActionTeleport action(markedCell->isExterior() ? "" : markedCell->getCell()->mName,
-                                            markedPosition, false);
-                    action.execute(target);
-                    anim->removeEffect(effectId);
-                }
-                return true;
-            }
-        }
-        return false;
-=======
->>>>>>> omw51
     }
 
     bool CastSpell::cast(const ESM::RefId& id)
@@ -708,13 +625,6 @@ namespace MWMechanics
                         school = magicEffect->mData.mSchool;
                     }
 
-<<<<<<< HEAD
-                    static const std::string schools[] = {
-                        "alteration", "conjuration", "destruction", "illusion", "mysticism", "restoration"
-                    };
-                    MWBase::SoundManager *sndMgr = MWBase::Environment::get().getSoundManager();
-                    sndMgr->playSound3D(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
-
                     /*
                         Start of tes3mp addition
 
@@ -728,11 +638,9 @@ namespace MWMechanics
                     /*
                         End of tes3mp addition
                     */
-=======
                     MWBase::SoundManager* sndMgr = MWBase::Environment::get().getSoundManager();
                     sndMgr->playSound3D(
                         mCaster, store->get<ESM::Skill>().find(school)->mSchool->mFailureSound, 1.0f, 1.0f);
->>>>>>> omw51
                 }
                 return false;
             }
@@ -846,14 +754,6 @@ namespace MWMechanics
                 if (fail)
                 {
                     // Failure sound
-<<<<<<< HEAD
-                    static const std::string schools[] = {
-                        "alteration", "conjuration", "destruction", "illusion", "mysticism", "restoration"
-                    };
-
-                    MWBase::SoundManager *sndMgr = MWBase::Environment::get().getSoundManager();
-                    sndMgr->playSound3D(mCaster, "Spell Failure " + schools[school], 1.0f, 1.0f);
-
                     /*
                         Start of tes3mp addition
 
@@ -867,12 +767,9 @@ namespace MWMechanics
                     /*
                         End of tes3mp addition
                     */
-
-=======
                     MWBase::SoundManager* sndMgr = MWBase::Environment::get().getSoundManager();
                     const ESM::Skill* skill = MWBase::Environment::get().getESMStore()->get<ESM::Skill>().find(school);
                     sndMgr->playSound3D(mCaster, skill->mSchool->mFailureSound, 1.0f, 1.0f);
->>>>>>> omw51
                     return false;
                 }
             }

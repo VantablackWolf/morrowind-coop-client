@@ -486,45 +486,6 @@ namespace MWScript
                     {
                         Log(Debug::Error) << error;
                         return;
-<<<<<<< HEAD
-
-                    if (ptr == MWMechanics::getPlayer())
-                    {
-                        MWBase::Environment::get().getWorld()->getPlayer().setTeleported(true);
-                    }
-
-                    Interpreter::Type_Float x = runtime[0].mFloat;
-                    runtime.pop();
-                    Interpreter::Type_Float y = runtime[0].mFloat;
-                    runtime.pop();
-                    Interpreter::Type_Float z = runtime[0].mFloat;
-                    runtime.pop();
-                    Interpreter::Type_Float zRot = runtime[0].mFloat;
-                    runtime.pop();
-                    std::string cellID = runtime.getStringLiteral (runtime[0].mInteger);
-                    runtime.pop();
-
-                    MWWorld::CellStore* store = nullptr;
-                    try
-                    {
-                        store = MWBase::Environment::get().getWorld()->getInterior(cellID);
-                    }
-                    catch(std::exception&)
-                    {
-                        // cell not found, move to exterior instead (vanilla PositionCell compatibility)
-                        const ESM::Cell* cell = MWBase::Environment::get().getWorld()->getExterior(cellID);
-                        int cx,cy;
-                        MWBase::Environment::get().getWorld()->positionToIndex(x,y,cx,cy);
-                        store = MWBase::Environment::get().getWorld()->getExterior(cx,cy);
-                        if(!cell)
-                        {
-                            std::string error = "Warning: PositionCell: unknown interior cell (" + cellID + "), moving to exterior instead";
-                            runtime.getContext().report (error);
-                            Log(Debug::Warning) << error;
-                        }
-                    }
-                    if(store)
-                    {
                         /*
                             Start of tes3mp addition
 
@@ -534,11 +495,6 @@ namespace MWScript
                         /*
                             End of tes3mp addition
                         */
-
-                        MWWorld::Ptr base = ptr;
-                        ptr = MWBase::Environment::get().getWorld()->moveObject(ptr,store,x,y,z);
-                        dynamic_cast<MWScript::InterpreterContext&>(runtime.getContext()).updatePtr(base,ptr);
-
                         /*
                             Start of tes3mp addition
 
@@ -570,19 +526,6 @@ namespace MWScript
                         /*
                             End of tes3mp addition
                         */
-
-                        float ax = ptr.getRefData().getPosition().rot[0];
-                        float ay = ptr.getRefData().getPosition().rot[1];
-                        // Note that you must specify ZRot in minutes (1 degree = 60 minutes; north = 0, east = 5400, south = 10800, west = 16200)
-                        // except for when you position the player, then degrees must be used.
-                        // See "Morrowind Scripting for Dummies (9th Edition)" pages 50 and 54 for reference.
-                        if(ptr != MWMechanics::getPlayer())
-                            zRot = zRot/60.0f;
-                        MWBase::Environment::get().getWorld()->rotateObject(ptr,ax,ay,osg::DegreesToRadians(zRot));
-
-                        ptr.getClass().adjustPosition(ptr, false);
-=======
->>>>>>> omw51
                     }
                     Log(Debug::Warning) << error;
                     const ESM::ExteriorCellLocation cellIndex

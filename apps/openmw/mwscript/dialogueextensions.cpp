@@ -55,20 +55,6 @@ namespace MWScript
                 // Invoking Journal with a non-existing index is allowed, and triggers no errors. Seriously? :(
                 try
                 {
-<<<<<<< HEAD
-                    MWWorld::Ptr ptr = R()(runtime, false); // required=false
-                    if (ptr.isEmpty())
-                        ptr = MWBase::Environment::get().getWorld()->getPlayerPtr();
-
-                    std::string quest = runtime.getStringLiteral (runtime[0].mInteger);
-                    runtime.pop();
-
-                    Interpreter::Type_Integer index = runtime[0].mInteger;
-                    runtime.pop();
-
-                    // Invoking Journal with a non-existing index is allowed, and triggers no errors. Seriously? :(
-                    try
-                    {
                         /*
                             Start of tes3mp addition
 
@@ -80,17 +66,7 @@ namespace MWScript
                         /*
                             End of tes3mp addition
                         */
-
-                        MWBase::Environment::get().getJournal()->addEntry (quest, index, ptr);
-                    }
-                    catch (...)
-                    {
-                        if (MWBase::Environment::get().getJournal()->getJournalIndex(quest) < index)
-                            MWBase::Environment::get().getJournal()->setJournalIndex(quest, index);
-                    }
-=======
                     MWBase::Environment::get().getJournal()->addEntry(quest, index, ptr);
->>>>>>> omw51
                 }
                 catch (...)
                 {
@@ -111,12 +87,6 @@ namespace MWScript
                 Interpreter::Type_Integer index = runtime[0].mInteger;
                 runtime.pop();
 
-<<<<<<< HEAD
-                    Interpreter::Type_Integer index = runtime[0].mInteger;
-                    runtime.pop();
-
-                    MWBase::Environment::get().getJournal()->setJournalIndex (quest, index);
-
                     /*
                         Start of tes3mp addition
 
@@ -128,11 +98,8 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-                }
-=======
                 MWBase::Environment::get().getJournal()->setJournalIndex(quest, index);
             }
->>>>>>> omw51
         };
 
         class OpGetJournalIndex : public Interpreter::Opcode0
@@ -192,10 +159,6 @@ namespace MWScript
 
                 if (!MWBase::Environment::get().getESMStore()->get<ESM::Dialogue>().search(topic))
                 {
-<<<<<<< HEAD
-                    std::string topic = runtime.getStringLiteral (runtime[0].mInteger);
-                    runtime.pop();
-
                     /*
                         Start of tes3mp addition
 
@@ -208,13 +171,9 @@ namespace MWScript
                     /*
                         End of tes3mp addition
                     */
-
-                    MWBase::Environment::get().getDialogueManager()->addTopic(topic);
-=======
                     runtime.getContext().report(
                         "Failed to add topic '" + topic.getRefIdString() + "': topic record not found");
                     return;
->>>>>>> omw51
                 }
 
                 MWBase::Environment::get().getDialogueManager()->addTopic(topic);

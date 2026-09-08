@@ -173,8 +173,6 @@ namespace MWGui
             mInterMessageBoxe->setVisible(false);
         }
 
-<<<<<<< HEAD
-        mInterMessageBoxe = new InteractiveMessageBox(*this, message, buttons);
         /*
             Start of tes3mp addition
 
@@ -184,10 +182,8 @@ namespace MWGui
         /*
             End of tes3mp addition
         */
-=======
         mInterMessageBoxe
             = std::make_unique<InteractiveMessageBox>(*this, std::string{ message }, buttons, immediate, defaultFocus);
->>>>>>> omw51
         mLastButtonPressed = -1;
 
         return true;

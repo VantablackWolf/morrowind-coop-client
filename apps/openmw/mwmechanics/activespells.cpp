@@ -266,7 +266,6 @@ namespace MWMechanics
                     ++spellIt;
                 else
                 {
-<<<<<<< HEAD
                     /*
                         Start of tes3mp addition
 
@@ -290,10 +289,6 @@ namespace MWMechanics
                     /*
                         End of tes3mp addition
                     */
-
-                    mSpells.erase (iter++);
-                    rebuild = true;
-=======
                     if (spell == nullptr)
                         Log(Debug::Error) << "Dropping non-existent active effect: " << spellIt->mSourceSpellId;
                     auto params = *spellIt;
@@ -320,7 +315,6 @@ namespace MWMechanics
                     removedSpell = applyPurges(ptr, &spellIt, &effectIt);
                     if (removedSpell)
                         break;
->>>>>>> omw51
                 }
                 else
                 {
@@ -860,17 +854,6 @@ namespace MWMechanics
 
     void ActiveSpells::unloadActor(const MWWorld::Ptr& ptr)
     {
-<<<<<<< HEAD
-        for (TContainer::iterator spell = mSpells.begin(); spell != mSpells.end(); ++spell)
-        {
-            if (spell->first == id)
-            {
-                spell->second.mEffects.clear();
-                mSpellsChanged = true;
-            }
-        }
-    }
-
     /*
         Start of tes3mp addition
 
@@ -899,96 +882,6 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    void ActiveSpells::visitEffectSources(EffectSourceVisitor &visitor) const
-    {
-        for (TContainer::const_iterator it = begin(); it != end(); ++it)
-        {
-            for (std::vector<ActiveEffect>::const_iterator effectIt = it->second.mEffects.begin();
-                 effectIt != it->second.mEffects.end(); ++effectIt)
-            {
-                std::string name = it->second.mDisplayName;
-
-                float magnitude = effectIt->mMagnitude;
-                if (magnitude)
-                    visitor.visit(MWMechanics::EffectKey(effectIt->mEffectId, effectIt->mArg), effectIt->mEffectIndex, name, it->first, it->second.mCasterActorId, magnitude, effectIt->mTimeLeft, effectIt->mDuration);
-            }
-        }
-    }
-
-    void ActiveSpells::purgeAll(float chance, bool spellOnly)
-    {
-        for (TContainer::iterator it = mSpells.begin(); it != mSpells.end(); )
-        {
-            const std::string spellId = it->first;
-
-            // if spellOnly is true, dispell only spells. Leave potions, enchanted items etc.
-            if (spellOnly)
-            {
-                const ESM::Spell* spell = MWBase::Environment::get().getWorld()->getStore().get<ESM::Spell>().search(spellId);
-                if (!spell || spell->mData.mType != ESM::Spell::ST_Spell)
-                {
-                    ++it;
-                    continue;
-                }
-            }
-
-            if (Misc::Rng::roll0to99() < chance)
-                mSpells.erase(it++);
-            else
-                ++it;
-        }
-        mSpellsChanged = true;
-    }
-
-    void ActiveSpells::purgeEffect(short effectId)
-    {
-        for (TContainer::iterator it = mSpells.begin(); it != mSpells.end(); ++it)
-        {
-            for (std::vector<ActiveEffect>::iterator effectIt = it->second.mEffects.begin();
-                 effectIt != it->second.mEffects.end();)
-            {
-                if (effectIt->mEffectId == effectId)
-                    effectIt = it->second.mEffects.erase(effectIt);
-                else
-                    ++effectIt;
-            }
-        }
-        mSpellsChanged = true;
-    }
-
-    void ActiveSpells::purgeEffect(short effectId, const std::string& sourceId, int effectIndex)
-    {
-        for (TContainer::iterator it = mSpells.begin(); it != mSpells.end(); ++it)
-        {
-            for (std::vector<ActiveEffect>::iterator effectIt = it->second.mEffects.begin();
-                 effectIt != it->second.mEffects.end();)
-            {
-                if (effectIt->mEffectId == effectId && it->first == sourceId && (effectIndex < 0 || effectIndex == effectIt->mEffectIndex))
-                    effectIt = it->second.mEffects.erase(effectIt);
-                else
-                    ++effectIt;
-            }
-        }
-        mSpellsChanged = true;
-    }
-
-    void ActiveSpells::purge(int casterActorId)
-    {
-        for (TContainer::iterator it = mSpells.begin(); it != mSpells.end(); ++it)
-        {
-            for (std::vector<ActiveEffect>::iterator effectIt = it->second.mEffects.begin();
-                 effectIt != it->second.mEffects.end();)
-            {
-                if (it->second.mCasterActorId == casterActorId)
-                    effectIt = it->second.mEffects.erase(effectIt);
-                else
-                    ++effectIt;
-            }
-        }
-        mSpellsChanged = true;
-    }
-
     /*
         Start of tes3mp addition
 
@@ -1012,7 +905,6 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
     /*
         Start of tes3mp addition
 
@@ -1037,69 +929,8 @@ namespace MWMechanics
     /*
         End of tes3mp addition
     */
-
-    void ActiveSpells::purgeCorprusDisease()
-    {
-        for (TContainer::iterator iter = mSpells.begin(); iter!=mSpells.end();)
-        {
-            bool hasCorprusEffect = false;
-            for (std::vector<ActiveEffect>::iterator effectIt = iter->second.mEffects.begin();
-                 effectIt != iter->second.mEffects.end();++effectIt)
-            {
-                if (effectIt->mEffectId == ESM::MagicEffect::Corprus)
-                {
-                    hasCorprusEffect = true;
-                    break;
-                }
-            }
-
-            if (hasCorprusEffect)
-            {
-                mSpells.erase(iter++);
-                mSpellsChanged = true;
-            }
-            else
-                ++iter;
-        }
-    }
-
-    void ActiveSpells::clear()
-    {
-        mSpells.clear();
-        mSpellsChanged = true;
-    }
-
-    void ActiveSpells::writeState(ESM::ActiveSpells &state) const
-    {
-        for (TContainer::const_iterator it = mSpells.begin(); it != mSpells.end(); ++it)
-        {
-            // Stupid copying of almost identical structures. ESM::TimeStamp <-> MWWorld::TimeStamp
-            ESM::ActiveSpells::ActiveSpellParams params;
-            params.mEffects = it->second.mEffects;
-            params.mCasterActorId = it->second.mCasterActorId;
-            params.mDisplayName = it->second.mDisplayName;
-
-            state.mSpells.insert (std::make_pair(it->first, params));
-        }
-    }
-
-    void ActiveSpells::readState(const ESM::ActiveSpells &state)
-    {
-        for (ESM::ActiveSpells::TContainer::const_iterator it = state.mSpells.begin(); it != state.mSpells.end(); ++it)
-        {
-            // Stupid copying of almost identical structures. ESM::TimeStamp <-> MWWorld::TimeStamp
-            ActiveSpellParams params;
-            params.mEffects = it->second.mEffects;
-            params.mCasterActorId = it->second.mCasterActorId;
-            params.mDisplayName = it->second.mDisplayName;
-
-            mSpells.insert (std::make_pair(it->first, params));
-            mSpellsChanged = true;
-        }
-=======
         purge([](const auto& spell) { return spell.hasFlag(ESM::ActiveSpells::Flag_Temporary); }, ptr);
         mQueue.clear();
->>>>>>> omw51
     }
 
     /*

@@ -330,9 +330,6 @@ MWWorld::ContainerStoreIterator MWWorld::ContainerStore::unstack(const Ptr& ptr,
     resolve();
     if (ptr.getCellRef().getCount() <= count)
         return end();
-<<<<<<< HEAD
-    MWWorld::ContainerStoreIterator it = addNewStack(ptr, subtractItems(ptr.getRefData().getCount(false), count));
-
     /*
         Start of tes3mp addition
 
@@ -350,9 +347,6 @@ MWWorld::ContainerStoreIterator MWWorld::ContainerStore::unstack(const Ptr& ptr,
     /*
         End of tes3mp addition
     */
-
-    const std::string script = it->getClass().getScript(*it);
-=======
     MWWorld::ContainerStoreIterator it = addNewStack(ptr, subtractItems(ptr.getCellRef().getCount(false), count));
 
     MWWorld::Ptr newPtr = *it;
@@ -361,7 +355,6 @@ MWWorld::ContainerStoreIterator MWWorld::ContainerStore::unstack(const Ptr& ptr,
     MWBase::Environment::get().getWorldModel()->registerPtr(newPtr);
 
     const ESM::RefId& script = it->getClass().getScript(*it);
->>>>>>> omw51
     if (!script.empty())
         MWBase::Environment::get().getWorld()->getLocalScripts().add(script, *it);
 

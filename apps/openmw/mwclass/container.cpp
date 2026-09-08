@@ -1,6 +1,5 @@
 #include "container.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -12,11 +11,6 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loadcont.hpp>
-#include <components/esm/containerstate.hpp>
-#include <components/settings/settings.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
@@ -24,7 +18,6 @@
 #include <components/esm3/loadcont.hpp>
 #include <components/esm3/loadsoun.hpp>
 #include <components/settings/values.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/soundmanager.hpp"

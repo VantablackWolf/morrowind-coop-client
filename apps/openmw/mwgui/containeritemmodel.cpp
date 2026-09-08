@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -15,10 +14,6 @@
 /*
     End of tes3mp addition
 */
-
-#include "../mwmechanics/creaturestats.hpp"
-=======
->>>>>>> omw51
 #include "../mwmechanics/actorutil.hpp"
 #include "../mwmechanics/creaturestats.hpp"
 
@@ -271,10 +266,6 @@ void ContainerItemModel::removeItem (const ItemStack& item, size_t count)
         mItems.clear();
         for (auto& source : mItemSources)
         {
-<<<<<<< HEAD
-            int refCount = source.getRefData().getCount();
-            if (refCount - toRemove <= 0)
-            {
                 /*
                     Start of tes3mp addition
 
@@ -289,15 +280,6 @@ void ContainerItemModel::removeItem (const ItemStack& item, size_t count)
                 /*
                     End of tes3mp addition
                 */
-
-                MWBase::Environment::get().getWorld()->deleteObject(source);
-            }
-            else
-                source.getRefData().setCount(std::max(0, refCount - toRemove));
-            toRemove -= refCount;
-            if (toRemove <= 0)
-                return;
-=======
             MWWorld::ContainerStore& store = source.first.getClass().getContainerStore(source.first);
 
             for (MWWorld::ContainerStoreIterator it = store.begin(); it != store.end(); ++it)
@@ -324,7 +306,6 @@ void ContainerItemModel::removeItem (const ItemStack& item, size_t count)
                     mItems.push_back(newItem);
                 }
             }
->>>>>>> omw51
         }
         for (MWWorld::Ptr& source : mWorldItems)
         {

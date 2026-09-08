@@ -1,6 +1,5 @@
 #include "door.hpp"
 
-<<<<<<< HEAD
 /*
     Start of tes3mp addition
 
@@ -12,17 +11,12 @@
 /*
     End of tes3mp addition
 */
-
-#include <components/esm/loaddoor.hpp>
-#include <components/esm/doorstate.hpp>
-=======
 #include <MyGUI_TextIterator.h>
 #include <MyGUI_UString.h>
 
 #include <components/esm3/doorstate.hpp>
 #include <components/esm3/loaddoor.hpp>
 #include <components/esm3/loadmgef.hpp>
->>>>>>> omw51
 #include <components/sceneutil/positionattitudetransform.hpp>
 
 #include "../mwbase/environment.hpp"
@@ -397,19 +391,6 @@ namespace MWClass
 
     std::string Door::getDestination(const MWWorld::LiveCellRef<ESM::Door>& door)
     {
-<<<<<<< HEAD
-        const MWWorld::ESMStore& store = MWBase::Environment::get().getWorld()->getStore();
-
-        std::string dest = door.mRef.getDestCell();
-        if (dest.empty())
-        {
-            // door leads to exterior, use cell name (if any), otherwise translated region name
-            int x, y;
-            auto world = MWBase::Environment::get().getWorld();
-            world->positionToIndex(door.mRef.getDoorDest().pos[0], door.mRef.getDoorDest().pos[1], x, y);
-            const ESM::Cell* cell = world->getStore().get<ESM::Cell>().search(x, y);
-            dest = world->getCellName(cell);
-        }
         /*
             Start of tes3mp addition
 
@@ -421,10 +402,8 @@ namespace MWClass
         /*
             End of tes3mp addition
         */
-=======
         std::string_view dest = MWBase::Environment::get().getWorld()->getCellName(
             &MWBase::Environment::get().getWorldModel()->getCell(door.mRef.getDestCell()));
->>>>>>> omw51
 
         return "#{sCell=" + std::string{ dest } + "}";
     }

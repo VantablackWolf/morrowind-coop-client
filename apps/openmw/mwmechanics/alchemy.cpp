@@ -301,7 +301,6 @@ void MWMechanics::Alchemy::removeIngredients()
         {
             iter->getContainerStore()->remove(*iter, 1);
 
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
@@ -311,11 +310,7 @@ void MWMechanics::Alchemy::removeIngredients()
             /*
                 End of tes3mp addition
             */
-
-            if (iter->getRefData().getCount()<1)
-=======
             if (iter->getCellRef().getCount() < 1)
->>>>>>> omw51
                 *iter = MWWorld::Ptr();
         }
 
