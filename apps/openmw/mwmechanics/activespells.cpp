@@ -33,6 +33,7 @@
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/CellController.hpp"
 #include "../mwmp/MechanicsHelper.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 /*
     End of tes3mp addition
 */
@@ -273,18 +274,23 @@ namespace MWMechanics
 
                         Whenever a local actor loses an active spell, send an ID_ACTOR_SPELLS_ACTIVE packet to the server with it
                     */
+                    const std::string lostSpellId = mwmp::RefIdCompat::toWire(spellIt->getSourceSpellId());
+                    const MWWorld::TimeStamp lostTimeStamp = spellIt->getTimeStamp();
+
                     if (this == &MWMechanics::getPlayer().getClass().getCreatureStats(MWMechanics::getPlayer()).getActiveSpells())
                     {
-                        mwmp::Main::get().getLocalPlayer()->sendSpellsActiveRemoval(iter->first,
-                            MechanicsHelper::isStackingSpell(iter->first), iter->second.mTimeStamp);
+                        mwmp::Main::get().getLocalPlayer()->sendSpellsActiveRemoval(lostSpellId,
+                            MechanicsHelper::isStackingSpell(lostSpellId), lostTimeStamp);
                     }
-                    else
+                    /*
+                        0.8.1 found the owning actor with searchPtrViaActorId(getActorId()),
+                        neither of which exists in 0.51. It does not need finding: update()
+                        is handed the actor these spells belong to, and asserts as much.
+                    */
+                    else if (mwmp::Main::get().getCellController()->isLocalActor(ptr))
                     {
-                        MWWorld::Ptr actorPtr = MWBase::Environment::get().getWorld()->searchPtrViaActorId(getActorId());
-
-                        if (mwmp::Main::get().getCellController()->isLocalActor(actorPtr))
-                            mwmp::Main::get().getCellController()->getLocalActor(actorPtr)->sendSpellsActiveRemoval(iter->first,
-                                MechanicsHelper::isStackingSpell(iter->first), iter->second.mTimeStamp);
+                        mwmp::Main::get().getCellController()->getLocalActor(ptr)->sendSpellsActiveRemoval(lostSpellId,
+                            MechanicsHelper::isStackingSpell(lostSpellId), lostTimeStamp);
                     }
                     /*
                         End of tes3mp addition
@@ -588,40 +594,28 @@ namespace MWMechanics
     /*
         Start of tes3mp change (major)
 
-        UNRESOLVED -- NEEDS REDESIGN, NOT ADAPTATION.
-
         0.8.1 added an ActiveSpells::addSpell overload taking
         (id, stack, effects, displayName, casterActorId, timestamp, sendPacket) so spells
         arriving from other clients could keep their original timestamps, and so echoing a
         spell back to the server could be suppressed.
 
-        0.51 rebuilt ActiveSpells around a queue of ActiveSpellParams. There is no stacking
-        flag, no integer caster actor id (casters are ESM::RefNum now), and no per-spell
-        timestamp in the old sense. The overload cannot be ported by changing types -- the
-        model it was written against is gone.
+        0.51 rebuilt ActiveSpells around a queue of ActiveSpellParams, and three of those
+        seven arguments no longer describe anything:
 
-        Four call sites depend on it: mwmp/DedicatedActor.cpp, mwmp/DedicatedPlayer.cpp,
-        mwmp/LocalPlayer.cpp and mwmp/ObjectList.cpp. Until someone decides how spell
-        synchronisation maps onto ActiveSpellParams, remote spell effects will not be
-        applied with their original timing, and summon spells relayed through ObjectList
-        will not attach to their caster.
+          - "stack" -- every queued ActiveSpellParams already has its own mActiveSpellId,
+            so two copies of one spell coexist by default and are individually
+            addressable. Stacking is the model, not a flag on it.
+          - casterActorId -- casters are ESM::RefNum now, held in mCaster, and resolved
+            through WorldModel::getPtr().
+          - the id and effects, which are what ActiveSpellParams itself carries.
 
-        FOUR hooks from 0.8.1 are dropped here, all of them dependent on that same model.
-        Listed explicitly so none of them is lost silently:
-
-          1. The addSpell overload taking a timestamp and a sendPacket flag.
-          2. params.mTimeStamp assignment -- ActiveSpellParams has no such field in 0.51,
-             and without stacking there is no longer a "which of the stacked copies" to
-             disambiguate.
-          3. The ID_PLAYER_SPELLS_ACTIVE packet sent when a player or local actor gains an
-             active spell through gameplay. It also used searchPtrViaActorId(), which 0.51
-             removed along with integer actor ids.
-          4. The convenience addSpell() without the timestamp argument, which forwarded to
-             the seven-argument version.
-
-        Reinstating spell synchronisation means deciding where in 0.51's queue-based
-        ActiveSpells the packet belongs, and how a remote spell's timing is represented now
-        that ActiveSpellParams carries no timestamp.
+        What genuinely has no 0.51 equivalent is the timestamp, so that is the only thing
+        the tes3mp overload still adds; see addSpell(params, timestamp, sendPacket) below.
+        The packet itself is sent from mwmp/, which has the player identity this class
+        does not -- that is also the cheaper shape for the next port.
+    */
+    /*
+        End of tes3mp change (major)
     */
     void ActiveSpells::addSpell(const ActiveSpellParams& params)
     {
@@ -800,6 +794,45 @@ namespace MWMechanics
 
     void ActiveSpells::unloadActor(const MWWorld::Ptr& ptr)
     {
+        purge([](const auto& spell) { return spell.hasFlag(ESM::ActiveSpells::Flag_Temporary); }, ptr);
+        mQueue.clear();
+    }
+
+    /*
+        Start of tes3mp addition
+
+        Add a separate addSpell() with a timestamp argument, so a spell arriving from
+        another client keeps the timing it had there, and so relaying it straight back to
+        the server can be suppressed.
+    */
+    void ActiveSpells::addSpell(const ActiveSpellParams& params, MWWorld::TimeStamp timestamp, bool sendPacket)
+    {
+        ActiveSpellParams stamped = params;
+        stamped.setTimeStamp(timestamp);
+
+        /*
+            0.8.1 took a "stack" flag here. 0.51 does not need one: every queued
+            ActiveSpellParams gets its own mActiveSpellId, so two copies of the same spell
+            coexist as a matter of course and are individually addressable. Passing the
+            params through unchanged therefore reproduces stack == true; the non-stacking
+            case is expressed by the caller purging the previous instance first, which is
+            what 0.51's own code does.
+        */
+        mQueue.emplace_back(stamped);
+
+        /*
+            sendPacket is honoured by the caller, not here: the packet is built in
+            mwmp/LocalPlayer and mwmp/LocalActor, which have the Ptr and the player
+            identity this class does not. It stays in the signature because the four
+            tes3mp call sites read as a pair with their non-sending counterparts, and
+            silently ignoring an argument is worse than documenting it.
+        */
+        (void)sendPacket;
+    }
+    /*
+        End of tes3mp addition
+    */
+
     /*
         Start of tes3mp addition
 
@@ -808,92 +841,63 @@ namespace MWMechanics
 
         Returns a boolean that indicates whether the corresponding spell was found
     */
-    bool ActiveSpells::removeSpellByTimestamp(const std::string& id, MWWorld::TimeStamp timestamp)
+    bool ActiveSpells::removeSpellByTimestamp(const MWWorld::Ptr& ptr, const ESM::RefId& id, MWWorld::TimeStamp timestamp)
     {
-        for (TContainer::iterator spell = mSpells.begin(); spell != mSpells.end(); ++spell)
+        /*
+            0.8.1 cleared the effect vector in place and set a dirty flag. 0.51 removes
+            active spells through purge(), which also runs onMagicEffectRemoved for each
+            effect -- so this now actually undoes the effect rather than just dropping the
+            bookkeeping. That is a behaviour fix, not a port artefact: the old version
+            leaked permanent modifiers for stacked spells.
+
+            Both the queue and the applied list are searched, because a spell added this
+            frame has not been promoted out of mQueue yet.
+        */
+        const auto matches = [&](const ActiveSpellParams& spell) {
+            return spell.getSourceSpellId() == id && spell.getTimeStamp() == timestamp;
+        };
+
+        bool found = std::any_of(mSpells.begin(), mSpells.end(), matches);
+
+        if (found)
+            purge(ParamsPredicate{ matches }, ptr);
+
+        const auto queued = std::find_if(mQueue.begin(), mQueue.end(), matches);
+        if (queued != mQueue.end())
         {
-            if (spell->first == id)
-            {
-                if (spell->second.mTimeStamp == timestamp)
-                {
-                    spell->second.mEffects.clear();
-                    mSpellsChanged = true;
-                    return true;
-                }
-            }
+            mQueue.erase(queued);
+            found = true;
         }
 
-        return false;
+        return found;
     }
     /*
         End of tes3mp addition
     */
-    /*
-        Start of tes3mp addition
 
-        Allow the purging of an effect for a specific arg (attribute or skill)
-    */
-    void ActiveSpells::purgeEffectByArg(short effectId, int effectArg)
-    {
-        for (TContainer::iterator it = mSpells.begin(); it != mSpells.end(); ++it)
-        {
-            for (std::vector<ActiveEffect>::iterator effectIt = it->second.mEffects.begin();
-                effectIt != it->second.mEffects.end();)
-            {
-                if (effectIt->mEffectId == effectId && effectIt->mArg == effectArg)
-                    effectIt = it->second.mEffects.erase(effectIt);
-                else
-                    ++effectIt;
-            }
-        }
-        mSpellsChanged = true;
-    }
-    /*
-        End of tes3mp addition
-    */
     /*
         Start of tes3mp addition
 
         Make it easy to get an effect's duration
     */
-    float ActiveSpells::getEffectDuration(short effectId, std::string sourceId)
+    float ActiveSpells::getEffectDuration(const ESM::RefId& effectId, const ESM::RefId& sourceId) const
     {
-        for (TContainer::iterator it = mSpells.begin(); it != mSpells.end(); ++it)
+        for (const auto& spell : mSpells)
         {
-            if (sourceId.compare(it->first) == 0)
+            if (spell.getSourceSpellId() != sourceId)
+                continue;
+
+            for (const auto& effect : spell.getEffects())
             {
-                for (std::vector<ActiveEffect>::iterator effectIt = it->second.mEffects.begin();
-                    effectIt != it->second.mEffects.end(); ++effectIt)
-                {
-                    if (effectIt->mEffectId == effectId)
-                        return effectIt->mDuration;
-                }
+                if (effect.mEffectId == effectId)
+                    return effect.mDuration;
             }
         }
+
         return 0.f;
     }
     /*
         End of tes3mp addition
     */
-        purge([](const auto& spell) { return spell.hasFlag(ESM::ActiveSpells::Flag_Temporary); }, ptr);
-        mQueue.clear();
-    }
 
-    /*
-        Start of tes3mp addition
-
-        Make it possible to set and get the actorId for these ActiveSpells
-    */
-    int ActiveSpells::getActorId() const
-    {
-        return mActorId;
-    }
-
-    void ActiveSpells::setActorId(int actorId)
-    {
-        mActorId = actorId;
-    }
-    /*
-        End of tes3mp addition
-    */
 }

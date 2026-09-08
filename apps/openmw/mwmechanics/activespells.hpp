@@ -58,9 +58,18 @@ namespace MWMechanics
             /*
                 Start of tes3mp addition
 
-                Track the actorId corresponding to these ActiveSpells
+                Track when this spell was applied.
+
+                0.8.1 tracked an integer caster actorId here. 0.51 identifies casters by
+                ESM::RefNum in mCaster, which supersedes it, so that field is gone.
+
+                The timestamp has no 0.51 equivalent and is still needed: it is what the
+                ID_*_SPELLS_ACTIVE packets carry, and what lets a removal name one of
+                several stacked copies of the same spell. It is deliberately NOT written
+                to ESM by toEsm() -- it is multiplayer session state, and the server
+                resends active spells on connect.
             */
-            int mActorId;
+            MWWorld::TimeStamp mTimeStamp;
             /*
                 End of tes3mp addition
             */
@@ -78,20 +87,10 @@ namespace MWMechanics
             /*
                 Start of tes3mp addition
 
-                Add a separate addSpell() with a timestamp argument
+                Expose the timestamp recorded above
             */
-            void addSpell (const std::string& id, bool stack, std::vector<ActiveEffect> effects,
-                           const std::string& displayName, int casterActorId, MWWorld::TimeStamp timestamp, bool sendPacket = true);
-            /*
-                End of tes3mp addition
-            */
-            /*
-                Start of tes3mp addition
-
-                Remove the spell with a certain ID and a certain timestamp, useful
-                when there are stacked spells with the same ID
-            */
-            bool removeSpellByTimestamp(const std::string& id, MWWorld::TimeStamp timestamp);
+            MWWorld::TimeStamp getTimeStamp() const { return mTimeStamp; }
+            void setTimeStamp(MWWorld::TimeStamp timestamp) { mTimeStamp = timestamp; }
             /*
                 End of tes3mp addition
             */
@@ -125,15 +124,6 @@ namespace MWMechanics
             /*
                 End of tes3mp addition
             */
-            /*
-                Start of tes3mp addition
-
-                Make it easy to get an effect's duration
-            */
-            float getEffectDuration(short effectId, std::string sourceId);
-            /*
-                End of tes3mp addition
-            */
             const ESM::Spell* getSpell() const;
             bool hasFlag(ESM::ActiveSpells::Flags flags) const;
             void setFlag(ESM::ActiveSpells::Flags flags);
@@ -149,16 +139,6 @@ namespace MWMechanics
         typedef std::list<ActiveSpellParams> Collection;
         typedef Collection::const_iterator TIterator;
 
-            /*
-                Start of tes3mp addition
-
-                Make it possible to set and get the actorId for these ActiveSpells
-            */
-            int getActorId() const;
-            void setActorId(int actorId);
-            /*
-                End of tes3mp addition
-            */
         void readState(const ESM::ActiveSpells& state);
         void writeState(ESM::ActiveSpells& state) const;
 
@@ -208,6 +188,46 @@ namespace MWMechanics
         /// \param id ID for stacking purposes.
         ///
         void addSpell(const ActiveSpellParams& params);
+
+        /*
+            Start of tes3mp addition
+
+            Add a separate addSpell() with a timestamp argument, so a spell arriving from
+            another client keeps the timing it had there, and so relaying it straight back
+            to the server can be suppressed.
+
+            0.8.1 took (id, stack, effects, displayName, casterActorId, timestamp,
+            sendPacket) against a map keyed by spell id. 0.51's ActiveSpells is a queue of
+            ActiveSpellParams in which every instance already carries its own
+            mActiveSpellId, so stacking needs no flag and the caster is an ESM::RefNum --
+            the arguments that are gone are gone because 0.51 models them better, not
+            because the feature was dropped.
+        */
+        void addSpell(const ActiveSpellParams& params, MWWorld::TimeStamp timestamp, bool sendPacket = true);
+        /*
+            End of tes3mp addition
+        */
+        /*
+            Start of tes3mp addition
+
+            Remove the spell with a certain ID and a certain timestamp, useful
+            when there are stacked spells with the same ID
+
+            Returns a boolean that indicates whether the corresponding spell was found
+        */
+        bool removeSpellByTimestamp(const MWWorld::Ptr& ptr, const ESM::RefId& id, MWWorld::TimeStamp timestamp);
+        /*
+            End of tes3mp addition
+        */
+        /*
+            Start of tes3mp addition
+
+            Make it easy to get an effect's duration
+        */
+        float getEffectDuration(const ESM::RefId& effectId, const ESM::RefId& sourceId) const;
+        /*
+            End of tes3mp addition
+        */
 
         /// Force resistances
         void addSpell(const ESM::Spell* spell, const MWWorld::Ptr& actor, bool ignoreResistances = true);

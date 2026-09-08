@@ -1,6 +1,8 @@
 #ifndef OPENW_MWORLD_CELL
 #define OPENW_MWORLD_CELL
 
+#include <string>
+
 #include <osg/Vec2i>
 
 #include <components/esm/esmbridge.hpp>
@@ -54,6 +56,30 @@ namespace MWWorld
         {
             return ESM::ExteriorCellLocation(mGridPos.x(), mGridPos.y(), getWorldSpace());
         }
+
+        /*
+            Start of tes3mp addition
+
+            Add a method that returns cell descriptions in OpenMW's previous way, because it was
+            widely used in TES3MP
+
+            ESM::Cell already carries this hook. 0.51 introduced MWWorld::Cell as the unified
+            view over ESM3 and ESM4 cells and made CellStore::getCell() hand that out instead,
+            so the same accessor is needed here or every tes3mp call site has to change.
+
+            Deliberately identical to ESM::Cell::getShortDescription(): tes3mp puts these
+            strings in log lines and in server-side Lua, and the two must not diverge.
+        */
+        std::string getShortDescription() const
+        {
+            if (!mIsExterior)
+                return std::string(mNameID);
+
+            return std::to_string(mGridPos.x()) + ", " + std::to_string(mGridPos.y());
+        }
+        /*
+            End of tes3mp addition
+        */
 
     private:
         bool mIsExterior;

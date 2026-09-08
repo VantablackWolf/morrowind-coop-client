@@ -11,11 +11,17 @@
 #include "../mwworld/inventorystore.hpp"
 #include "../mwworld/worldimp.hpp"
 
+#include <components/esm3/statstate.hpp>
+
 #include "LocalActor.hpp"
 #include "Main.hpp"
 #include "Networking.hpp"
 #include "ActorList.hpp"
 #include "MechanicsHelper.hpp"
+#include "RecordConvertPlayer.hpp"
+#include "RefIdCompat.hpp"
+
+#include "../mwworld/worldmodel.hpp"
 
 using namespace mwmp;
 
@@ -78,8 +84,8 @@ void LocalActor::updateCell()
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "- Moved to cell %s", ptr.getCell()->getCell()->getShortDescription().c_str());
 
-    cell = *ptr.getCell()->getCell();
-    position = ptr.getRefData().getPosition();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
+    position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
     isFollowerCellChange = false;
 
     mwmp::Main::get().getNetworking()->getActorList()->addCellChangeActor(*this);
@@ -105,7 +111,7 @@ void LocalActor::updatePosition(bool forceUpdate)
     if (forceUpdate || posIsChanging || posWasChanged)
     {
         posWasChanged = posIsChanging;
-        position = ptr.getRefData().getPosition();
+        position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
         mwmp::Main::get().getNetworking()->getActorList()->addPositionActor(*this);
     }
 }
@@ -151,7 +157,7 @@ void LocalActor::updateAnimFlags(bool forceUpdate)
 
 #undef __SETFLAG
 
-        drawState = currentDrawState;
+        drawState = static_cast<char>(currentDrawState);
 
         mwmp::Main::get().getNetworking()->getActorList()->addAnimFlagsActor(*this);
     }
@@ -198,9 +204,14 @@ void LocalActor::updateStatsDynamic(bool forceUpdate)
         oldMagicka = magicka;
         oldFatigue = fatigue;
 
-        health.writeState(creatureStats.mDynamic[0]);
-        magicka.writeState(creatureStats.mDynamic[1]);
-        fatigue.writeState(creatureStats.mDynamic[2]);
+        // The engine writes into its own StatState; the mirror keeps the 0.47 layout.
+        ESM::StatState<float> dynamicState;
+        health.writeState(dynamicState);
+        mwmp::RecordConvert::fromEngine(dynamicState, creatureStats.mDynamic[0]);
+        magicka.writeState(dynamicState);
+        mwmp::RecordConvert::fromEngine(dynamicState, creatureStats.mDynamic[1]);
+        fatigue.writeState(dynamicState);
+        mwmp::RecordConvert::fromEngine(dynamicState, creatureStats.mDynamic[2]);
 
         creatureStats.mDead = ptrCreatureStats->isDead();
         creatureStats.mDeathAnimationFinished = ptrCreatureStats->isDeathAnimationFinished();
@@ -219,7 +230,7 @@ void LocalActor::updateEquipment(bool forceUpdate, bool sendImmediately)
     // If we've never sent any data, autoEquip the actor just in case its inventory
     // slots have been cleared by a previous Container packet
     if (!hasSentData)
-        invStore.autoEquip(ptr);
+        invStore.autoEquip();
 
     if (forceUpdate)
         equipmentChanged = true;
@@ -232,11 +243,13 @@ void LocalActor::updateEquipment(bool forceUpdate, bool sendImmediately)
         if (it != invStore.end())
         {
             auto &cellRef = it->getCellRef();
-            if (!::Misc::StringUtils::ciEqual(cellRef.getRefId(), item.refId))
+            // RefId interning is already case-insensitive, so comparing the
+            // serialized forms carries the old ciEqual semantics.
+            if (mwmp::RefIdCompat::toWire(cellRef.getRefId()) != item.refId)
             {
                 equipmentChanged = true;
 
-                item.refId = cellRef.getRefId();
+                item.refId = mwmp::RefIdCompat::toWire(cellRef.getRefId());
                 item.charge = cellRef.getCharge();
                 item.enchantmentCharge = it->getCellRef().getEnchantmentCharge();
                 item.count = it->getCellRef().getCount();
@@ -295,16 +308,17 @@ void LocalActor::sendSpellsActiveAddition(const std::string id, bool isStackingS
 
     spellsActiveChanges.activeSpells.clear();
 
-    const MWWorld::Ptr& caster = MWBase::Environment::get().getWorld()->searchPtrViaActorId(params.mCasterActorId);
+    // 0.51 identifies the caster by ESM::RefNum; WorldModel resolves it to a Ptr.
+    const MWWorld::Ptr caster = MWBase::Environment::get().getWorldModel()->getPtr(params.getCaster());
 
     mwmp::ActiveSpell spell;
     spell.id = id;
     spell.isStackingSpell = isStackingSpell;
     spell.caster = MechanicsHelper::getTarget(caster);
-    spell.timestampDay = params.mTimeStamp.getDay();
-    spell.timestampHour = params.mTimeStamp.getHour();
-    spell.params.mEffects = params.mEffects;
-    spell.params.mDisplayName = params.mDisplayName;
+    spell.timestampDay = params.getTimeStamp().getDay();
+    spell.timestampHour = params.getTimeStamp().getHour();
+    mwmp::RecordConvert::fromEngine(params.getEffects(), spell.params.mEffects);
+    spell.params.mDisplayName = params.getDisplayName();
     spellsActiveChanges.activeSpells.push_back(spell);
 
     spellsActiveChanges.action = mwmp::SpellsActiveChanges::ADD;
@@ -368,7 +382,7 @@ void LocalActor::setPtr(const MWWorld::Ptr& newPtr)
 {
     ptr = newPtr;
 
-    refId = ptr.getCellRef().getRefId();
+    refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
     refNum = ptr.getCellRef().getRefNum().mIndex;
     mpNum = ptr.getCellRef().getMpNum();
 

@@ -260,6 +260,37 @@ namespace mwmp
             }
         }
 
+        /*
+            Effect vectors.
+
+            The active-spell packets carry a whole effect list at a time, and both sides
+            spell it as a plain vector, so converting element-wise here keeps every call
+            site to one line.
+        */
+        inline void fromEngine(const std::vector<ESM::ActiveEffect>& from, std::vector<records::ActiveEffect>& to)
+        {
+            to.clear();
+            to.reserve(from.size());
+            for (const auto& effect : from)
+            {
+                records::ActiveEffect converted;
+                fromEngine(effect, converted);
+                to.push_back(converted);
+            }
+        }
+
+        inline void toEngine(const std::vector<records::ActiveEffect>& from, std::vector<ESM::ActiveEffect>& to)
+        {
+            to.clear();
+            to.reserve(from.size());
+            for (const auto& effect : from)
+            {
+                ESM::ActiveEffect converted;
+                toEngine(effect, converted);
+                to.push_back(converted);
+            }
+        }
+
         inline void toEngine(const records::CreatureStats& from, ESM::CreatureStats& to)
         {
             for (std::size_t i = 0; i < to.mAttributes.size(); ++i)
