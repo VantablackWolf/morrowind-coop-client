@@ -42,11 +42,32 @@
 #include <type_traits>
 
 #include "RecordConvert.hpp"
+#include "RecordConvertPlayer.hpp"
 
 namespace mwmp
 {
     namespace EngineSurfaceCheck
     {
+        /*
+            Wire-critical counts.
+
+            TES3MP's protocol encodes fixed-length attribute and skill blocks.
+            If a future OpenMW makes attributes or skills data-driven -- a
+            plausible direction, since both are already RefId-keyed elsewhere --
+            these change and every player-stats packet silently truncates or
+            overruns. That must be a protocol version bump, not a quiet resize.
+        */
+        static_assert(ESM::Attribute::Length == records::sAttributeCount,
+            "ESM::Attribute::Length changed; TES3MP player stats packets encode a fixed 8-attribute block");
+        static_assert(ESM::Skill::Length == records::sSkillCount,
+            "ESM::Skill::Length changed; TES3MP player stats packets encode a fixed 27-skill block");
+        static_assert(std::tuple_size_v<decltype(ESM::CreatureStats::mDynamic)> == records::sDynamicCount,
+            "ESM::CreatureStats::mDynamic changed size; TES3MP encodes 3 dynamic stats");
+        static_assert(std::tuple_size_v<decltype(ESM::NpcStats::mSkills)> == records::sSkillCount,
+            "ESM::NpcStats::mSkills changed size; TES3MP encodes a fixed 27-skill block");
+        static_assert(std::tuple_size_v<decltype(ESM::NpcStats::mSkillIncrease)> == records::sAttributeCount,
+            "ESM::NpcStats::mSkillIncrease changed size; TES3MP encodes 8 entries");
+
     // Spell
     static_assert(std::is_same_v<decltype(ESM::Spell{}.mId), ESM::RefId>,
         "Spell.mId changed type in OpenMW; review RecordConvert before updating this line");

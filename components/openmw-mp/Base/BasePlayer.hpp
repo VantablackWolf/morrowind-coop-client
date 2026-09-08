@@ -1,13 +1,7 @@
 #ifndef OPENMW_BASEPLAYER_HPP
 #define OPENMW_BASEPLAYER_HPP
 
-#include <components/esm/loadcell.hpp>
-#include <components/esm/loadcrea.hpp>
-#include <components/esm/loadnpc.hpp>
-#include <components/esm/npcstats.hpp>
-#include <components/esm/creaturestats.hpp>
-#include <components/esm/loadclas.hpp>
-#include <components/esm/loadspel.hpp>
+#include <components/openmw-mp/Base/records/Records.hpp>
 
 #include <components/openmw-mp/Base/BaseStructs.hpp>
 
@@ -77,7 +71,7 @@ namespace mwmp
 
     struct CellState
     {
-        ESM::Cell cell;
+        records::Cell cell;
 
         enum CELL_STATE_ACTION
         {
@@ -116,7 +110,7 @@ namespace mwmp
 
     struct SpellbookChanges
     {
-        std::vector<ESM::Spell> spells;
+        std::vector<records::Spell> spells;
         enum ACTION_TYPE
         {
             SET = 0,
@@ -236,16 +230,16 @@ namespace mwmp
         bool isFlying = false;
         bool hasTcl = false;
 
-        ESM::Position position;
-        ESM::Position direction;
-        ESM::Position previousCellPosition;
-        ESM::Position momentum;
-        ESM::Cell cell;
-        ESM::NPC npc;
-        ESM::NpcStats npcStats;
-        ESM::Creature creature;
-        ESM::CreatureStats creatureStats;
-        ESM::Class charClass;
+        records::Position position;
+        records::Position direction;
+        records::Position previousCellPosition;
+        records::Position momentum;
+        records::Cell cell;
+        records::NPC npc;
+        records::NpcStats npcStats;
+        records::Creature creature;
+        records::CreatureStats creatureStats;
+        records::Class charClass;
         Item equipmentItems[19];
         Attack attack;
         Cast cast;
@@ -279,8 +273,8 @@ namespace mwmp
         unsigned int resurrectType;
         unsigned int miscellaneousChangeType;
 
-        ESM::Cell markCell;
-        ESM::Position markPosition;
+        records::Cell markCell;
+        records::Position markPosition;
         std::string selectedSpellId;
 
         mwmp::Item usedItem;

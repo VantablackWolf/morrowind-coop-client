@@ -1,7 +1,7 @@
 #ifndef OPENMW_BASEACTOR_HPP
 #define OPENMW_BASEACTOR_HPP
 
-#include <components/esm/loadcell.hpp>
+#include <components/openmw-mp/Base/records/Records.hpp>
 
 #include <components/openmw-mp/Base/BaseStructs.hpp>
 
@@ -23,10 +23,10 @@ namespace mwmp
         unsigned int refNum;
         unsigned int mpNum;
 
-        ESM::Position position;
-        ESM::Position direction;
+        records::Position position;
+        records::Position direction;
 
-        ESM::Cell cell;
+        records::Cell cell;
 
         unsigned int movementFlags;
         char drawState;
@@ -52,7 +52,7 @@ namespace mwmp
         unsigned int aiDistance;
         unsigned int aiDuration;
         bool aiShouldRepeat;
-        ESM::Position aiCoordinates;
+        records::Position aiCoordinates;
 
         bool hasPositionData;
         bool hasStatsDynamicData;
@@ -95,7 +95,7 @@ namespace mwmp
 
         unsigned int count;
 
-        ESM::Cell cell;
+        records::Cell cell;
 
         unsigned char action; // 0 - Clear and set in entirety, 1 - Add item, 2 - Remove item, 3 - Request items
 

@@ -3,9 +3,7 @@
 
 #include <string>
 
-#include <components/esm/activespells.hpp>
-#include <components/esm/loadcell.hpp>
-#include <components/esm/statstate.hpp>
+#include <components/openmw-mp/Base/records/Records.hpp>
 
 #include <RakNetTypes.h>
 
@@ -122,7 +120,7 @@ namespace mwmp
         std::string rangedWeaponId;
         std::string rangedAmmoId;
 
-        ESM::Position hitPosition;
+        records::Position hitPosition;
         ProjectileOrigin projectileOrigin;
 
         float damage = 0;
@@ -207,7 +205,7 @@ namespace mwmp
 
     struct SimpleCreatureStats
     {
-        ESM::StatState<float> mDynamic[3];
+        records::StatState<float> mDynamic[3];
         bool mDead;
         bool mDeathAnimationFinished;
     };

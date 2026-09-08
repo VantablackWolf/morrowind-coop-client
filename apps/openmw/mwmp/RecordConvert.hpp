@@ -54,6 +54,7 @@
 #include <components/openmw-mp/Base/records/Records.hpp>
 
 #include "RecordConvertCommon.hpp"
+#include "RecordConvertPlayer.hpp"
 #include "RefIdCompat.hpp"
 
 namespace mwmp
@@ -350,16 +351,6 @@ namespace mwmp
             to.mData.mPart = from.mData.mPart;
             to.mData.mVampire = from.mData.mVampire;
             to.mData.mFlags = from.mData.mFlags;
-        }
-
-        inline void toEngine(const records::Cell& from, ESM::Cell& to)
-        {
-            to.mName = from.mName;
-        }
-
-        inline void fromEngine(const ESM::Cell& from, records::Cell& to)
-        {
-            to.mName = from.mName;
         }
 
         inline void toEngine(const records::Container& from, ESM::Container& to)

@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "Common.hpp"
+#include "PlayerState.hpp"
 
 namespace mwmp
 {
@@ -228,10 +229,8 @@ namespace mwmp
             BYDTstruct mData;
         };
 
-        struct Cell
-        {
-            std::string mName;
-        };
+        // Cell is defined in PlayerState.hpp -- the player-state version is a
+        // superset (mName + mRegion + mData) and serves both uses.
 
         struct Container
         {

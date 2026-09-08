@@ -1,7 +1,7 @@
 #ifndef OPENMW_BASEEVENT_HPP
 #define OPENMW_BASEEVENT_HPP
 
-#include <components/esm/loadcell.hpp>
+#include <components/openmw-mp/Base/records/Records.hpp>
 #include <components/openmw-mp/Base/BaseStructs.hpp>
 #include <RakNetTypes.h>
 
@@ -35,7 +35,7 @@ namespace mwmp
         std::string soul;
         int goldValue;
 
-        ESM::Position position;
+        records::Position position;
 
         bool objectState;
         int lockLevel;
@@ -56,8 +56,8 @@ namespace mwmp
 
         int doorState;
         bool teleportState;
-        ESM::Cell destinationCell;
-        ESM::Position destinationPosition;
+        records::Cell destinationCell;
+        records::Position destinationPosition;
 
         std::string musicFilename;
 
@@ -127,7 +127,7 @@ namespace mwmp
         std::vector<BaseObject> baseObjects;
         unsigned int baseObjectCount;
 
-        ESM::Cell cell;
+        records::Cell cell;
         std::string consoleCommand;
 
         unsigned char packetOrigin; // 0 - Gameplay, 1 - Console, 2 - Client script, 3 - Server script
