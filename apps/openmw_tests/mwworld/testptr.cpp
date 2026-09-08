@@ -37,7 +37,17 @@ namespace MWWorld
             LiveCellRef<ESM::NPC> liveCellRef(cellRef, &npc);
             liveCellRef.mData.setDeletedByContentFile(true);
             Ptr ptr(&liveCellRef);
-            EXPECT_THAT(ptr.toString(), StrCaseEq("deleted object0xd00002a (NPC, \"player\")"));
+            /*
+                Start of tes3mp change (minor)
+
+                Ptr::toString() also reports mpNum, the multiplayer half of an object's
+                identity. A RefNum alone does not identify an object created at runtime by
+                the server, so every TES3MP log line that names a Ptr needs it too.
+            */
+            EXPECT_THAT(ptr.toString(), StrCaseEq("deleted object0xd00002a (NPC, \"player\", mpNum 0)"));
+            /*
+                End of tes3mp change (minor)
+            */
         }
 
         TEST(MWWorldPtrTest, toStringShouldReturnHumanReadableTextRepresentationOfPtr)
@@ -54,7 +64,17 @@ namespace MWWorld
             cellRef.mRefNum = ESM::RefNum{ .mIndex = 0x2a, .mContentFile = 0xd };
             LiveCellRef<ESM::NPC> liveCellRef(cellRef, &npc);
             Ptr ptr(&liveCellRef);
-            EXPECT_THAT(ptr.toString(), StrCaseEq("object0xd00002a (NPC, \"player\")"));
+            /*
+                Start of tes3mp change (minor)
+
+                Ptr::toString() also reports mpNum, the multiplayer half of an object's
+                identity. A RefNum alone does not identify an object created at runtime by
+                the server, so every TES3MP log line that names a Ptr needs it too.
+            */
+            EXPECT_THAT(ptr.toString(), StrCaseEq("object0xd00002a (NPC, \"player\", mpNum 0)"));
+            /*
+                End of tes3mp change (minor)
+            */
         }
 
         TEST(MWWorldPtrTest, underlyingLiveCellRefShouldBeDeregisteredOnDestruction)

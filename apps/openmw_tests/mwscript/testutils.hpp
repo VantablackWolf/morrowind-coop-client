@@ -216,6 +216,38 @@ namespace
 
         int getPCBounty() const override { return {}; }
 
+        /*
+            Start of tes3mp addition
+
+            Interpreter::Context gained four pure virtuals so that packets sent while a
+            script runs can be attributed to that script by serverside Lua. A test double
+            has to implement them or the class stays abstract and every test that builds
+            one fails to compile.
+
+            The tracked values are stored and returned rather than ignored, so a test can
+            assert on script attribution if one is ever written for it.
+
+            CONTEXT_TYPE has no "unknown" member, so the default is CONSOLE -- the same
+            zero the enum starts at. It is arbitrary but deterministic, which is more than
+            can be said for the engine's own InterpreterContext::mContextType: that one is
+            left uninitialised (in 0.8.1 as well, so this is not a port regression) and is
+            read by getPacketOriginFromContextType whenever a context sends a packet
+            without having been tracked first. Worth fixing upstream, not here.
+        */
+        unsigned short mContextType = Interpreter::Context::CONSOLE;
+        std::string mCurrentScriptName;
+
+        unsigned short getContextType() const override { return mContextType; }
+
+        std::string getCurrentScriptName() const override { return mCurrentScriptName; }
+
+        void trackContextType(unsigned short interpreterType) override { mContextType = interpreterType; }
+
+        void trackCurrentScriptName(const std::string& name) override { mCurrentScriptName = name; }
+        /*
+            End of tes3mp addition
+        */
+
         std::string_view getCurrentCellName() const override { return {}; }
 
         int getMemberShort(ESM::RefId id, std::string_view name, bool global) const override

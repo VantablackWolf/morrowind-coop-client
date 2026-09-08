@@ -1,4 +1,18 @@
 #include <QApplication>
+
+/*
+    Start of tes3mp change (major)
+
+    0.51 dropped boost::filesystem in favour of std::filesystem, and
+    Settings::Manager::loadDefault/loadUser now take std::filesystem::path
+    rather than std::string. Keep the paths as paths instead of round-tripping
+    them through string().
+*/
+#include <filesystem>
+/*
+    End of tes3mp change (major)
+*/
+
 #include <components/settings/settings.hpp>
 #include <components/files/configurationmanager.hpp>
 #include <apps/browser/netutils/QueryClient.hpp>
@@ -8,23 +22,23 @@ std::string loadSettings (Settings::Manager & settings)
 {
     Files::ConfigurationManager mCfgMgr;
     // Create the settings manager and load default settings file
-    const std::string localdefault = (mCfgMgr.getLocalPath() / "tes3mp-client-default.cfg").string();
-    const std::string globaldefault = (mCfgMgr.getGlobalPath() / "tes3mp-client-default.cfg").string();
+    const std::filesystem::path localdefault = mCfgMgr.getLocalPath() / "tes3mp-client-default.cfg";
+    const std::filesystem::path globaldefault = mCfgMgr.getGlobalPath() / "tes3mp-client-default.cfg";
 
     // prefer local
-    if (boost::filesystem::exists(localdefault))
+    if (std::filesystem::exists(localdefault))
         settings.loadDefault(localdefault, false);
-    else if (boost::filesystem::exists(globaldefault))
+    else if (std::filesystem::exists(globaldefault))
         settings.loadDefault(globaldefault, false);
     else
         throw std::runtime_error ("No default settings file found! Make sure the file \"tes3mp-client-default.cfg\" was properly installed.");
 
     // load user settings if they exist
-    const std::string settingspath = (mCfgMgr.getUserConfigPath() / "tes3mp-client.cfg").string();
-    if (boost::filesystem::exists(settingspath))
+    const std::filesystem::path settingspath = mCfgMgr.getUserConfigPath() / "tes3mp-client.cfg";
+    if (std::filesystem::exists(settingspath))
         settings.loadUser(settingspath);
 
-    return settingspath;
+    return settingspath.string();
 }
 
 int main(int argc, char *argv[])
