@@ -26,6 +26,7 @@
 #include "../mwbase/mechanicsmanager.hpp"
 #include "../mwbase/windowmanager.hpp"
 #include "../mwbase/world.hpp"
+#include "../mwmp/RefNumCompat.hpp"
 
 namespace
 {
@@ -186,7 +187,7 @@ namespace MWGui
                 mwmp::CurrentContainer* currentContainer = &mwmp::Main::get().getLocalPlayer()->currentContainer;
 
                 if (stacks(*it, item.mBase)
-                    && (currentContainer->refNum != source.first.getCellRef().getRefNum().mIndex
+                    && (currentContainer->refNum != mwmp::RefNumCompat::toWire(source.first.getCellRef())
                         || currentContainer->mpNum != source.first.getCellRef().getMpNum()))
                 {
                     mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();

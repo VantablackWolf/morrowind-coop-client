@@ -219,16 +219,6 @@ namespace MWMechanics
 
     void Spells::usePower(const ESM::Spell* spell)
     {
-        /*
-            Start of tes3mp addition
-
-            Send an ID_PLAYER_COOLDOWN packet every time a cooldown is recorded here
-        */
-        mwmp::Main::get().getLocalPlayer()->sendCooldownChange(mwmp::RefIdCompat::toWire(spell->mId), MWBase::Environment::get().getWorld()->getTimeStamp().getDay(),
-            MWBase::Environment::get().getWorld()->getTimeStamp().getHour());
-        /*
-            End of tes3mp addition
-        */
         // Updates or inserts a new entry with the current timestamp.
         const auto it = std::find_if(
             std::begin(mUsedPowers), std::end(mUsedPowers), [&](auto& pair) { return pair.first == spell; });
@@ -237,6 +227,22 @@ namespace MWMechanics
             mUsedPowers.emplace_back(spell, timestamp);
         else
             it->second = timestamp;
+
+        /*
+            Start of tes3mp addition
+
+            Send an ID_PLAYER_COOLDOWN packet every time a cooldown is recorded here
+
+            At the end of the function, as in 0.8.1: record the cooldown, then report it.
+            The merge had the packet going out first, so the server was told about a
+            cooldown this client had not yet applied.
+        */
+        mwmp::Main::get().getLocalPlayer()->sendCooldownChange(mwmp::RefIdCompat::toWire(spell->mId),
+            MWBase::Environment::get().getWorld()->getTimeStamp().getDay(),
+            MWBase::Environment::get().getWorld()->getTimeStamp().getHour());
+        /*
+            End of tes3mp addition
+        */
     }
 
     /*

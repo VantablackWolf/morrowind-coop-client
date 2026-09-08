@@ -42,11 +42,22 @@ namespace MWWorld
             }
         }
 
+        int count = getTarget().getCellRef().getCount();
+        if (getTarget().getClass().isGold(getTarget()))
+            count *= getTarget().getClass().getValue(getTarget());
+
+        MWBase::Environment::get().getMechanicsManager()->itemTaken(actor, getTarget(), MWWorld::Ptr(), count);
+        MWWorld::Ptr newitem = *actor.getClass().getContainerStore(actor).add(getTarget(), count);
+
         /*
             Start of tes3mp addition
 
             Send an ID_OBJECT_DELETE packet every time an item is taken from the world
             by the player outside of the inventory screen
+
+            After the item has actually been added to the inventory, as in 0.8.1. The merge
+            had moved this above itemTaken() and the add, so the server was told the object
+            was gone before this client had taken it.
         */
         mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
         objectList->reset();
@@ -56,12 +67,7 @@ namespace MWWorld
         /*
             End of tes3mp addition
         */
-        int count = getTarget().getCellRef().getCount();
-        if (getTarget().getClass().isGold(getTarget()))
-            count *= getTarget().getClass().getValue(getTarget());
 
-        MWBase::Environment::get().getMechanicsManager()->itemTaken(actor, getTarget(), MWWorld::Ptr(), count);
-        MWWorld::Ptr newitem = *actor.getClass().getContainerStore(actor).add(getTarget(), count);
         MWBase::Environment::get().getWorld()->deleteObject(getTarget());
         setTarget(newitem);
     }
