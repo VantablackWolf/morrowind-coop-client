@@ -53,8 +53,9 @@ file at a time with a compile after each edit is the whole loop.
 | `check-missing-definitions.sh` | definitions swallowed by a runaway comment | anything still compiling and linking |
 | `check-hook-shadowing.sh` | a hook working on a shadow copy of the variable the function uses | shadowing that is deliberate |
 | `check-orphaned-resources.sh` | assets no build file installs any more | assets installed by a wildcard |
+| `check-hook-context.sh` | hooks now sitting next to different code | a hook that moved with the code it watches |
 
-Run all six. Each one on this list exists because the ones above it missed
+Run all seven. Each one on this list exists because the ones above it missed
 something real, and each says plainly what it still cannot see.
 
 Only `check-resolution.sh` is a gate. The rest exit 0 on purpose: they generate
@@ -221,6 +222,54 @@ from 0.47 → 0.51:
 type this port was written for, so that class of change becomes a compile error
 naming the field. **Run it first on a new OpenMW** — it is the fastest available
 survey of what actually changed under you.
+
+### The single most productive check: what is the hook next to now?
+
+`check-hook-context.sh` earns its own section because it found more real bugs
+than everything else combined. It records the nearest statement before and
+after every hook in the previous tree, then compares against where that hook
+sits now.
+
+That is the shape of nearly every runtime defect this port produced. The hook
+survives intact and compiles; only its position changed. A sample of what that
+looks like in practice:
+
+| Hook | Where it landed | Effect |
+|---|---|---|
+| cell-load report | inside a lambda, after both branches returned | unreachable; nothing in the world could be activated |
+| `mHasServerOrigin` | one statement before the object was constructed | null dereference on the first interactive message box |
+| failed-attack packet | after the success block instead of inside `if (!success)` | every landed blow reported to the server as a miss |
+| mark location | end of the function, outside every branch | every spell cast overwrote the player's mark |
+| `PCExpell` packet | above the line assigning the faction id | expulsion sent with an empty id, before it happened |
+| rest-disabled guard | detached from the `if` it was the body of | forbidden players were told no, then handed the menu |
+| persuasion guard | inside `saveBindings()` | key bindings silently discarded, guard never applied |
+
+Read it ranked and read it sceptically. Roughly half the top hits are hooks
+that legitimately moved because upstream moved the code around them. The check
+says so itself: it reports leads, never failures, and exits 0.
+
+### When a hook's home no longer exists, find the choke point
+
+Some hooks cannot be moved, because the function they lived in is gone. Three
+in this port, and the same reasoning solved all three:
+
+| Hook | 0.47 home | 0.51 home |
+|---|---|---|
+| don't open the inventory before login | `ActionManager::toggleInventory` | `WindowManager::pushGuiMode` |
+| don't attack in the persuasion submenu | `BindingsManager`, the A_Use branch | `updateLuaControls`, where `mUse` becomes an attack |
+| jail skill/message overrides | three hooks in `JailScreen::onFrame` | carried into Lua's `jailTimeServed` |
+
+The instinct is to find the code that looks most like the old code. That is
+usually wrong. Look instead for the single place every route to the behaviour
+still passes through, and put the hook there -- it will then apply to callers
+the fork's author never anticipated, including Lua.
+
+The jail case is worth spelling out because it points the other way. 0.51 moved
+the whole of serving a sentence into Lua, so there was no C++ choke point left
+to guard. Reimplementing it in C++ next to Lua's version would have meant two
+implementations of jail. Instead the server's overrides ride along on the
+engine event and the Lua handler honours them. **When upstream moves a
+behaviour to Lua, follow it there rather than rebuilding it in C++.**
 
 ### Budget for the bugs that only running it can find
 
