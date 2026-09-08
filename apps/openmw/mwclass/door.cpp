@@ -383,21 +383,34 @@ namespace MWClass
 
     std::string Door::getDestination(const MWWorld::LiveCellRef<ESM::Door>& door)
     {
+        std::string dest(MWBase::Environment::get().getWorld()->getCellName(
+            &MWBase::Environment::get().getWorldModel()->getCell(door.mRef.getDestCell())));
+
         /*
             Start of tes3mp addition
 
             If there is a destination override in the mwmp::Worldstate for this door's original
             destination, use it
+
+            0.8.1 only consulted the overrides for doors with an explicit destination cell,
+            because it computed the exterior name in the other branch. 0.51 resolves both
+            through getCellName(), so there is one name to check and the else-if becomes a
+            plain if -- which also means exterior destinations can now be overridden, as the
+            server always intended.
+
+            The merge left this as a dangling else-if above the line that produces the name
+            it tests.
         */
-        else if (mwmp::Main::get().getNetworking()->getWorldstate()->destinationOverrides.count(dest) != 0)
-            dest = mwmp::Main::get().getNetworking()->getWorldstate()->destinationOverrides[dest];
+        auto& overrides = mwmp::Main::get().getNetworking()->getWorldstate()->destinationOverrides;
+        auto override = overrides.find(dest);
+
+        if (override != overrides.end())
+            dest = override->second;
         /*
             End of tes3mp addition
         */
-        std::string_view dest = MWBase::Environment::get().getWorld()->getCellName(
-            &MWBase::Environment::get().getWorldModel()->getCell(door.mRef.getDestCell()));
 
-        return "#{sCell=" + std::string{ dest } + "}";
+        return "#{sCell=" + dest + "}";
     }
 
     MWWorld::Ptr Door::copyToCellImpl(const MWWorld::ConstPtr& ptr, MWWorld::CellStore& cell) const
