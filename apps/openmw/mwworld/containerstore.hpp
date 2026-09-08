@@ -77,16 +77,6 @@ namespace MWWorld
         virtual ~ContainerStoreListener() = default;
     };
 
-            /*
-                Start of tes3mp addiition
-
-                Make it possible to set the container's resolved state from elsewhere, to avoid unnecessary
-                refills before overriding its contents
-            */
-            void setResolved(bool state);
-            /*
-                End of tes3mp addition
-            */
     template <class PtrType>
     class ContainerStoreIteratorBase
     {
@@ -454,6 +444,21 @@ namespace MWWorld
         virtual void readState(const ESM::InventoryState& state);
 
         bool isResolved() const;
+
+        /*
+            Start of tes3mp addition
+
+            Make it possible to set the container's resolved state from elsewhere, to avoid unnecessary
+            refills before overriding its contents
+
+            The merge left this declaration outside the class entirely, between
+            ContainerStoreListener and ContainerStoreIteratorBase, where it compiled as a
+            free function and was invisible to every caller.
+        */
+        void setResolved(bool state);
+        /*
+            End of tes3mp addition
+        */
 
         void resolve();
         ResolutionHandle resolveTemporarily();

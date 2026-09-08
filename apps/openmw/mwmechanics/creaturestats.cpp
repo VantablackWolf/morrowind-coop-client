@@ -124,13 +124,17 @@ namespace MWMechanics
     ActiveSpells& CreatureStats::getActiveSpells()
     {
         /*
-            Start of tes3mp addition
+            Start of tes3mp change (major)
 
             Set the actorId associated with these ActiveSpells so it can be used inside them
+
+            Dropped: 0.51 gives each ActiveSpellParams an ESM::RefNum caster in mCaster, and
+            ActiveSpells::update() is handed the actor these spells belong to, so nothing
+            inside needs an owner stamped on it from here. Keeping a copy would have meant
+            re-deriving an identity the engine already tracks per spell.
         */
-        mActiveSpells.setActorId(getActorId());
         /*
-            End of tes3mp addition
+            End of tes3mp change (major)
         */
         return mActiveSpells;
     }
@@ -686,30 +690,39 @@ namespace MWMechanics
         return mSummonedCreatures;
     }
 
-    void CreatureStats::updateAwareness(float duration)
-    {
     /*
         Start of tes3mp addition
 
-        Make it possible to set a new actorId for summoned creatures, necessary for properly
+        Make it possible to set a new RefNum for summoned creatures, necessary for properly
         initializing them after syncing them across players
+
+        0.8.1 kept a map of ESM::SummonKey to an integer actor id, and used -1 to mean "not
+        yet resolved". 0.51 keys the multimap by the summoning effect and stores an
+        ESM::RefNum, whose default-constructed value is already the "unset" state -- so the
+        sentinel is the type's own rather than a magic number.
+
+        The merge dropped this function INSIDE the body of updateAwareness(), splitting it.
     */
-    void CreatureStats::setSummonedCreatureActorId(std::string refId, int actorId)
+    void CreatureStats::setSummonedCreatureRefNum(const ESM::RefId& creatureId, ESM::RefNum actorRefNum)
     {
-        for (std::map<ESM::SummonKey, int>::iterator it = mSummonedCreatures.begin(); it != mSummonedCreatures.end(); )
+        for (auto& [effectId, summonedRefNum] : mSummonedCreatures)
         {
-            if (Misc::StringUtils::ciEqual(getSummonedCreature(it->first.mEffectId), refId) && it->second == -1)
+            if (summonedRefNum.isSet())
+                continue;
+
+            if (MWMechanics::getSummonedCreature(effectId) == creatureId)
             {
-                it->second = actorId;
+                summonedRefNum = actorRefNum;
                 break;
             }
-            else
-                ++it;
         }
     }
     /*
         End of tes3mp addition
     */
+
+    void CreatureStats::updateAwareness(float duration)
+    {
         mAwarenessTimer += duration;
         // Only reroll for awareness every 5 seconds
         if (mAwarenessTimer >= 5.f)

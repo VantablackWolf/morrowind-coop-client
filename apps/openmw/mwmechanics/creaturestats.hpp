@@ -246,10 +246,10 @@ namespace MWMechanics
          /*
             Start of tes3mp addition
 
-            Make it possible to set a new actorId for summoned creatures, necessary for properly
+            Make it possible to set a new RefNum for summoned creatures, necessary for properly
             initializing them after syncing them across players
          */
-        void setSummonedCreatureActorId(std::string refId, int actorId);
+        void setSummonedCreatureRefNum(const ESM::RefId& creatureId, ESM::RefNum actorRefNum);
         /*
             End of tes3mp addition
         */

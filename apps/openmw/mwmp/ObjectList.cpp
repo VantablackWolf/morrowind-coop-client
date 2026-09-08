@@ -1,4 +1,14 @@
+#include <components/esm3/loadstat.hpp>
+#include <components/misc/resourcehelpers.hpp>
+#include <components/vfs/pathutil.hpp>
+
+#include "../mwworld/action.hpp"
+
 #include "ObjectList.hpp"
+#include "RecordConvertPlayer.hpp"
+#include "RefIdCompat.hpp"
+
+#include <components/translation/translation.hpp>
 #include "Main.hpp"
 #include "Networking.hpp"
 #include "MechanicsHelper.hpp"
@@ -88,7 +98,7 @@ mwmp::BaseObject ObjectList::getBaseObjectFromPtr(const MWWorld::Ptr& ptr)
     else
     {
         baseObject.isPlayer = false;
-        baseObject.refId = ptr.getCellRef().getRefId();
+        baseObject.refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
         baseObject.refNum = ptr.getCellRef().getRefNum().mIndex;
         baseObject.mpNum = ptr.getCellRef().getMpNum();
     }
@@ -99,11 +109,11 @@ mwmp::BaseObject ObjectList::getBaseObjectFromPtr(const MWWorld::Ptr& ptr)
 void ObjectList::addContainerItem(mwmp::BaseObject& baseObject, const MWWorld::Ptr& itemPtr, int itemCount, int actionCount)
 {
     mwmp::ContainerItem containerItem;
-    containerItem.refId = itemPtr.getCellRef().getRefId();
+    containerItem.refId = mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getRefId());
     containerItem.count = itemCount;
     containerItem.charge = itemPtr.getCellRef().getCharge();
     containerItem.enchantmentCharge = itemPtr.getCellRef().getEnchantmentCharge();
-    containerItem.soul = itemPtr.getCellRef().getSoul();
+    containerItem.soul = mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getSoul());
     containerItem.actionCount = actionCount;
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "--- Adding container item %s to packet with count %i and actionCount %i",
@@ -115,11 +125,11 @@ void ObjectList::addContainerItem(mwmp::BaseObject& baseObject, const MWWorld::P
 void ObjectList::addContainerItem(mwmp::BaseObject& baseObject, const MWGui::ItemStack& itemStack, int itemCount, int actionCount)
 {
     mwmp::ContainerItem containerItem;
-    containerItem.refId = itemStack.mBase.getCellRef().getRefId();
+    containerItem.refId = mwmp::RefIdCompat::toWire(itemStack.mBase.getCellRef().getRefId());
     containerItem.count = itemCount;
     containerItem.charge = itemStack.mBase.getCellRef().getCharge();
     containerItem.enchantmentCharge = itemStack.mBase.getCellRef().getEnchantmentCharge();
-    containerItem.soul = itemStack.mBase.getCellRef().getSoul();
+    containerItem.soul = mwmp::RefIdCompat::toWire(itemStack.mBase.getCellRef().getSoul());
     containerItem.actionCount = actionCount;
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "--- Adding container item %s to packet with count %i and actionCount %i",
@@ -181,7 +191,7 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -227,7 +237,8 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
                 if (action == BaseObjectList::SET || action == BaseObjectList::ADD)
                 {
                     // Create a ManualRef to be able to set item charge
-                    MWWorld::ManualRef ref(MWBase::Environment::get().getWorld()->getStore(), containerItem.refId, 1);
+                    MWWorld::ManualRef ref(MWBase::Environment::get().getWorld()->getStore(),
+                        mwmp::RefIdCompat::fromWireCreate(containerItem.refId), 1);
                     MWWorld::Ptr newPtr = ref.getPtr();
 
                     if (containerItem.count > 1)
@@ -240,9 +251,9 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
                         newPtr.getCellRef().setEnchantmentCharge(containerItem.enchantmentCharge);
 
                     if (!containerItem.soul.empty())
-                        newPtr.getCellRef().setSoul(containerItem.soul);
+                        newPtr.getCellRef().setSoul(mwmp::RefIdCompat::fromWireCreate(containerItem.soul));
 
-                    containerStore.add(newPtr, containerItem.count, ownerPtr);
+                    containerStore.add(newPtr, containerItem.count);
                 }
 
                 else if (action == BaseObjectList::REMOVE && containerItem.actionCount > 0)
@@ -251,15 +262,15 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
                     // accounting for charge
                     for (const auto itemPtr : containerStore)
                     {
-                        if (Misc::StringUtils::ciEqual(itemPtr.getCellRef().getRefId(), containerItem.refId))
+                        if (mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getRefId()) == containerItem.refId)
                         {
                             if (itemPtr.getCellRef().getCharge() == containerItem.charge &&
                                 itemPtr.getCellRef().getEnchantmentCharge() == containerItem.enchantmentCharge &&
-                                Misc::StringUtils::ciEqual(itemPtr.getCellRef().getSoul(), containerItem.soul))
+                                mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getSoul()) == containerItem.soul)
                             {
                                 // Store the sound of the first item in a TAKE_ALL
                                 if (isLocalTakeAll && takeAllSound.empty())
-                                    takeAllSound = itemPtr.getClass().getUpSoundId(itemPtr);
+                                    takeAllSound = mwmp::RefIdCompat::toWire(itemPtr.getClass().getUpSoundId(itemPtr));
 
                                 // Is this an actor's container? If so, unequip this item if it was equipped
                                 if (hasActorEquipment)
@@ -267,7 +278,7 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
                                     MWWorld::InventoryStore& invStore = ptrFound.getClass().getInventoryStore(ptrFound);
 
                                     if (invStore.isEquipped(itemPtr))
-                                        invStore.unequipItemQuantity(itemPtr, ptrFound, containerItem.count);
+                                        invStore.unequipItemQuantity(itemPtr, containerItem.count);
                                 }
 
                                 bool isDragResolved = false;
@@ -284,13 +295,13 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
 
                                 if (!isLocalDrag || !isDragResolved)
                                 {
-                                    containerStore.remove(itemPtr, containerItem.actionCount, ownerPtr);
+                                    containerStore.remove(itemPtr, containerItem.actionCount);
 
                                     if (isLocalDrag || isLocalTakeAll)
                                     {
                                         MWWorld::Ptr ptrPlayer = MWBase::Environment::get().getWorld()->getPlayerPtr();
                                         MWWorld::ContainerStore &playerStore = ptrPlayer.getClass().getContainerStore(ptrPlayer);
-                                        *playerStore.add(itemPtr, containerItem.actionCount, ownerPtr, false);
+                                        *playerStore.add(itemPtr, containerItem.actionCount, false);
                                     }
                                 }
                             }
@@ -305,7 +316,7 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
                 mwmp::Main::get().getCellController()->isLocalActor(ptrFound))
             {
                 MWWorld::InventoryStore& invStore = ptrFound.getClass().getInventoryStore(ptrFound);
-                invStore.autoEquip(ptrFound);
+                invStore.autoEquip();
                 mwmp::Main::get().getCellController()->getLocalActor(ptrFound)->updateEquipment(true, true);
             }
 
@@ -322,7 +333,7 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
                 if (isLocalTakeAll)
                 {
                     MWBase::Environment::get().getWindowManager()->removeGuiMode(MWGui::GM_Container);
-                    MWBase::Environment::get().getWindowManager()->playSound(takeAllSound);
+                    MWBase::Environment::get().getWindowManager()->playSound(mwmp::RefIdCompat::fromWireCreate(takeAllSound));
                 }
                 else
                 {
@@ -368,7 +379,7 @@ void ObjectList::activateObjects(MWWorld::CellStore* cellStore)
             ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
         }
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             MWWorld::Ptr activatingActorPtr;
 
@@ -376,7 +387,7 @@ void ObjectList::activateObjects(MWWorld::CellStore* cellStore)
             {
                 activatingActorPtr = MechanicsHelper::getPlayerPtr(baseObject.activatingActor);
                 LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Object has been activated by player %s",
-                    activatingActorPtr.getClass().getName(activatingActorPtr).c_str());
+                    std::string(activatingActorPtr.getClass().getName(activatingActorPtr)).c_str());
             }
             else
             {
@@ -385,7 +396,7 @@ void ObjectList::activateObjects(MWWorld::CellStore* cellStore)
                     activatingActorPtr.getCellRef().getRefNum().mIndex, activatingActorPtr.getCellRef().getMpNum());
             }
 
-            if (activatingActorPtr)
+            if (!activatingActorPtr.isEmpty())
             {
                 // Is an item that can be picked up being activated by the local player with their inventory open?
                 if (activatingActorPtr == MWBase::Environment::get().getWorld()->getPlayerPtr() &&
@@ -396,7 +407,14 @@ void ObjectList::activateObjects(MWWorld::CellStore* cellStore)
                 }
                 else
                 {
-                    MWBase::Environment::get().getWorld()->activate(ptrFound, activatingActorPtr);
+                    /*
+                        0.51 removed World::activate; its two lines are inlined at the
+                        call sites now, exactly as upstream does in mwlua and mwscript.
+                    */
+                    MWBase::Environment::get().getWorld()->breakInvisibility(activatingActorPtr);
+
+                    if (ptrFound.getRefData().activate())
+                        ptrFound.getClass().activate(ptrFound, activatingActorPtr)->execute(activatingActorPtr);
                 }
             }
         }
@@ -420,11 +438,11 @@ void ObjectList::placeObjects(MWWorld::CellStore* cellStore)
         MWWorld::Ptr ptrFound = cellStore->searchExact(0, baseObject.mpNum);
 
         // Only create this object if it doesn't already exist
-        if (!ptrFound)
+        if (ptrFound.isEmpty())
         {
             try
             {
-                MWWorld::ManualRef ref(world->getStore(), baseObject.refId, 1);
+                MWWorld::ManualRef ref(world->getStore(), mwmp::RefIdCompat::fromWireCreate(baseObject.refId), 1);
 
                 MWWorld::Ptr newPtr = ref.getPtr();
 
@@ -438,10 +456,21 @@ void ObjectList::placeObjects(MWWorld::CellStore* cellStore)
                     newPtr.getCellRef().setEnchantmentCharge(baseObject.enchantmentCharge);
 
                 if (!baseObject.soul.empty())
-                    newPtr.getCellRef().setSoul(baseObject.soul);
+                    newPtr.getCellRef().setSoul(mwmp::RefIdCompat::fromWireCreate(baseObject.soul));
 
-                newPtr.getCellRef().setGoldValue(baseObject.goldValue);
-                newPtr = world->placeObject(newPtr, cellStore, baseObject.position);
+                /*
+                    0.8.1 set CellRef::mGoldValue, which held a gold reference's
+                    denomination (5 for Gold_005, 100 for Gold_100). 0.51 removed the field:
+                    gold is normalised so that the record supplies the denomination and the
+                    count supplies the pile size, and Miscellaneous::getValue reads it back
+                    from the record. Since the packet names the actual refId, nothing is
+                    lost. It would matter only if a server sent a normalised Gold_001 with
+                    a separate denomination, which tes3mp does not do.
+                */
+                ESM::Position enginePosition;
+                mwmp::RecordConvert::toEngine(baseObject.position, enginePosition);
+
+                newPtr = world->placeObject(newPtr, cellStore, enginePosition);
 
                 // Because gold automatically gets replaced with a new object, make sure we set the mpNum at the end
                 newPtr.getCellRef().setMpNum(baseObject.mpNum);
@@ -483,14 +512,17 @@ void ObjectList::spawnObjects(MWWorld::CellStore* cellStore)
         MWWorld::Ptr ptrFound = cellStore->searchExact(0, baseObject.mpNum);
 
         // Only create this object if it doesn't already exist
-        if (!ptrFound)
+        if (ptrFound.isEmpty())
         {
-            MWWorld::ManualRef ref(MWBase::Environment::get().getWorld()->getStore(), baseObject.refId, 1);
+            MWWorld::ManualRef ref(MWBase::Environment::get().getWorld()->getStore(), mwmp::RefIdCompat::fromWireCreate(baseObject.refId), 1);
             MWWorld::Ptr newPtr = ref.getPtr();
 
             newPtr.getCellRef().setMpNum(baseObject.mpNum);
 
-            newPtr = MWBase::Environment::get().getWorld()->placeObject(newPtr, cellStore, baseObject.position);
+            ESM::Position enginePosition;
+            mwmp::RecordConvert::toEngine(baseObject.position, enginePosition);
+
+            newPtr = MWBase::Environment::get().getWorld()->placeObject(newPtr, cellStore, enginePosition);
             MWMechanics::CreatureStats& creatureStats = newPtr.getClass().getCreatureStats(newPtr);
 
             if (baseObject.isSummon)
@@ -502,7 +534,7 @@ void ObjectList::spawnObjects(MWWorld::CellStore* cellStore)
                 else
                     masterPtr = cellStore->searchExact(baseObject.master.refNum, baseObject.master.mpNum, baseObject.master.refId);
 
-                if (masterPtr)
+                if (!masterPtr.isEmpty())
                 {
                     LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Actor has master: %s", masterPtr.getCellRef().getRefId().getRefIdString().c_str());
 
@@ -513,57 +545,75 @@ void ObjectList::spawnObjects(MWWorld::CellStore* cellStore)
                     if (anim)
                     {
                         const ESM::Static* fx = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>()
-                            .search("VFX_Summon_Start");
+                            .search(ESM::RefId::stringRefId("VFX_Summon_Start"));
                         if (fx)
-                            anim->addEffect("meshes\\" + fx->mModel, -1, false);
+                            // 0.51 names the effect by string and wants a corrected mesh path.
+                            anim->addEffect(
+                                Misc::ResourceHelpers::correctMeshPath(VFS::Path::Normalized(fx->mModel)).value(),
+                                "", false);
                     }
 
-                    int creatureActorId = newPtr.getClass().getCreatureStats(newPtr).getActorId();
+                    const ESM::RefNum creatureRefNum = newPtr.getCellRef().getRefNum();
                     MWMechanics::CreatureStats& masterCreatureStats = masterPtr.getClass().getCreatureStats(masterPtr);
 
-                    std::vector<ESM::ActiveEffect> activeEffects;
-                    ESM::ActiveEffect activeEffect;
-                    activeEffect.mEffectId = baseObject.summonEffectId;
-                    activeEffect.mDuration = baseObject.summonDuration;
-                    activeEffect.mMagnitude = 1;
-                    activeEffects.push_back(activeEffect);
+                    const ESM::RefId summonSpellId = mwmp::RefIdCompat::fromWireCreate(baseObject.summonSpellId);
+                    const ESM::RefId summonEffectId = ESM::MagicEffect::indexToRefId(baseObject.summonEffectId);
 
                     LOG_APPEND(TimedLog::LOG_INFO, "-- adding active spell to master with id %s, effect %i, duration %f",
                         baseObject.summonSpellId.c_str(), baseObject.summonEffectId, baseObject.summonDuration);
 
-                    auto activeSpells = masterCreatureStats.getActiveSpells();
-                    if (!activeSpells.isSpellActive(baseObject.summonSpellId))
-                        activeSpells.addSpell(baseObject.summonSpellId, false, activeEffects, "", masterCreatureStats.getActorId());
+                    /*
+                        Start of tes3mp change (major)
 
-                    LOG_APPEND(TimedLog::LOG_INFO, "-- setting summoned creatureActorId for %i-%i to %i",
-                        newPtr.getCellRef().getRefNum(), newPtr.getCellRef().getMpNum(), creatureActorId);
+                        0.8.1 rebuilt the summoning spell on the master here, through the
+                        seven-argument addSpell overload, so that the summon would expire on
+                        schedule for everyone.
 
-                    // Check if this creature is present in the summoner's summoned creature map
-                    std::map<ESM::SummonKey, int>& creatureMap = masterCreatureStats.getSummonedCreatureMap();
+                        0.51's ActiveSpellParams is constructed from a caster Ptr and carries
+                        its own effect list, so the same thing is expressed with the params
+                        object. The effect duration is what the packet carries; the magnitude
+                        is 1, as in 0.8.1.
+                    */
+                    MWMechanics::ActiveSpells& masterActiveSpells = masterCreatureStats.getActiveSpells();
 
-                    bool foundSummonedCreature = false;
-
-                    for (std::map<ESM::SummonKey, int>::iterator it = creatureMap.begin(); it != creatureMap.end(); )
+                    if (!masterActiveSpells.isSpellActive(summonSpellId))
                     {
-                        if (it->first.mEffectId == baseObject.summonEffectId && it->first.mSourceId == baseObject.summonSpellId)
-                        {
-                            foundSummonedCreature = true;
-                            break;
-                        }
-                        ++it;
-                    }
+                        MWMechanics::ActiveSpells::ActiveSpellParams summonParams(
+                            masterPtr, summonSpellId, "", ESM::RefNum{});
 
-                    // If it is, update its creatureActorId
+                        ESM::ActiveEffect activeEffect;
+                        activeEffect.mEffectId = summonEffectId;
+                        activeEffect.mDuration = baseObject.summonDuration;
+                        activeEffect.mMagnitude = 1;
+                        summonParams.getEffects().push_back(activeEffect);
+
+                        masterActiveSpells.addSpell(summonParams);
+                    }
+                    /*
+                        End of tes3mp change (major)
+                    */
+
+                    LOG_APPEND(TimedLog::LOG_INFO, "-- setting summoned creature RefNum for %i-%i to %i",
+                        newPtr.getCellRef().getRefNum().mIndex, newPtr.getCellRef().getMpNum(), creatureRefNum.mIndex);
+
+                    /*
+                        0.51's summoned creature map is a multimap keyed by the summoning
+                        EFFECT, holding the summoned actor's ESM::RefNum -- 0.8.1's
+                        ESM::SummonKey (effect + source spell + index) and integer actor id
+                        are both gone. An unset RefNum is the "not yet resolved" state, so
+                        the -1 sentinel goes away with them.
+                    */
+                    std::multimap<ESM::RefId, ESM::RefNum>& creatureMap
+                        = masterCreatureStats.getSummonedCreatureMap();
+
+                    const bool foundSummonedCreature = creatureMap.find(summonEffectId) != creatureMap.end();
+
+                    // If it is already there, resolve its RefNum; otherwise add it
                     if (foundSummonedCreature)
-                    {
-                        masterCreatureStats.setSummonedCreatureActorId(baseObject.refId, creatureActorId);
-                    }
-                    // If not, add it to the summoned creature map
+                        masterCreatureStats.setSummonedCreatureRefNum(
+                            mwmp::RefIdCompat::fromWireCreate(baseObject.refId), creatureRefNum);
                     else
-                    {
-                        ESM::SummonKey summonKey(baseObject.summonEffectId, baseObject.summonSpellId, -1);
-                        creatureMap.emplace(summonKey, creatureActorId);
-                    }
+                        creatureMap.emplace(summonEffectId, creatureRefNum);
 
                     creatureStats.setFriendlyHits(0);
                 }
@@ -582,7 +632,7 @@ void ObjectList::deleteObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -613,7 +663,7 @@ void ObjectList::deleteObjects(MWWorld::CellStore* cellStore)
                     creatureStats.setDeathAnimationFinished(true);
                     MWBase::Environment::get().getMechanicsManager()->notifyDied(ptrFound);
 
-                    const std::string script = ptrFound.getClass().getScript(ptrFound);
+                    const ESM::RefId& script = ptrFound.getClass().getScript(ptrFound);
                     if (!script.empty() && MWBase::Environment::get().getWorld()->getScriptsEnabled())
                     {
                         MWScript::InterpreterContext interpreterContext(&ptrFound.getRefData().getLocals(), ptrFound);
@@ -635,7 +685,7 @@ void ObjectList::lockObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -656,7 +706,7 @@ void ObjectList::triggerTrapObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -664,12 +714,13 @@ void ObjectList::triggerTrapObjects(MWWorld::CellStore* cellStore)
             if (!baseObject.isDisarmed)
             {
                 MWMechanics::CastSpell cast(ptrFound, ptrFound);
-                cast.mHitPosition = baseObject.position.asVec3();
+                cast.mHitPosition = osg::Vec3f(
+                    baseObject.position.pos[0], baseObject.position.pos[1], baseObject.position.pos[2]);
                 cast.cast(ptrFound.getCellRef().getTrap());
             }
 
-            ptrFound.getCellRef().setTrap("");
-            MWBase::Environment::get().getSoundManager()->playSound3D(ptrFound, "Disarm Trap", 1.0f, 1.0f);
+            ptrFound.getCellRef().setTrap(ESM::RefId());
+            MWBase::Environment::get().getSoundManager()->playSound3D(ptrFound, ESM::RefId::stringRefId("Disarm Trap"), 1.0f, 1.0f);
         }
     }
 }
@@ -683,7 +734,7 @@ void ObjectList::scaleObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -702,7 +753,7 @@ void ObjectList::setObjectStates(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -732,13 +783,13 @@ void ObjectList::moveObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
-            MWBase::Environment::get().getWorld()->moveObject(ptrFound, baseObject.position.pos[0], baseObject.position.pos[1],
-                                                              baseObject.position.pos[2]);
+            MWBase::Environment::get().getWorld()->moveObject(ptrFound,
+                osg::Vec3f(baseObject.position.pos[0], baseObject.position.pos[1], baseObject.position.pos[2]));
         }
     }
 }
@@ -751,7 +802,7 @@ void ObjectList::restockObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -760,7 +811,7 @@ void ObjectList::restockObjects(MWWorld::CellStore* cellStore)
 
             reset();
             packetOrigin = mwmp::PACKET_ORIGIN::CLIENT_GAMEPLAY;
-            cell = *ptrFound.getCell()->getCell();
+            cell = mwmp::RecordConvert::toMirror(*ptrFound.getCell()->getCell());
             action = mwmp::BaseObjectList::SET;
             containerSubAction = mwmp::BaseObjectList::RESTOCK_RESULT;
             addEntireContainer(ptrFound);
@@ -777,13 +828,14 @@ void ObjectList::rotateObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             MWBase::Environment::get().getWorld()->rotateObject(ptrFound,
-                                                                baseObject.position.rot[0], baseObject.position.rot[1], baseObject.position.rot[2], MWBase::RotationFlag_none);
+                osg::Vec3f(baseObject.position.rot[0], baseObject.position.rot[1], baseObject.position.rot[2]),
+                MWBase::RotationFlag_none);
         }
     }
 }
@@ -796,7 +848,7 @@ void ObjectList::animateObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -839,23 +891,29 @@ void ObjectList::playObjectSounds(MWWorld::CellStore* cellStore)
             ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
         }
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "- Playing sound %s on %s", baseObject.soundId.c_str(), objectDescription.c_str());
             bool playAtPosition = false;
             if (ptrFound.isInCell()) {
-                ESM::CellId localCell = Main::get().getLocalPlayer()->cell.getCellId();
-                ESM::CellId soundCell = ptrFound.getCell()->getCell()->getCellId();
-                playAtPosition = localCell == soundCell;
+                /*
+                    0.51 replaced ESM::CellId with a single RefId per cell. The mirror Cell
+                    the local player holds has no engine id, so the comparison goes through
+                    CellController, which is what compares wire cells everywhere else.
+                */
+                playAtPosition = Main::get().getCellController()->isSameCell(
+                    Main::get().getLocalPlayer()->cell, *ptrFound.getCell()->getCell());
             }
 
             if (playAtPosition) {
                 MWBase::Environment::get().getSoundManager()->playSound3D(ptrFound.getRefData().getPosition().asVec3(),
-                    baseObject.soundId, baseObject.volume, baseObject.pitch, MWSound::Type::Sfx, MWSound::PlayMode::Normal, 0);
+                    mwmp::RefIdCompat::fromWireCreate(baseObject.soundId), baseObject.volume, baseObject.pitch,
+                    MWSound::Type::Sfx, MWSound::PlayMode::Normal, 0);
             }
             else {
                 MWBase::Environment::get().getSoundManager()->playSound3D(ptrFound,
-                    baseObject.soundId, baseObject.volume, baseObject.pitch, MWSound::Type::Sfx, MWSound::PlayMode::Normal, 0);
+                    mwmp::RefIdCompat::fromWireCreate(baseObject.soundId), baseObject.volume, baseObject.pitch,
+                    MWSound::Type::Sfx, MWSound::PlayMode::Normal, 0);
             }
         }
     }
@@ -869,7 +927,7 @@ void ObjectList::setGoldPoolsForObjects(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -901,7 +959,7 @@ void ObjectList::activateDoors(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -922,7 +980,7 @@ void ObjectList::setDoorDestinations(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -931,7 +989,9 @@ void ObjectList::setDoorDestinations(MWWorld::CellStore* cellStore)
 
             if (baseObject.teleportState)
             {
-                ptrFound.getCellRef().setDoorDest(baseObject.destinationPosition);
+                ESM::Position doorDest;
+                mwmp::RecordConvert::toEngine(baseObject.destinationPosition, doorDest);
+                ptrFound.getCellRef().setDoorDest(doorDest);
 
                 if (baseObject.destinationCell.isExterior())
                     ptrFound.getCellRef().setDestCell("");
@@ -988,7 +1048,7 @@ void ObjectList::runConsoleCommands(MWWorld::CellStore* cellStore)
 
                 MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-                if (ptrFound)
+                if (!ptrFound.isEmpty())
                 {
                     LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                         ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -1011,7 +1071,7 @@ void ObjectList::makeDialogueChoices(MWWorld::CellStore* cellStore)
         
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -1083,7 +1143,7 @@ void ObjectList::setClientLocals(MWWorld::CellStore* cellStore)
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -1126,7 +1186,7 @@ void ObjectList::setMemberShorts()
         // Mimic the way a Ptr is fetched in InterpreterContext for similar situations
         MWWorld::Ptr ptrFound = MWBase::Environment::get().getWorld()->searchPtr(baseObject.refId, false);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
@@ -1148,7 +1208,10 @@ void ObjectList::playMusic()
     {
         LOG_APPEND(TimedLog::LOG_VERBOSE, "- filename: %s", baseObject.musicFilename.c_str());
 
-        MWBase::Environment::get().getSoundManager()->streamMusic(baseObject.musicFilename);
+        // 0.51 wants a normalized VFS path and an explicit music type. MWScript is the
+        // closest match to a server-commanded track: it suppresses the ambient playlist.
+        MWBase::Environment::get().getSoundManager()->streamMusic(
+            VFS::Path::Normalized(baseObject.musicFilename), MWSound::MusicType::MWScript);
     }
 }
 
@@ -1193,7 +1256,7 @@ void ObjectList::addRequestedContainers(MWWorld::CellStore* cellStore, const std
 
         MWWorld::Ptr ptrFound = cellStore->searchExact(baseObject.refNum, baseObject.mpNum, baseObject.refId);
 
-        if (ptrFound)
+        if (!ptrFound.isEmpty())
         {
             if (ptrFound.getClass().hasContainerStore(ptrFound))
                 addEntireContainer(ptrFound);
@@ -1205,7 +1268,7 @@ void ObjectList::addRequestedContainers(MWWorld::CellStore* cellStore, const std
 
 void ObjectList::addObjectGeneric(const MWWorld::Ptr& ptr)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     addBaseObject(baseObject);
@@ -1213,7 +1276,7 @@ void ObjectList::addObjectGeneric(const MWWorld::Ptr& ptr)
 
 void ObjectList::addObjectActivate(const MWWorld::Ptr& ptr, const MWWorld::Ptr& activatingActor)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.activatingActor = MechanicsHelper::getTarget(activatingActor);
@@ -1223,7 +1286,7 @@ void ObjectList::addObjectActivate(const MWWorld::Ptr& ptr, const MWWorld::Ptr& 
 
 void ObjectList::addObjectHit(const MWWorld::Ptr& ptr, const MWWorld::Ptr& hittingActor)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.hittingActor = MechanicsHelper::getTarget(hittingActor);
@@ -1234,7 +1297,7 @@ void ObjectList::addObjectHit(const MWWorld::Ptr& ptr, const MWWorld::Ptr& hitti
 
 void ObjectList::addObjectHit(const MWWorld::Ptr& ptr, const MWWorld::Ptr& hittingActor, const Attack hitAttack)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.hittingActor = MechanicsHelper::getTarget(hittingActor);
@@ -1245,45 +1308,53 @@ void ObjectList::addObjectHit(const MWWorld::Ptr& ptr, const MWWorld::Ptr& hitti
 
 void ObjectList::addObjectPlace(const MWWorld::Ptr& ptr, bool droppedByPlayer)
 {
-    if (ptr.getCellRef().getRefId().find("$dynamic") != std::string::npos)
+    if (mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId()).find("$dynamic") != std::string::npos)
     {
         MWBase::Environment::get().getWindowManager()->messageBox("You cannot place unsynchronized custom items in multiplayer.");
         return;
     }
 
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.charge = ptr.getCellRef().getCharge();
     baseObject.enchantmentCharge = ptr.getCellRef().getEnchantmentCharge();
-    baseObject.soul = ptr.getCellRef().getSoul();
+    baseObject.soul = mwmp::RefIdCompat::toWire(ptr.getCellRef().getSoul());
     baseObject.droppedByPlayer = droppedByPlayer;
     baseObject.hasContainer = ptr.getClass().hasContainerStore(ptr);
 
     // Make sure we send the RefData position instead of the CellRef one, because that's what
     // we actually see on this client
-    baseObject.position = ptr.getRefData().getPosition();
+    baseObject.position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
 
     // We have to get the count from the dropped object because it gets changed
     // automatically for stacks of gold
     baseObject.count = ptr.getCellRef().getCount();
 
-    // Get the real count of gold in a stack
-    baseObject.goldValue = ptr.getCellRef().getGoldValue();
+    /*
+        0.8.1 read CellRef::mGoldValue here -- a gold reference's denomination. 0.51 removed
+        the field: the record supplies the denomination and the count supplies the pile
+        size. The count is already sent just above, and the refId names the record, so the
+        receiving side has everything it needs.
+
+        The wire field is still written, as zero, because removing it would change the
+        packet layout.
+    */
+    baseObject.goldValue = 0;
 
     addBaseObject(baseObject);
 }
 
 void ObjectList::addObjectSpawn(const MWWorld::Ptr& ptr)
 {
-    if (ptr.getCellRef().getRefId().find("$dynamic") != std::string::npos)
+    if (mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId()).find("$dynamic") != std::string::npos)
     {
         MWBase::Environment::get().getWindowManager()->messageBox("You're trying to spawn a custom object lacking a server-given refId, "
             "and those cannot be synchronized in multiplayer.");
         return;
     }
 
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.isSummon = false;
@@ -1291,14 +1362,14 @@ void ObjectList::addObjectSpawn(const MWWorld::Ptr& ptr)
 
     // Make sure we send the RefData position instead of the CellRef one, because that's what
     // we actually see on this client
-    baseObject.position = ptr.getRefData().getPosition();
+    baseObject.position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
 
     addBaseObject(baseObject);
 }
 
 void ObjectList::addObjectSpawn(const MWWorld::Ptr& ptr, const MWWorld::Ptr& master, std::string spellId, int effectId, float duration)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.isSummon = true;
@@ -1309,14 +1380,14 @@ void ObjectList::addObjectSpawn(const MWWorld::Ptr& ptr, const MWWorld::Ptr& mas
 
     // Make sure we send the RefData position instead of the CellRef one, because that's what
     // we actually see on this client
-    baseObject.position = ptr.getRefData().getPosition();
+    baseObject.position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
 
     addBaseObject(baseObject);
 }
 
 void ObjectList::addObjectLock(const MWWorld::Ptr& ptr, int lockLevel)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.lockLevel = lockLevel;
@@ -1325,7 +1396,7 @@ void ObjectList::addObjectLock(const MWWorld::Ptr& ptr, int lockLevel)
 
 void ObjectList::addObjectDialogueChoice(const MWWorld::Ptr& ptr, std::string dialogueChoice)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
 
@@ -1357,7 +1428,18 @@ void ObjectList::addObjectDialogueChoice(const MWWorld::Ptr& ptr, std::string di
 
         // For translated versions of the game, make sure we translate the topic back into English first
         if (MWBase::Environment::get().getWindowManager()->getTranslationDataStorage().hasTranslation())
-            baseObject.topicId = dialogueChoice + "|" + MWBase::Environment::get().getWindowManager()->getTranslationDataStorage().topicID(dialogueChoice);
+        {
+            /*
+                0.51 split 0.8.1's topicID() into topicStandardForm() (resolve the phrase
+                form) and topicKeyword() (map it to the topic id); composing them
+                reproduces it exactly.
+            */
+            const Translation::Storage& storage
+                = MWBase::Environment::get().getWindowManager()->getTranslationDataStorage();
+
+            baseObject.topicId = dialogueChoice + "|"
+                + std::string(storage.topicKeyword(storage.topicStandardForm(dialogueChoice)));
+        }
         else
             baseObject.topicId = dialogueChoice;
     }
@@ -1367,7 +1449,7 @@ void ObjectList::addObjectDialogueChoice(const MWWorld::Ptr& ptr, std::string di
 
 void ObjectList::addObjectMiscellaneous(const MWWorld::Ptr& ptr, unsigned int goldPool, float lastGoldRestockHour, int lastGoldRestockDay)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.goldPool = goldPool;
@@ -1378,17 +1460,17 @@ void ObjectList::addObjectMiscellaneous(const MWWorld::Ptr& ptr, unsigned int go
 
 void ObjectList::addObjectTrap(const MWWorld::Ptr& ptr, const ESM::Position& pos, bool isDisarmed)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.isDisarmed = isDisarmed;
-    baseObject.position = pos;
+    baseObject.position = mwmp::RecordConvert::toMirror(pos);
     addBaseObject(baseObject);
 }
 
 void ObjectList::addObjectScale(const MWWorld::Ptr& ptr, float scale)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.scale = scale;
@@ -1397,7 +1479,7 @@ void ObjectList::addObjectScale(const MWWorld::Ptr& ptr, float scale)
 
 void ObjectList::addObjectSound(const MWWorld::Ptr& ptr, std::string soundId, float volume, float pitch)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.soundId = soundId;
@@ -1408,7 +1490,7 @@ void ObjectList::addObjectSound(const MWWorld::Ptr& ptr, std::string soundId, fl
 
 void ObjectList::addObjectState(const MWWorld::Ptr& ptr, bool objectState)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.objectState = objectState;
@@ -1417,7 +1499,7 @@ void ObjectList::addObjectState(const MWWorld::Ptr& ptr, bool objectState)
 
 void ObjectList::addObjectAnimPlay(const MWWorld::Ptr& ptr, std::string group, int mode)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.animGroup = group;
@@ -1427,7 +1509,7 @@ void ObjectList::addObjectAnimPlay(const MWWorld::Ptr& ptr, std::string group, i
 
 void ObjectList::addDoorState(const MWWorld::Ptr& ptr, MWWorld::DoorState state)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     baseObject.doorState = static_cast<int>(state);
@@ -1451,7 +1533,7 @@ void ObjectList::addVideoPlay(std::string filename, bool allowSkipping)
 
 void ObjectList::addClientScriptLocal(const MWWorld::Ptr& ptr, int internalIndex, int value, mwmp::VARIABLE_TYPE variableType)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     ClientVariable clientLocal;
@@ -1464,7 +1546,7 @@ void ObjectList::addClientScriptLocal(const MWWorld::Ptr& ptr, int internalIndex
 
 void ObjectList::addClientScriptLocal(const MWWorld::Ptr& ptr, int internalIndex, float value)
 {
-    cell = *ptr.getCell()->getCell();
+    cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
 
     mwmp::BaseObject baseObject = getBaseObjectFromPtr(ptr);
     ClientVariable clientLocal;
