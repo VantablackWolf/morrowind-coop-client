@@ -316,52 +316,66 @@ namespace MWScript
                 MWWorld::Ptr ptr;
                 if (!R::implicit)
                 {
-                    MWWorld::Ptr ptr = R()(runtime);
+                    ESM::RefId name = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
+                    runtime.pop();
 
-                    /*
-                        Start of tes3mp addition
-
-                        Send an ID_OBJECT_STATE packet whenever an object should be disabled, as long as the
-                        player is logged in on the server and  if triggered from a clientside script  our
-                        last packet regarding its state did not already attempt to disable it (to prevent
-                        packet spam)
-                    */
-                    if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() && ptr.isInCell())
+                    ptr = MWBase::Environment::get().getWorld()->searchPtr(name, false);
+                    // We don't normally want to let this go, but some mods insist on trying this
+                    if (ptr.isEmpty())
                     {
-                        unsigned char packetOrigin = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
-
-                        if (packetOrigin == mwmp::CLIENT_CONSOLE || packetOrigin == mwmp::CLIENT_DIALOGUE ||
-                            ptr.getRefData().getLastCommunicatedState() != MWWorld::RefData::StateCommunication::Disabled)
-                        {
-                            ptr.getRefData().setLastCommunicatedState(MWWorld::RefData::StateCommunication::Disabled);
-
-                            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-                            objectList->reset();
-                            objectList->packetOrigin = packetOrigin;
-                            objectList->originClientScript = runtime.getContext().getCurrentScriptName();
-                            objectList->addObjectState(ptr, false);
-                            objectList->sendObjectState();
-                        }
+                        const std::string error = "Failed to find an instance of object " + name.toDebugString();
+                        runtime.getContext().report(error);
+                        Log(Debug::Error) << error;
+                        return;
                     }
-                    /*
-                        End of tes3mp addition
-                    */
-                    /*
-                        Start of tes3mp change (major)
-
-                        Disable unilateral state disabling on this client and expect the server's reply to our
-                        packet to do it instead
-                    */
-                    //MWBase::Environment::get().getWorld()->disable (ptr);
-                    /*
-                        End of tes3mp change (major)
-                    */
                 }
                 else
                 {
                     ptr = R()(runtime);
                 }
-                MWBase::Environment::get().getWorld()->disable(ptr);
+
+                /*
+                    Start of tes3mp addition
+
+                    Send an ID_OBJECT_STATE packet whenever an object should be disabled, as long as the
+                    player is logged in on the server and - if triggered from a clientside script - our
+                    last packet regarding its state did not already attempt to disable it (to prevent
+                    packet spam)
+
+                    0.51 split this opcode into an explicit-reference branch (which looks the object up
+                    itself so a mod naming a nonexistent object is reported instead of throwing) and an
+                    implicit one. The hook belongs after both, because a Disable is a Disable either way.
+                */
+                if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() && ptr.isInCell())
+                {
+                    unsigned char packetOrigin = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
+
+                    if (packetOrigin == mwmp::CLIENT_CONSOLE || packetOrigin == mwmp::CLIENT_DIALOGUE ||
+                        ptr.getRefData().getLastCommunicatedState() != MWWorld::RefData::StateCommunication::Disabled)
+                    {
+                        ptr.getRefData().setLastCommunicatedState(MWWorld::RefData::StateCommunication::Disabled);
+
+                        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+                        objectList->reset();
+                        objectList->packetOrigin = packetOrigin;
+                        objectList->originClientScript = runtime.getContext().getCurrentScriptName();
+                        objectList->addObjectState(ptr, false);
+                        objectList->sendObjectState();
+                    }
+                }
+                /*
+                    End of tes3mp addition
+                */
+                /*
+                    Start of tes3mp change (major)
+
+                    Disable unilateral state disabling on this client and expect the server's reply to our
+                    packet to do it instead
+                */
+                //MWBase::Environment::get().getWorld()->disable(ptr);
+                /*
+                    End of tes3mp change (major)
+                */
             }
         };
 

@@ -831,7 +831,7 @@ void OMW::Engine::setWindowIcon()
 
         Use TES3MP's logo for the window icon
     */
-    const auto windowIcon = mResDir / "mygui" / "tes3mp_logo.png";
+    const auto windowIcon = mResDir / "tes3mp_logo.png";
     /*
         End of tes3mp change (minor)
     */

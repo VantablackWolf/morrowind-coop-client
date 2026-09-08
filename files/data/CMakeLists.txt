@@ -258,6 +258,21 @@ set(BUILTIN_DATA_FILES
     mygui/openmw_jail_screen.layout
     mygui/OpenMWResourcePlugin.xml
     mygui/skins.xml
+
+    # Start of tes3mp addition
+    #
+    # 0.51 replaced files/mygui/CMakeLists.txt with this file, so the entries
+    # 0.8.1 added there had nowhere to land in the merge. The layouts survived
+    # on disk and were simply never installed -- the client built, linked, ran,
+    # connected, and then died on "Resource 'mygui/tes3mp_chat.skin.xml' not
+    # found" the moment it tried to draw the chat window.
+    mygui/tes3mp_login.layout
+    mygui/tes3mp_login.skin.xml
+    mygui/tes3mp_dialog_list.layout
+    mygui/tes3mp_chat.layout
+    mygui/tes3mp_chat.skin.xml
+    mygui/tes3mp_text_input.layout
+    # End of tes3mp addition
 )
 
 foreach (f ${BUILTIN_DATA_FILES})

@@ -1,4 +1,5 @@
 #include <components/files/conversion.hpp>
+#include <components/misc/pathhelpers.hpp>
 #include <stdexcept>
 #include <iostream>
 #include <string>
@@ -362,12 +363,40 @@ void Networking::preInit(std::vector<std::string> &content, Files::Collections &
 {
     PacketPreInit::PluginContainer checksums;
     std::vector<std::string>::const_iterator it(content.begin());
-    for (int idx = 0; it != content.end(); ++it, ++idx)
+    for (int idx = 0; it != content.end(); ++it)
     {
-        // 0.51 dropped the boost::filesystem dependency in favour of std::filesystem, so the boost library is no longer linked.
-        const std::filesystem::path filename(*it);
-        const Files::MultiDirCollection& col = collections.getCollection(
-            Files::pathToUnicodeString(filename.extension()));
+        /*
+            Start of tes3mp change (major)
+
+            Skip .omwscripts files when telling the server what content we have.
+
+            0.51 unconditionally prepends "builtin.omwscripts" to the content list (see
+            apps/openmw/main.cpp), which 0.47 did not. Sending it shifts every real plugin
+            one position in a comparison the server does BY POSITION, so a correctly
+            configured client is rejected with every file blamed on its neighbour.
+
+            An .omwscripts file is a list of Lua scripts for the engine to run, not game
+            data -- it has no bearing on the world state the server is synchronising, and
+            its checksum varies with the OpenMW build rather than with the player's
+            install. The data-file contract is about content, so these are excluded.
+        */
+        if (Misc::getFileExtension(*it) == "omwscripts")
+            continue;
+        /*
+            End of tes3mp change (major)
+        */
+
+        /*
+            0.51 keys the file collections by an extension WITHOUT the leading dot --
+            Misc::getFileExtension() skips it, and that is what every upstream caller
+            passes. std::filesystem's extension() includes the dot, so looking up ".esm"
+            found an empty collection and every content file looked missing.
+
+            The symptom was the client connecting successfully and then dying with
+            "Plugin doesn't exist." Only a real connection to a real server shows this;
+            it compiles and links perfectly.
+        */
+        const Files::MultiDirCollection& col = collections.getCollection(Misc::getFileExtension(*it));
         if (col.doesExist(*it))
         {
             PacketPreInit::HashList hashList;
