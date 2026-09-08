@@ -551,10 +551,15 @@ namespace MWWorld
 
     const std::vector<int>& World::getESMVersions() const
     {
+        return mESMVersions;
+    }
+
     /*
         Start of tes3mp addition
 
         Make it possible to get the World's ESMStore as a non-const
+
+        The merge dropped this inside getESMVersions().
     */
     MWWorld::ESMStore& World::getModifiableStore()
     {
@@ -563,8 +568,6 @@ namespace MWWorld
     /*
         End of tes3mp addition
     */
-        return mESMVersions;
-    }
 
     LocalScripts& World::getLocalScripts()
     {
@@ -583,15 +586,15 @@ namespace MWWorld
         Make it possible to check whether global variables exist and to create
         new ones
     */
-    bool World::hasGlobal(const std::string& name)
+    bool World::hasGlobal(MWWorld::GlobalVariableName name)
     {
         return mGlobalVariables.hasRecord(name);
     }
 
-    void World::createGlobal(const std::string& name, ESM::VarType varType)
+    void World::createGlobal(MWWorld::GlobalVariableName name, ESM::VarType varType)
     {
         ESM::Global global;
-        global.mId = name;
+        global.mId = ESM::RefId::stringRefId(name.getValue());
         global.mValue.setType(varType);
         mGlobalVariables.addRecord(global);
     }
@@ -714,22 +717,21 @@ namespace MWWorld
         throw std::runtime_error(error);
     }
 
-        /*
-            Start of tes3mp addition
+    /*
+        Start of tes3mp addition
 
-            Make it possible to find dedicated players here as well
-        */
-        else
-        {
-            mwmp::DedicatedPlayer* dedicatedPlayer = mwmp::PlayerList::getPlayer(actorId);
-            if (dedicatedPlayer != nullptr)
-            {
-                return dedicatedPlayer->getPtr();
-            }
-        }
-        /*
-            End of tes3mp addition
-        */
+        Make it possible to find dedicated players here as well
+
+        Superseded, not lost. This was the tail of World::searchPtrViaActorId, which
+        existed because that function walked active cells and DedicatedPlayers were not
+        findable there. 0.51 removed it in favour of WorldModel's PtrRegistry, which is
+        keyed by ESM::RefNum and holds every registered reference -- dedicated players
+        included, since DedicatedPlayer creates its Ptr through placeObject(). The merge
+        left this fragment behind after the function around it went away.
+    */
+    /*
+        End of tes3mp addition
+    */
     /*
         Start of tes3mp addition
 
@@ -744,11 +746,11 @@ namespace MWWorld
             
             MWWorld::Ptr ptrFound = cellStore->searchExact(refNum, mpNum);
 
-            if (ptrFound)
+            if (!ptrFound.isEmpty())
                 return ptrFound;
         }
 
-        return nullptr;
+        return MWWorld::Ptr();
     }
     /*
         End of tes3mp addition
@@ -767,7 +769,7 @@ namespace MWWorld
 
             for (auto &mergedRef : cellStore->getMergedRefs())
             {
-                if (Misc::StringUtils::ciEqual(refId, mergedRef->mRef.getRefId()))
+                if (refId == mergedRef->mRef.getRefId())
                 {
                     MWWorld::Ptr ptr(mergedRef, cellStore);
 
@@ -2078,7 +2080,9 @@ namespace MWWorld
     void World::setRegionWeather(const std::string& region, const unsigned int currentWeather, const unsigned int nextWeather,
         const unsigned int queuedWeather, const float transitionFactor, bool force)
     {
-        mWeatherManager->setRegionWeather(region, currentWeather, nextWeather, queuedWeather, transitionFactor, force);
+        // The region arrives from the server as a plain string; 0.51 names regions by RefId.
+        mWeatherManager->setRegionWeather(mwmp::RefIdCompat::fromWireCreate(region), currentWeather, nextWeather,
+            queuedWeather, transitionFactor, force);
     }
     /*
         End of tes3mp addition
@@ -2705,12 +2709,18 @@ namespace MWWorld
     */
     void World::unloadCell(const ESM::Cell& cell)
     {
-        if (isCellActive(cell))
-        {
-            const Scene::CellStoreCollection& activeCells = mWorldScene->getActiveCells();
-            mwmp::CellController *cellController = mwmp::Main::get().getCellController();
-            mWorldScene->unloadCell(activeCells.find(cellController->getCellStore(cell)));
-        }
+        /*
+            0.51 takes the CellStore itself rather than an iterator into the active set,
+            and wants a navigator update guard -- nullptr means "update immediately", which
+            is what the iterator form did. World::isCellActive moved to CellController.
+        */
+        mwmp::CellController* cellController = mwmp::Main::get().getCellController();
+
+        if (!cellController->isActiveWorldCell(cell))
+            return;
+
+        if (CellStore* cellStore = cellController->getCellStore(cell))
+            mWorldScene->unloadCell(cellStore, nullptr);
     }
     /*
         End of tes3mp addition
@@ -2724,12 +2734,21 @@ namespace MWWorld
     {
         const Scene::CellStoreCollection& activeCells = mWorldScene->getActiveCells();
 
-        for (auto it = activeCells.begin(); it != activeCells.end(); ++it)
+        /*
+            Copied first: unloadCell mutates the active set, so iterating it directly while
+            unloading walks off the end. 0.8.1 got away with it because unloadCell took an
+            iterator and erased through it.
+        */
+        const std::vector<CellStore*> cells(activeCells.begin(), activeCells.end());
+
+        for (CellStore* cellStore : cells)
         {
             // Ignore a placeholder interior that a player may currently be in
-            if ((*it)->getCell()->isExterior() || !Misc::StringUtils::ciEqual((*it)->getCell()->getDescription(), RecordHelper::getPlaceholderInteriorCellName()))
+            if (cellStore->getCell()->isExterior()
+                || !Misc::StringUtils::ciEqual(
+                    cellStore->getCell()->getDescription(), RecordHelper::getPlaceholderInteriorCellName()))
             {
-                mWorldScene->unloadCell(it);
+                mWorldScene->unloadCell(cellStore, nullptr);
             }
         }
     }
@@ -2748,7 +2767,7 @@ namespace MWWorld
 
         if (cellStore != nullptr)
             cellStore->clearMovesToCells();
-        mCells.clear(cell);
+        mWorldModel.clear(cell);
     }
     /*
         End of tes3mp addition
@@ -3252,8 +3271,10 @@ namespace MWWorld
                 If the spell being cast does not exist on our client, ignore it
                 to avoid framelistener errors
             */
-            if (getStore().get<ESM::Spell>().search(selectedSpell) == 0)
-                return false;
+            // 0.51 returns a SpellCastState rather than a bool. Treating an unknown spell
+            // as PowerAlreadyUsed is what suppresses the cast without a failure message.
+            if (getStore().get<ESM::Spell>().search(selectedSpell) == nullptr)
+                return MWWorld::SpellCastState::PowerAlreadyUsed;
             /*
                 End of tes3mp addition
             */
@@ -3265,7 +3286,7 @@ namespace MWWorld
                 without unilaterally deducting any magicka for them on this client
             */
             if (mwmp::PlayerList::isDedicatedPlayer(actor) || mwmp::Main::get().getCellController()->isDedicatedActor(actor))
-                return true;
+                return MWWorld::SpellCastState::Success;
             /*
                 End of tes3mp addition
             */
@@ -3419,7 +3440,7 @@ namespace MWWorld
                 {
                     MechanicsHelper::resetCast(localCast);
                     localCast->type = mwmp::Cast::ITEM;
-                    localCast->itemId = inv.getSelectedEnchantItem()->getCellRef().getRefId();
+                    localCast->itemId = mwmp::RefIdCompat::toWire(inv.getSelectedEnchantItem()->getCellRef().getRefId());
                     localCast->shouldSend = true;
                 }
 
@@ -3743,17 +3764,25 @@ namespace MWWorld
             Start of tes3mp change (major)
 
             Don't unilaterally recharge world items on clients
+
+            Suppressed with line comments rather than a block comment. The merge left this
+            hook's opening block comment unterminated, which silently commented out the
+            next 330 lines -- every function from teleportToClosestMarker through
+            spawnRandomCreature. The file still compiled; the symbols would simply have
+            been missing at link time.
         */
+        // if (activeOnly)
+        // {
+        //     for (auto& cell : mWorldScene->getActiveCells())
+        //     {
+        //         cell->recharge(duration);
+        //     }
+        // }
+        // else
+        //     mWorldModel.forEachLoadedCellStore([duration](CellStore& store) { store.recharge(duration); });
         /*
-        if (activeOnly)
-        {
-            for (auto& cell : mWorldScene->getActiveCells())
-            {
-                cell->recharge(duration);
-            }
-        }
-        else
-            mWorldModel.forEachLoadedCellStore([duration](CellStore& store) { store.recharge(duration); });
+            End of tes3mp change (major)
+        */
     }
 
     void World::teleportToClosestMarker(const MWWorld::Ptr& ptr, const ESM::RefId& id)

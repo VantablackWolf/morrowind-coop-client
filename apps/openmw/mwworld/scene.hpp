@@ -137,6 +137,17 @@ namespace MWWorld
         osg::Vec2i getNewGridCenter(const osg::Vec3f& pos, const osg::Vec2i* currentGridCenter = nullptr) const;
 
         void unloadCell(CellStore* cell, const DetourNavigator::UpdateGuard* navigatorUpdateGuard);
+        /*
+            Start of tes3mp addition
+
+            World::unloadCell and World::unloadActiveCells drive cell teardown from the
+            server, which needs this. 0.51 made it private when its last external caller
+            went away.
+        */
+        friend class World;
+        /*
+            End of tes3mp addition
+        */
         void loadCell(CellStore& cell, Loading::Listener* loadingListener, bool respawn, const osg::Vec3f& position,
             const DetourNavigator::UpdateGuard* navigatorUpdateGuard);
 
