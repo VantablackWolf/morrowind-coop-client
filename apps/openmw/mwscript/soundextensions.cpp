@@ -89,7 +89,8 @@ namespace MWScript
                     objectList->reset();
                     objectList->packetOrigin = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
                     objectList->originClientScript = runtime.getContext().getCurrentScriptName();
-                    objectList->addMusicPlay(sound);
+                    // 0.51 names this local "music" and holds it as a normalized VFS path.
+                    objectList->addMusicPlay(std::string(music.value()));
                     objectList->sendMusicPlay();
                     /*
                         End of tes3mp addition

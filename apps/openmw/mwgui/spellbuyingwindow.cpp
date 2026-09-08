@@ -199,7 +199,8 @@ namespace MWGui
 
             Send an ID_PLAYER_SPELLBOOK packet every time a player buys a spell
         */
-        mwmp::Main::get().getLocalPlayer()->sendSpellChange(mSpellsWidgetMap.find(_sender)->second, mwmp::SpellbookChanges::ADD);
+        mwmp::Main::get().getLocalPlayer()->sendSpellChange(
+            mSpellsWidgetMap.find(sender)->second, mwmp::SpellbookChanges::ADD);
         /*
             End of tes3mp addition
         */

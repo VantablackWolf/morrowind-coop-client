@@ -17,6 +17,7 @@
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/CellController.hpp"
 #include "../mwmp/ObjectList.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 /*
     End of tes3mp addition
 */
@@ -141,6 +142,14 @@ namespace MWMechanics
                 MWRender::Animation* anim = world->getAnimation(placed);
                 if (anim)
                 {
+                    const ESM::Static* fx
+                        = world->getStore().get<ESM::Static>().search(ESM::RefId::stringRefId("VFX_Summon_Start"));
+                    if (fx)
+                        anim->addEffect(
+                            Misc::ResourceHelpers::correctMeshPath(VFS::Path::Normalized(fx->mModel)).value(), "",
+                            false);
+                }
+
                 /*
                     Start of tes3mp change (major)
 
@@ -148,24 +157,43 @@ namespace MWMechanics
                     hold authority over, then delete the local creature and wait for the
                     server to send it back with an mpNum of its own.
 
-                    PARTIALLY ADAPTED. 0.8.1 also sent the spell's source id and remaining
-                    duration, read by iterating ActiveSpells. 0.51 rebuilt ActiveSpells (see
-                    the note in activespells.cpp) and this function now receives only the
-                    effect id, so those two arguments have no source here. The spawn packet
-                    is sent without them; summons will not carry their originating spell or
-                    remaining duration to other clients until spell synchronisation is
-                    redesigned.
+                    The merge nested this inside "if (anim)" and redeclared "placed" there,
+                    shadowing the creature that was actually placed -- so with no animation
+                    no packet was sent, and with one the wrong object was deleted.
+
+                    0.8.1 read the originating spell and its remaining duration by iterating
+                    the summoner's ActiveSpells. That still works: 0.51's ActiveSpellParams
+                    exposes getSourceSpellId() and its effects, so the search is over the
+                    same data in a different shape. The wire carries the effect as an index
+                    and the spell as a string, so both convert on the way out.
                 */
-                MWWorld::Ptr placed = world->safePlaceObject(ref.getPtr(), summoner, summoner.getCell(), 0, 120.f);
-                MWBase::Environment::get().getWorldModel()->registerPtr(placed);
-                creature = placed.getCellRef().getRefNum();
+                ESM::RefId summonSourceId;
+                float summonDuration = 0.f;
+
+                for (const auto& params :
+                    summoner.getClass().getCreatureStats(summoner).getActiveSpells())
+                {
+                    for (const auto& effect : params.getEffects())
+                    {
+                        if (effect.mEffectId == effectId)
+                        {
+                            summonSourceId = params.getSourceSpellId();
+                            summonDuration = effect.mDuration;
+                            break;
+                        }
+                    }
+
+                    if (!summonSourceId.empty())
+                        break;
+                }
 
                 if (mwmp::Main::get().getCellController()->hasLocalAuthority(*placed.getCell()->getCell()))
                 {
                     mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
                     objectList->reset();
                     objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-                    objectList->addObjectSpawn(placed, summoner);
+                    objectList->addObjectSpawn(placed, summoner, mwmp::RefIdCompat::toWire(summonSourceId),
+                        ESM::MagicEffect::refIdToIndex(effectId), summonDuration);
                     objectList->sendObjectSpawn();
                 }
 
@@ -173,7 +201,6 @@ namespace MWMechanics
                 /*
                     End of tes3mp change (major)
                 */
-                }
             }
             catch (std::exception& e)
             {

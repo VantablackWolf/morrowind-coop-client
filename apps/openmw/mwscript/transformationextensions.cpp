@@ -510,8 +510,9 @@ namespace MWScript
                             LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Sending ID_ACTOR_CELL_CHANGE about %s %i-%i to server",
                                 ptr.getCellRef().getRefId().getRefIdString().c_str(), baseActor.refNum, baseActor.mpNum);
 
-                            LOG_APPEND(TimedLog::LOG_INFO, "- Moved from %s to %s", actorList->cell.getDescription().c_str(),
-                                baseActor.cell.getDescription().c_str());
+                            LOG_APPEND(TimedLog::LOG_INFO, "- Moved from %s to %s",
+                                actorList->cell.getShortDescription().c_str(),
+                                baseActor.cell.getShortDescription().c_str());
 
                             actorList->addCellChangeActor(baseActor);
                             actorList->sendCellChangeActors();
@@ -820,7 +821,7 @@ namespace MWScript
 
                         if (ptr.getClass().isActor())
                         {
-                            objectList->addObjectSpawn(ptr, actor);
+                            objectList->addObjectSpawn(ptr);
                             objectList->sendObjectSpawn();
                         }
                         else
