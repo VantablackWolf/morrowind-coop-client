@@ -38,19 +38,17 @@ namespace MWMechanics
             Start of tes3mp change (minor)
 
             Send PlayerInventory packets that replace the original item with the new one
+
+            The item's state before the repair has to be captured here, because the repair
+            overwrites it below. The merge had this block calling setCharge() with a
+            "charge" that is not computed until 60 lines later, inside the success branch.
         */
         mwmp::LocalPlayer *localPlayer = mwmp::Main::get().getLocalPlayer();
         mwmp::Item removedItem = MechanicsHelper::getItem(itemToRepair, 1);
-
-        itemToRepair.getCellRef().setCharge(charge);
-
-        mwmp::Item addedItem = MechanicsHelper::getItem(itemToRepair, 1);
-
-        localPlayer->sendItemChange(addedItem, mwmp::InventoryChanges::ADD);
-        localPlayer->sendItemChange(removedItem, mwmp::InventoryChanges::REMOVE);
         /*
             End of tes3mp change (minor)
         */
+
         MWBase::Environment::get().getWorld()->breakInvisibility(player);
 
         // unstack tool if required
@@ -63,32 +61,6 @@ namespace MWMechanics
 
         MWMechanics::CreatureStats& stats = player.getClass().getCreatureStats(player);
 
-        /*
-            Start of tes3mp addition
-
-            Send an ID_OBJECT_SOUND packet every time the player makes a sound here
-        */
-        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-        objectList->reset();
-        objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        objectList->addObjectSound(MWMechanics::getPlayer(), "Repair", 1.0, 1.0);
-        objectList->sendObjectSound();
-        /*
-            End of tes3mp addition
-        */
-        /*
-            Start of tes3mp addition
-
-            Send an ID_OBJECT_SOUND packet every time the player makes a sound here
-        */
-        mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
-        objectList->reset();
-        objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        objectList->addObjectSound(MWMechanics::getPlayer(), "Repair Fail", 1.0, 1.0);
-        objectList->sendObjectSound();
-        /*
-            End of tes3mp addition
-        */
         float fatigueTerm = stats.getFatigueTerm();
         float pcStrength = stats.getAttribute(ESM::Attribute::Strength).getModified();
         float pcLuck = stats.getAttribute(ESM::Attribute::Luck).getModified();
@@ -127,11 +99,44 @@ namespace MWMechanics
             // increase skill
             player.getClass().skillUsageSucceeded(player, ESM::Skill::Armorer, ESM::Skill::Armorer_Repair);
 
+            /*
+                Start of tes3mp addition
+
+                Send PlayerInventory packets that replace the original item with the new one,
+                and an ID_OBJECT_SOUND packet for the sound played here
+            */
+            mwmp::Item addedItem = MechanicsHelper::getItem(itemToRepair, 1);
+            localPlayer->sendItemChange(addedItem, mwmp::InventoryChanges::ADD);
+            localPlayer->sendItemChange(removedItem, mwmp::InventoryChanges::REMOVE);
+
+            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            objectList->reset();
+            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+            objectList->addObjectSound(MWMechanics::getPlayer(), ESM::RefId::stringRefId("Repair"), 1.0, 1.0);
+            objectList->sendObjectSound();
+            /*
+                End of tes3mp addition
+            */
+
             MWBase::Environment::get().getWindowManager()->playSound(ESM::RefId::stringRefId("Repair"));
             MWBase::Environment::get().getWindowManager()->messageBox("#{sRepairSuccess}");
         }
         else
         {
+            /*
+                Start of tes3mp addition
+
+                Send an ID_OBJECT_SOUND packet every time the player makes a sound here
+            */
+            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            objectList->reset();
+            objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
+            objectList->addObjectSound(MWMechanics::getPlayer(), ESM::RefId::stringRefId("Repair Fail"), 1.0, 1.0);
+            objectList->sendObjectSound();
+            /*
+                End of tes3mp addition
+            */
+
             MWBase::Environment::get().getWindowManager()->playSound(ESM::RefId::stringRefId("Repair Fail"));
             MWBase::Environment::get().getWindowManager()->messageBox("#{sRepairFailed}");
         }
