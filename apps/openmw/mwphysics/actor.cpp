@@ -125,28 +125,33 @@ namespace MWPhysics
 
         addCollisionMask(getCollisionMask());
         updateCollisionObjectPositionUnsafe();
+
+        /*
+            Start of tes3mp addition
+
+            Make it possible to disable collision for players or regular actors from a packet
+
+            The merge left this between the constructor and the destructor, at namespace
+            scope -- it belongs at the end of the constructor, which is where the actor it
+            configures has just been built.
+        */
+        mwmp::BaseWorldstate *worldstate = mwmp::Main::get().getNetworking()->getWorldstate();
+
+        if (mwmp::PlayerList::isDedicatedPlayer(ptr))
+        {
+            if (!worldstate->hasPlayerCollision)
+                enableCollisionBody(false);
+        }
+        else
+        {
+            if (!worldstate->hasActorCollision)
+                enableCollisionBody(false);
+        }
+        /*
+            End of tes3mp addition
+        */
     }
 
-    /*
-        Start of tes3mp addition
-
-        Make it possible to disable collision for players or regular actors from a packet
-    */
-    mwmp::BaseWorldstate *worldstate = mwmp::Main::get().getNetworking()->getWorldstate();
-
-    if (mwmp::PlayerList::isDedicatedPlayer(ptr))
-    {
-        if (!worldstate->hasPlayerCollision)
-            enableCollisionBody(false);
-    }
-    else
-    {
-        if (!worldstate->hasActorCollision)
-            enableCollisionBody(false);
-    }
-    /*
-        End of tes3mp addition
-    */
     Actor::~Actor()
     {
         mTaskScheduler->removeCollisionObject(mCollisionObject.get());
