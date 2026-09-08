@@ -1121,15 +1121,6 @@ namespace MWScript
                 ESM::RefId factionID;
                 if (arg0 > 0)
                 {
-                        /*
-                            Start of tes3mp addition
-
-                            Send an ID_PLAYER_FACTION packet every time a player is expelled from a faction
-                        */
-                        mwmp::Main::get().getLocalPlayer()->sendFactionExpulsionState(mwmp::RefIdCompat::toWire(factionID), true);
-                        /*
-                            End of tes3mp addition
-                        */
                     factionID = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                     runtime.pop();
                 }
@@ -1141,6 +1132,23 @@ namespace MWScript
                 if (!factionID.empty())
                 {
                     player.getClass().getNpcStats(player).expell(factionID, true);
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send an ID_PLAYER_FACTION packet every time a player is expelled from a faction
+
+                        Inside the !empty() branch and after the expulsion, as in 0.8.1. The merge
+                        had put this at the top of "if (arg0 > 0)", above the line that assigns
+                        factionID and outside any guard -- so an explicit-faction PCExpell told the
+                        server the player had been expelled from a faction with an empty id, and
+                        did it before the expulsion had actually happened.
+                    */
+                    mwmp::Main::get().getLocalPlayer()->sendFactionExpulsionState(
+                        mwmp::RefIdCompat::toWire(factionID), true);
+                    /*
+                        End of tes3mp addition
+                    */
                 }
             }
         };

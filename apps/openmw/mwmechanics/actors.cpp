@@ -422,8 +422,28 @@ namespace MWMechanics
                 stats.setMovementFlag(MWMechanics::CreatureStats::Flag_Run, controls.mRun);
                 stats.setMovementFlag(MWMechanics::CreatureStats::Flag_Sneak, controls.mSneak);
 
-                stats.setAttackingOrSpell(controls.mUse != AttackType::NoAttack);
-                stats.setAttackType(attackTypeName(controls.mUse));
+                /*
+                    Start of tes3mp change (major)
+
+                    Prevent players from starting attacks while in the persuasion submenu in dialogue.
+
+                    0.8.1 did this in BindingsManager, in the branch that turned an A_Use
+                    action into an attack. 0.51 has no such branch: actionValueChanged only
+                    dispatches the action now, and the player's attack is driven by Lua
+                    setting controls.mUse. So the guard moves here, to the one place that
+                    turns mUse into an attack, and therefore catches it whoever set it.
+
+                    Restricted to the player. An NPC's AI has no dialogue window and must
+                    keep swinging while the player is talking to someone else.
+                */
+                const bool blockedByDialogue = isPlayer
+                    && MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue);
+
+                stats.setAttackingOrSpell(!blockedByDialogue && controls.mUse != AttackType::NoAttack);
+                stats.setAttackType(attackTypeName(blockedByDialogue ? AttackType::NoAttack : controls.mUse));
+                /*
+                    End of tes3mp change (major)
+                */
 
                 controls.mChanged = false;
             }

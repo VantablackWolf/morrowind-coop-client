@@ -729,16 +729,6 @@ namespace MWInput
             newFileName = Files::pathToUnicodeString(mUserFile) + ".new";
             if (mInputBinder->save(newFileName))
             {
-                    /*
-                        Start of tes3mp addition
-
-                        Prevent players from starting attacks while in the persuasion submenu in dialogue
-                    */
-                    if (MWBase::Environment::get().getWindowManager()->containsMode(MWGui::GM_Dialogue))
-                        return;
-                    /*
-                        End of tes3mp addition
-                    */
                 std::filesystem::rename(Files::pathFromUnicodeString(newFileName), mUserFile);
                 Log(Debug::Info) << "Saved input bindings: " << mUserFile;
             }
