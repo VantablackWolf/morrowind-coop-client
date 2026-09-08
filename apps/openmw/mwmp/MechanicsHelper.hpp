@@ -24,7 +24,13 @@ namespace MechanicsHelper
     mwmp::Cast *getDedicatedCast(const MWWorld::Ptr& ptr);
 
     MWWorld::Ptr getPlayerPtr(const mwmp::Target& target);
-    unsigned int getActorId(const mwmp::Target& target);
+    /*
+        0.51 identifies actors by ESM::RefNum rather than by an integer actor id, so this
+        resolves a wire Target to that instead. The wire is unchanged: a Target already
+        carries tes3mp's own identity (guid for players, refNum/mpNum for actors), and the
+        engine handle was only ever local.
+    */
+    ESM::RefNum getActorRefNum(const mwmp::Target& target);
 
     mwmp::Item getItem(const MWWorld::Ptr& itemPtr, int count);
     mwmp::Target getTarget(const MWWorld::Ptr& ptr);

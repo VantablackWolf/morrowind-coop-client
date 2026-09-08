@@ -19,7 +19,17 @@
 #include "../mwworld/class.hpp"
 #include "../mwworld/inventorystore.hpp"
 
+#include <components/esm3/loadench.hpp>
+#include <components/esm3/loadlevlist.hpp>
+#include <components/esm3/loadstat.hpp>
+
+#include <components/misc/resourcehelpers.hpp>
+
+#include "../mwmechanics/damagesourcetype.hpp"
+
 #include "MechanicsHelper.hpp"
+#include "RecordConvertPlayer.hpp"
+#include "RefIdCompat.hpp"
 #include "Main.hpp"
 #include "Networking.hpp"
 #include "LocalPlayer.hpp"
@@ -70,7 +80,8 @@ void MechanicsHelper::spawnLeveledCreatures(MWWorld::CellStore* cellStore)
     std::vector<std::pair<ESM::RefId, ESM::Position>> resolved;
 
     cellStore->forEachType<ESM::CreatureLevList>([&](const MWWorld::Ptr& ptr) {
-        ESM::RefId id = MWMechanics::getLevelledItem(ptr.get<ESM::CreatureLevList>()->mBase, true, prng);
+        ESM::RefId id = MWMechanics::getLevelledItem(
+            store.get<ESM::CreatureLevList>().find(ptr.getCellRef().getRefId()), true, prng);
 
         if (!id.empty())
             resolved.emplace_back(id, ptr.getCellRef().getPosition());
@@ -173,9 +184,8 @@ MWWorld::Ptr MechanicsHelper::getPlayerPtr(const Target& target)
     return nullptr;
 }
 
-unsigned int MechanicsHelper::getActorId(const mwmp::Target& target)
+ESM::RefNum MechanicsHelper::getActorRefNum(const mwmp::Target& target)
 {
-    int actorId = -1;
     MWWorld::Ptr targetPtr;
 
     if (target.isPlayer)
@@ -195,12 +205,10 @@ unsigned int MechanicsHelper::getActorId(const mwmp::Target& target)
         }
     }
 
-    if (targetPtr)
-    {
-        actorId = targetPtr.getClass().getCreatureStats(targetPtr).getActorId();
-    }
+    if (targetPtr.isEmpty())
+        return {};
 
-    return actorId;
+    return targetPtr.getCellRef().getRefNum();
 }
 
 mwmp::Item MechanicsHelper::getItem(const MWWorld::Ptr& itemPtr, int count)
@@ -208,14 +216,14 @@ mwmp::Item MechanicsHelper::getItem(const MWWorld::Ptr& itemPtr, int count)
     mwmp::Item item;
 
     if (itemPtr.getClass().isGold(itemPtr))
-        item.refId = MWWorld::ContainerStore::sGoldId;
+        item.refId = mwmp::RefIdCompat::toWire(MWWorld::ContainerStore::sGoldId);
     else
-        item.refId = itemPtr.getCellRef().getRefId();
+        item.refId = mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getRefId());
 
     item.count = count;
     item.charge = itemPtr.getCellRef().getCharge();
     item.enchantmentCharge = itemPtr.getCellRef().getEnchantmentCharge();
-    item.soul = itemPtr.getCellRef().getSoul();
+    item.soul = mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getSoul());
 
     return item;
 }
@@ -225,7 +233,7 @@ mwmp::Target MechanicsHelper::getTarget(const MWWorld::Ptr& ptr)
     mwmp::Target target;
     clearTarget(target);
 
-    if (ptr != nullptr)
+    if (!ptr.isEmpty())
     {
         if (ptr == MWMechanics::getPlayer())
         {
@@ -241,13 +249,13 @@ mwmp::Target MechanicsHelper::getTarget(const MWWorld::Ptr& ptr)
         {
             MWWorld::CellRef *ptrRef = &ptr.getCellRef();
 
-            if (ptrRef)
+            if (ptrRef != nullptr)
             {
                 target.isPlayer = false;
-                target.refId = ptrRef->getRefId();
+                target.refId = mwmp::RefIdCompat::toWire(ptrRef->getRefId());
                 target.refNum = ptrRef->getRefNum().mIndex;
                 target.mpNum = ptrRef->getMpNum();
-                target.name = ptr.getClass().getName(ptr);
+                target.name = std::string(ptr.getClass().getName(ptr));
             }
         }
     }
@@ -290,7 +298,7 @@ void MechanicsHelper::assignAttackTarget(Attack* attack, const MWWorld::Ptr& tar
         MWWorld::CellRef *targetRef = &target.getCellRef();
 
         attack->target.isPlayer = false;
-        attack->target.refId = targetRef->getRefId();
+        attack->target.refId = mwmp::RefIdCompat::toWire(targetRef->getRefId());
         attack->target.refNum = targetRef->getRefNum().mIndex;
         attack->target.mpNum = targetRef->getMpNum();
     }
@@ -323,7 +331,8 @@ void MechanicsHelper::resetCast(Cast* cast)
 
 bool MechanicsHelper::getSpellSuccess(std::string spellId, const MWWorld::Ptr& caster)
 {
-    return Misc::Rng::roll0to99() < MWMechanics::getSpellSuccessChance(spellId, caster, nullptr, true, false);
+    return Misc::Rng::roll0to99()
+        < MWMechanics::getSpellSuccessChance(mwmp::RefIdCompat::fromWireCreate(spellId), caster, nullptr, true, false);
 }
 
 bool MechanicsHelper::isTeamMember(const MWWorld::Ptr& playerChecked, const MWWorld::Ptr& playerWithTeam)
@@ -358,7 +367,7 @@ bool MechanicsHelper::isTeamMember(const MWWorld::Ptr& playerChecked, const MWWo
 void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
 {
     LOG_MESSAGE_SIMPLE(TimedLog::LOG_VERBOSE, "Processing attack from %s of type %i",
-        attacker.getClass().getName(attacker).c_str(), attack.type);
+        std::string(attacker.getClass().getName(attacker)).c_str(), attack.type);
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "- pressed: %s", attack.pressed ? "true" : "false");
 
@@ -421,13 +430,13 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
             // no longer exists, add it back temporarily.
             if (isRanged)
             {
-                if (!weaponPtr || !Misc::StringUtils::ciEqual(weaponPtr.getCellRef().getRefId(), attack.rangedWeaponId))
+                if (weaponPtr.isEmpty() || mwmp::RefIdCompat::toWire(weaponPtr.getCellRef().getRefId()) != attack.rangedWeaponId)
                 {
-                    weaponPtr = inventoryStore.search(attack.rangedWeaponId);
+                    weaponPtr = inventoryStore.search(mwmp::RefIdCompat::fromWireCreate(attack.rangedWeaponId));
 
-                    if (!weaponPtr)
+                    if (weaponPtr.isEmpty())
                     {
-                        weaponPtr = *attacker.getClass().getContainerStore(attacker).add(attack.rangedWeaponId, 1, attacker);
+                        weaponPtr = *attacker.getClass().getContainerStore(attacker).add(mwmp::RefIdCompat::fromWireCreate(attack.rangedWeaponId), 1);
                         usedTempRangedWeapon = true;
                     }
                 }
@@ -438,13 +447,13 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
                         MWWorld::InventoryStore::Slot_Ammunition);
                     ammoPtr = ammoSlot != inventoryStore.end() ? *ammoSlot : MWWorld::Ptr();
 
-                    if (!ammoPtr || !Misc::StringUtils::ciEqual(ammoPtr.getCellRef().getRefId(), attack.rangedAmmoId))
+                    if (ammoPtr.isEmpty() || mwmp::RefIdCompat::toWire(ammoPtr.getCellRef().getRefId()) != attack.rangedAmmoId)
                     {
-                        ammoPtr = inventoryStore.search(attack.rangedAmmoId);
+                        ammoPtr = inventoryStore.search(mwmp::RefIdCompat::fromWireCreate(attack.rangedAmmoId));
 
-                        if (!ammoPtr)
+                        if (ammoPtr.isEmpty())
                         {
-                            ammoPtr = *attacker.getClass().getContainerStore(attacker).add(attack.rangedAmmoId, 1, attacker);
+                            ammoPtr = *attacker.getClass().getContainerStore(attacker).add(mwmp::RefIdCompat::fromWireCreate(attack.rangedAmmoId), 1);
                             usedTempRangedAmmo = true;
                         }
                     }
@@ -464,14 +473,14 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
             if (attack.applyWeaponEnchantment)
             {
                 MWMechanics::CastSpell cast(attacker, victim, isRanged);
-                cast.mHitPosition = attack.hitPosition.asVec3();
+                cast.mHitPosition = osg::Vec3f(attack.hitPosition.pos[0], attack.hitPosition.pos[1], attack.hitPosition.pos[2]);
                 cast.cast(weaponPtr, false);
             }
 
             if (isRanged && !ammoPtr.isEmpty() && attack.applyAmmoEnchantment)
             {
                 MWMechanics::CastSpell cast(attacker, victim, isRanged);
-                cast.mHitPosition = attack.hitPosition.asVec3();
+                cast.mHitPosition = osg::Vec3f(attack.hitPosition.pos[0], attack.hitPosition.pos[1], attack.hitPosition.pos[2]);
                 cast.cast(ammoPtr, false);
             }
         }
@@ -492,8 +501,21 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
             if (!isRanged)
                 MWMechanics::blockMeleeAttack(attacker, victim, weaponPtr, attack.damage, 1);
 
-            victim.getClass().onHit(victim, attack.damage, isHealthDamage, weaponPtr, attacker, attack.hitPosition.asVec3(),
-                attack.success);
+            /*
+                0.51 rebuilt onHit around a per-stat damage map, so the isHealthDamage flag
+                selects a key rather than a branch, the weapon is named by RefId rather
+                than passed as a Ptr, and the source type is explicit.
+
+                The hit position argument is gone -- upstream dropped it from onHit
+                entirely, so there is nothing to pass it to. It is still used just above
+                for the weapon enchantment, which is where it actually mattered.
+            */
+            std::map<std::string, float> damages;
+            damages[isHealthDamage ? "health" : "fatigue"] = attack.damage;
+
+            victim.getClass().onHit(victim, damages,
+                weaponPtr.isEmpty() ? ESM::RefId() : weaponPtr.getCellRef().getRefId(), attacker, attack.success,
+                isRanged ? MWMechanics::DamageSourceType::Ranged : MWMechanics::DamageSourceType::Melee);
         }
 
         // Remove temporary items that may have been added above for ranged attacks
@@ -502,10 +524,10 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
             MWWorld::InventoryStore &inventoryStore = attacker.getClass().getInventoryStore(attacker);
 
             if (usedTempRangedWeapon)
-                inventoryStore.remove(weaponPtr, 1, attacker);
+                inventoryStore.remove(weaponPtr, 1);
             
             if (usedTempRangedAmmo)
-                inventoryStore.remove(ammoPtr, 1, attacker);
+                inventoryStore.remove(ammoPtr, 1);
         }
     }
 }
@@ -513,7 +535,7 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
 void MechanicsHelper::processCast(Cast cast, const MWWorld::Ptr& caster)
 {
     LOG_MESSAGE_SIMPLE(TimedLog::LOG_VERBOSE, "Processing cast from %s of type %i",
-        caster.getClass().getName(caster).c_str(), cast.type);
+        std::string(caster.getClass().getName(caster)).c_str(), cast.type);
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "- pressed: %s", cast.pressed ? "true" : "false");
 
@@ -545,7 +567,7 @@ void MechanicsHelper::processCast(Cast cast, const MWWorld::Ptr& caster)
 
     if (cast.type == cast.REGULAR)
     {
-        casterStats.getSpells().setSelectedSpell(cast.spellId);
+        casterStats.getSpells().setSelectedSpell(mwmp::RefIdCompat::fromWireCreate(cast.spellId));
 
         if (cast.success)
             MWBase::Environment::get().getWorld()->castSpell(caster);
@@ -554,20 +576,20 @@ void MechanicsHelper::processCast(Cast cast, const MWWorld::Ptr& caster)
     }
     else if (cast.type == cast.ITEM)
     {
-        casterStats.getSpells().setSelectedSpell("");
+        casterStats.getSpells().setSelectedSpell(ESM::RefId());
 
         MWWorld::InventoryStore& inventoryStore = caster.getClass().getInventoryStore(caster);
 
         MWWorld::ContainerStoreIterator it = inventoryStore.begin();
         for (; it != inventoryStore.end(); ++it)
         {
-            if (Misc::StringUtils::ciEqual(it->getCellRef().getRefId(), cast.itemId))
+            if (mwmp::RefIdCompat::toWire(it->getCellRef().getRefId()) == cast.itemId)
                 break;
         }
 
         // Add the item if it's missing
         if (it == inventoryStore.end())
-            it = caster.getClass().getContainerStore(caster).add(cast.itemId, 1, caster);
+            it = caster.getClass().getContainerStore(caster).add(mwmp::RefIdCompat::fromWireCreate(cast.itemId), 1);
 
         inventoryStore.setSelectedEnchantItem(it);
         LOG_APPEND(TimedLog::LOG_VERBOSE, "- itemId: %s", cast.itemId.c_str());
@@ -586,21 +608,25 @@ void MechanicsHelper::createSpellGfx(const MWWorld::Ptr& targetPtr, const std::v
         if (!magicEffect->mHit.empty())
             castStatic = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>().find(magicEffect->mHit);
         else
-            castStatic = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>().find("VFX_DefaultHit");
+            castStatic = MWBase::Environment::get().getWorld()->getStore().get<ESM::Static>().find(ESM::RefId::stringRefId("VFX_DefaultHit"));
 
         bool loop = (magicEffect->mData.mFlags & ESM::MagicEffect::ContinuousVfx) != 0;
         // Note: in case of non actor, a free effect should be fine as well
         MWRender::Animation* anim = MWBase::Environment::get().getWorld()->getAnimation(targetPtr);
         if (anim && !castStatic->mModel.empty())
         {
-            anim->addEffect("meshes\\" + castStatic->mModel, magicEffect->mIndex, loop, "", magicEffect->mParticle);
+            // 0.51 identifies the effect by RefId string and wants a corrected mesh path.
+            anim->addEffect(Misc::ResourceHelpers::correctMeshPath(VFS::Path::Normalized(castStatic->mModel)).value(),
+                magicEffect->mId.getRefIdString(), loop, {}, magicEffect->mParticle);
         }
     }
 }
 
 bool MechanicsHelper::isStackingSpell(const std::string& id)
 {
-    return !MWBase::Environment::get().getWorld()->getStore().get<ESM::Spell>().search(id);
+    return MWBase::Environment::get().getWorld()->getStore().get<ESM::Spell>().search(
+               mwmp::RefIdCompat::fromWireCreate(id))
+        == nullptr;
 }
 
 bool MechanicsHelper::doesEffectListContainEffect(const ESM::EffectList& effectList, const ESM::RefId& effectId,
@@ -641,7 +667,7 @@ void MechanicsHelper::unequipItemsByEffect(const MWWorld::Ptr& ptr, short enchan
                 const ESM::Enchantment* enchantment = world->getStore().get<ESM::Enchantment>().find(enchantmentName);
 
                 if (enchantment->mData.mType == enchantmentType && doesEffectListContainEffect(enchantment->mEffects, effectId, attributeId, skillId))
-                    ptrInventory.unequipSlot(slot, ptr);
+                    ptrInventory.unequipSlot(slot);
             }
         }
     }
@@ -654,14 +680,14 @@ MWWorld::Ptr MechanicsHelper::getItemPtrFromStore(const mwmp::Item& item, MWWorl
     for (MWWorld::ContainerStoreIterator storeIterator = store.begin(); storeIterator != store.end(); ++storeIterator)
     {
         // Enchantment charges are often in the process of refilling themselves, so don't check for them here
-        if (Misc::StringUtils::ciEqual(item.refId, storeIterator->getCellRef().getRefId()) &&
+        if (item.refId == mwmp::RefIdCompat::toWire(storeIterator->getCellRef().getRefId()) &&
             item.count == storeIterator->getCellRef().getCount() &&
             item.charge == storeIterator->getCellRef().getCharge() &&
-            Misc::StringUtils::ciEqual(item.soul, storeIterator->getCellRef().getSoul()))
+            item.soul == mwmp::RefIdCompat::toWire(storeIterator->getCellRef().getSoul()))
         {
             // If we have no closestPtr, set it to the Ptr corresponding to this storeIterator; otherwise, make
             // sure the storeIterator's enchantmentCharge is closer to our goal than that of the previous closestPtr
-            if (!closestPtr || abs(storeIterator->getCellRef().getEnchantmentCharge() - item.enchantmentCharge) <
+            if (closestPtr.isEmpty() || abs(storeIterator->getCellRef().getEnchantmentCharge() - item.enchantmentCharge) <
                 abs(closestPtr.getCellRef().getEnchantmentCharge() - item.enchantmentCharge))
             {
                 closestPtr = *storeIterator;
