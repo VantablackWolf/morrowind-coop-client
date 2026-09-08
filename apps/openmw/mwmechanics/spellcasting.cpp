@@ -318,15 +318,6 @@ namespace MWMechanics
                 }
             }
         }
-                /*
-                    Start of tes3mp addition
-
-                    Send a PlayerMiscellaneous packet with the player's new mark location
-                */
-                mwmp::Main::get().getLocalPlayer()->sendMarkLocation(*target.getCell()->getCell(), target.getRefData().getPosition());
-                /*
-                    End of tes3mp addition
-                */
     }
 
     bool CastSpell::cast(const ESM::RefId& id)

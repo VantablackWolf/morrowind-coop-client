@@ -35,6 +35,24 @@
 #include "../mwworld/player.hpp"
 #include "../mwworld/worldmodel.hpp"
 
+/*
+    Start of tes3mp addition
+
+    Include additional headers for multiplayer purposes
+
+    These come after every engine header on purpose. They reach <windows.h> through
+    RakNet, and winuser.h defines DrawState as a macro; if it is seen before
+    mwworld/player.hpp, MWMechanics::DrawState is rewritten to DrawStateW and the
+    declarations stop compiling. drawstate.hpp undefines the macro, but only the first
+    time it is included, so include order still decides.
+*/
+#include "../mwmp/LocalPlayer.hpp"
+#include "../mwmp/Main.hpp"
+#include "../mwmp/WinAPIConflicts.hpp"
+/*
+    End of tes3mp addition
+*/
+
 namespace
 {
     enum Stats
@@ -499,7 +517,30 @@ namespace MWMechanics
                 if (target != getPlayer())
                     return ESM::ActiveEffect::Flag_Invalid;
                 else if (world->isTeleportingEnabled())
+                {
                     world->getPlayer().markPosition(target.getCell(), target.getRefData().getPosition());
+
+                    /*
+                        Start of tes3mp addition
+
+                        Send a PlayerMiscellaneous packet with the player's new mark location
+
+                        0.51 moved instant effect handling out of spellcasting.cpp and into this
+                        file. The merge left this hook behind at the END of the old function,
+                        outside every branch, so it fired on every spell cast on any target and
+                        reported a new mark location each time.
+
+                        One deliberate difference from 0.8.1: this sits inside the branch that
+                        actually sets the mark. 0.8.1 sent the packet after the if/else, so a cast
+                        with teleporting disabled told the server about a mark that had not been
+                        set. Reproducing that would just be a second bug.
+                    */
+                    mwmp::Main::get().getLocalPlayer()->sendMarkLocation(
+                        *target.getCell()->getCell(), target.getRefData().getPosition());
+                    /*
+                        End of tes3mp addition
+                    */
+                }
                 else if (caster == getPlayer())
                     MWBase::Environment::get().getWindowManager()->messageBox("#{sTeleportDisabled}");
             }
