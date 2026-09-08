@@ -31,14 +31,13 @@ namespace MWMechanics
     {
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp addition
 
         Allow AiActivate to be initialized using a Ptr instead of a refId
     */
     AiActivate::AiActivate(MWWorld::Ptr object)
-        : mObjectId("")
+        : mObjectId(ESM::RefId())
     {
         mObjectPtr = object;
     }
@@ -46,24 +45,24 @@ namespace MWMechanics
         End of tes3mp addition
     */
 
-    bool AiActivate::execute(const MWWorld::Ptr& actor, CharacterController& characterController, AiState& state, float duration)
-    {
-        /*
-            Start of tes3mp change (major)
-
-            Only search for an object based on its refId if we haven't provided a specific object already
-        */
-        const MWWorld::Ptr target = mObjectId.empty() ? mObjectPtr : MWBase::Environment::get().getWorld()->searchPtr(mObjectId, false);
-        /*
-            End of tes3mp change (major)
-        */
-=======
     bool AiActivate::execute(
         const MWWorld::Ptr& actor, CharacterController& characterController, AiState& state, float duration)
     {
         const MWWorld::Ptr target
             = MWBase::Environment::get().getWorld()->searchPtr(mObjectId, false); // The target to follow
->>>>>>> omw51
+
+        /*
+            Start of tes3mp change (major)
+
+            Only search for an object based on its refId if we haven't provided a specific
+            object already
+        */
+        const MWWorld::Ptr target = mObjectId.empty()
+            ? mObjectPtr
+            : MWBase::Environment::get().getWorld()->searchPtr(mObjectId, false);
+        /*
+            End of tes3mp change (major)
+        */
 
         actor.getClass().getCreatureStats(actor).setDrawState(DrawState::Nothing);
 
@@ -82,13 +81,12 @@ namespace MWMechanics
 
         if (MWBase::Environment::get().getWorld()->getMaxActivationDistance() >= targetDir.length())
         {
-<<<<<<< HEAD
             /*
                 Start of tes3mp addition
 
                 Send an ID_OBJECT_ACTIVATE packet every time an object is activated here
             */
-            mwmp::ObjectList *objectList = mwmp::Main::get().getNetworking()->getObjectList();
+            mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
             objectList->reset();
             objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
             objectList->addObjectActivate(target, actor);
@@ -101,21 +99,16 @@ namespace MWMechanics
                 Start of tes3mp change (major)
 
                 Disable unilateral activation on this client and expect the server's reply to our
-                packet to do it instead
+                packet to do it instead.
 
-                Cancel the package to avoid an infinite activation loop, deviating from the behavior
-                established in OpenMW in commit 48aba76ce904738d428e79f1ee24ce170f2a8309
+                Cancel the package to avoid an infinite activation loop, deviating from the
+                behaviour OpenMW keeps for backward compatibility.
             */
-            //MWBase::Environment::get().getWorld()->activate(target, actor);
+            // MWBase::Environment::get().getLuaManager()->objectActivated(target, actor);
             return true;
             /*
                 End of tes3mp change (major)
             */
-=======
-            // Note: we intentionally do not cancel package after activation here for backward compatibility with
-            // original engine.
-            MWBase::Environment::get().getLuaManager()->objectActivated(target, actor);
->>>>>>> omw51
         }
         return false;
     }

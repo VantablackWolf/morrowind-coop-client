@@ -1107,233 +1107,9 @@ namespace MWMechanics
                         mPtr, sound, volume, pitch, MWSound::Type::Foot, MWSound::PlayMode::NoPlayerLocal);
                 }
                 else
-<<<<<<< HEAD
-                    mDeathState = static_cast<CharacterState>(CharState_Death1 + deathanim);
-
-                mFloatToSurface = false;
-            }
-            // else: nothing to do, will detect death in the next frame and start playing death animation
-        }
-    }
-    else
-    {
-        /* Don't accumulate with non-actors. */
-        mAnimation->setAccumulation(osg::Vec3f(0.f, 0.f, 0.f));
-
-        mIdleState = CharState_Idle;
-    }
-
-    // Do not update animation status for dead actors
-    if(mDeathState == CharState_None && (!cls.isActor() || !cls.getCreatureStats(mPtr).isDead()))
-        refreshCurrentAnims(mIdleState, mMovementState, mJumpState, true);
-
-    mAnimation->runAnimation(0.f);
-
-    unpersistAnimationState();
-}
-
-CharacterController::~CharacterController()
-{
-    if (mAnimation)
-    {
-        persistAnimationState();
-        mAnimation->setTextKeyListener(nullptr);
-    }
-}
-
-void split(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-}
-
-void CharacterController::handleTextKey(const std::string &groupname, SceneUtil::TextKeyMap::ConstIterator key, const SceneUtil::TextKeyMap& map)
-{
-    const std::string &evt = key->second;
-
-    if(evt.compare(0, 7, "sound: ") == 0)
-    {
-        MWBase::SoundManager *sndMgr = MWBase::Environment::get().getSoundManager();
-        sndMgr->playSound3D(mPtr, evt.substr(7), 1.0f, 1.0f);
-        return;
-    }
-    if(evt.compare(0, 10, "soundgen: ") == 0)
-    {
-        std::string soundgen = evt.substr(10);
-
-        // The event can optionally contain volume and pitch modifiers
-        float volume=1.f, pitch=1.f;
-        if (soundgen.find(' ') != std::string::npos)
-        {
-            std::vector<std::string> tokens;
-            split(soundgen, ' ', tokens);
-            soundgen = tokens[0];
-            if (tokens.size() >= 2)
-            {
-                std::stringstream stream;
-                stream << tokens[1];
-                stream >> volume;
-            }
-            if (tokens.size() >= 3)
-            {
-                std::stringstream stream;
-                stream << tokens[2];
-                stream >> pitch;
-            }
-        }
-
-        std::string sound = mPtr.getClass().getSoundIdFromSndGen(mPtr, soundgen);
-        if(!sound.empty())
-        {
-            MWBase::SoundManager *sndMgr = MWBase::Environment::get().getSoundManager();
-            // NB: landing sound is not played for NPCs here
-            if(soundgen == "left" || soundgen == "right" || soundgen == "land")
-            {
-                sndMgr->playSound3D(mPtr, sound, volume, pitch, MWSound::Type::Foot,
-                                    MWSound::PlayMode::NoPlayerLocal);
-            }
-            else
-            {
-                sndMgr->playSound3D(mPtr, sound, volume, pitch);
-            }
-        }
-        return;
-    }
-
-    if(evt.compare(0, groupname.size(), groupname) != 0 ||
-       evt.compare(groupname.size(), 2, ": ") != 0)
-    {
-        // Not ours, skip it
-        return;
-    }
-    size_t off = groupname.size()+2;
-    size_t len = evt.size() - off;
-
-    if(groupname == "shield" && evt.compare(off, len, "equip attach") == 0)
-        mAnimation->showCarriedLeft(true);
-    else if(groupname == "shield" && evt.compare(off, len, "unequip detach") == 0)
-        mAnimation->showCarriedLeft(false);
-    else if(evt.compare(off, len, "equip attach") == 0)
-        mAnimation->showWeapons(true);
-    else if(evt.compare(off, len, "unequip detach") == 0)
-        mAnimation->showWeapons(false);
-    else if(evt.compare(off, len, "chop hit") == 0)
-        mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Chop);
-    else if(evt.compare(off, len, "slash hit") == 0)
-        mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Slash);
-    else if(evt.compare(off, len, "thrust hit") == 0)
-        mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Thrust);
-    else if(evt.compare(off, len, "hit") == 0)
-    {
-        if (groupname == "attack1" || groupname == "swimattack1")
-            mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Chop);
-        else if (groupname == "attack2" || groupname == "swimattack2")
-            mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Slash);
-        else if (groupname == "attack3" || groupname == "swimattack3")
-            mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Thrust);
-        else
-            mPtr.getClass().hit(mPtr, mAttackStrength);
-    }
-    else if (!groupname.empty()
-             && (groupname.compare(0, groupname.size()-1, "attack") == 0 || groupname.compare(0, groupname.size()-1, "swimattack") == 0)
-             && evt.compare(off, len, "start") == 0)
-    {
-        std::multimap<float, std::string>::const_iterator hitKey = key;
-
-        // Not all animations have a hit key defined. If there is none, the hit happens with the start key.
-        bool hasHitKey = false;
-        while (hitKey != map.end())
-        {
-            if (hitKey->second == groupname + ": hit")
-            {
-                hasHitKey = true;
-                break;
-            }
-            if (hitKey->second == groupname + ": stop")
-                break;
-            ++hitKey;
-        }
-        if (!hasHitKey)
-        {
-            if (groupname == "attack1" || groupname == "swimattack1")
-                mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Chop);
-            else if (groupname == "attack2" || groupname == "swimattack2")
-                mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Slash);
-            else if (groupname == "attack3" || groupname == "swimattack3")
-                mPtr.getClass().hit(mPtr, mAttackStrength, ESM::Weapon::AT_Thrust);
-        }
-    }
-    else if (evt.compare(off, len, "shoot attach") == 0)
-        mAnimation->attachArrow();
-    else if (evt.compare(off, len, "shoot release") == 0)
-        mAnimation->releaseArrow(mAttackStrength);
-    else if (evt.compare(off, len, "shoot follow attach") == 0)
-        mAnimation->attachArrow();
-
-    else if (groupname == "spellcast" && evt.substr(evt.size()-7, 7) == "release"
-             // Make sure this key is actually for the RangeType we are casting. The flame atronach has
-             // the same animation for all range types, so there are 3 "release" keys on the same time, one for each range type.
-             && evt.compare(off, len, mAttackType + " release") == 0)
-    {
-        /*
-            Start of tes3mp change (major)
-
-            Make the completion of the spellcast animation actually cast spells only for the
-            local player and local actors, relying on Cast packets to cause spells to be cast
-            for dedicated players and actors
-        */
-        if (mPtr == getPlayer() || mwmp::Main::get().getCellController()->isLocalActor(mPtr))
-        {
-            MWBase::Environment::get().getWorld()->castSpell(mPtr, mCastingManualSpell);
-            mCastingManualSpell = false;
-        }
-        /*
-            End of tes3mp change (major)
-        */
-    }
-
-    else if (groupname == "shield" && evt.compare(off, len, "block hit") == 0)
-        mPtr.getClass().block(mPtr);
-    else if (groupname == "containeropen" && evt.compare(off, len, "loot") == 0)
-        MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Container, mPtr);
-}
-
-void CharacterController::updatePtr(const MWWorld::Ptr &ptr)
-{
-    mPtr = ptr;
-}
-
-void CharacterController::updateIdleStormState(bool inwater)
-{
-    if (!mAnimation->hasAnimation("idlestorm") || mUpperBodyState != UpperCharState_Nothing || inwater)
-    {
-        mAnimation->disable("idlestorm");
-        return;
-    }
-
-    if (MWBase::Environment::get().getWorld()->isInStorm())
-    {
-        osg::Vec3f stormDirection = MWBase::Environment::get().getWorld()->getStormDirection();
-        osg::Vec3f characterDirection = mPtr.getRefData().getBaseNode()->getAttitude() * osg::Vec3f(0,1,0);
-        stormDirection.normalize();
-        characterDirection.normalize();
-        if (stormDirection * characterDirection < -0.5f)
-        {
-            if (!mAnimation->isPlaying("idlestorm"))
-            {
-                int mask = MWRender::Animation::BlendMask_Torso | MWRender::Animation::BlendMask_RightArm;
-                mAnimation->play("idlestorm", Priority_Storm, mask, true, 1.0f, "start", "stop", 0.0f, ~0ul);
-            }
-            else
-            {
-                mAnimation->setLoopingEnabled("idlestorm", true);
-=======
                 {
                     sndMgr->playSound3D(mPtr, sound, volume, pitch);
                 }
->>>>>>> omw51
             }
             return;
         }
@@ -1464,10 +1240,24 @@ void CharacterController::updateIdleStormState(bool inwater)
         // type.
         else if (groupname == "spellcast" && action == mAttackType + " release")
         {
-            if (mCanCast)
+            /*
+                Start of tes3mp change (major)
+
+                Make the completion of the spellcast animation actually cast spells only for
+                the local player and local actors, relying on Cast packets to cause spells to
+                be cast for dedicated players and actors.
+
+                0.51 renamed mCastingManualSpell to mCastingScriptedSpell and added the
+                mCanCast guard; both are kept alongside the multiplayer authority check.
+            */
+            if (mCanCast
+                && (mPtr == getPlayer() || mwmp::Main::get().getCellController()->isLocalActor(mPtr)))
                 MWBase::Environment::get().getWorld()->castSpell(mPtr, mCastingScriptedSpell);
             mCastingScriptedSpell = false;
             mCanCast = false;
+            /*
+                End of tes3mp change (major)
+            */
         }
         else if (groupname == "containeropen" && action == "loot")
             MWBase::Environment::get().getWindowManager()->pushGuiMode(MWGui::GM_Container, mPtr);
@@ -2909,23 +2699,6 @@ void CharacterController::updateIdleStormState(bool inwater)
                 anim.mLoopCount = loopcount;
             }
             else
-<<<<<<< HEAD
-                forcestateupdate = updateCreatureState() || forcestateupdate;
-
-            refreshCurrentAnims(idlestate, movestate, jumpstate, forcestateupdate);
-
-            updateIdleStormState(inwater);
-        }
-
-        if (inJump)
-            mMovementAnimationControlled = false;
-
-        if (isTurning())
-        {
-            // Adjust animation speed from 1.0 to 1.5 multiplier
-            if (duration > 0)
-=======
->>>>>>> omw51
             {
                 anim.mLoopCount = iter->mLoopCount;
                 anim.mTime = 0.f;

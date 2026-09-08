@@ -172,13 +172,10 @@ MWWorld::ContainerStoreIterator MWWorld::InventoryStore::add(
     */
     if (mListener && MWBase::Environment::get().getWorld()->isCellActive(*actorPtr.getCell()->getCell()))
         mListener->itemAdded(*retVal, count);
-<<<<<<< HEAD
     /*
         End of tes3mp change (major)
     */
-=======
     MWBase::Environment::get().getWindowManager()->inventoryUpdated(actor);
->>>>>>> omw51
 
     return retVal;
 }
@@ -247,30 +244,20 @@ MWWorld::ContainerStoreIterator MWWorld::InventoryStore::findSlot(int slot) cons
     if (mSlots[slot] == end())
         return mSlots[slot];
 
-<<<<<<< HEAD
-    if (mSlots[slot]->getRefData().getCount()<1)
-    {
-        // Object has been deleted
-        // This should no longer happen, since the new remove function will unequip first
+    /*
+        Start of tes3mp change (major)
 
-        /*
-            Start of tes3mp change (major)
-
-            Instead of throwing an error, display an error log message with information about
-            the item
-        */
-        //throw std::runtime_error("Invalid slot, make sure you are not calling RefData::setCount for a container object");
-        LOG_MESSAGE_SIMPLE(TimedLog::LOG_ERROR, "Invalid slot, make sure you are not calling RefData::setCount for a container object\n- item was %s",
-            mSlots[slot]->getCellRef().getRefId().c_str());
-        /*
-            End of tes3mp change (major)
-        */
-    }
-=======
+        0.8.1 downgraded OpenMW's "invalid slot" exception here to a log message. 0.51
+        removed the check outright: a zero count is now a legitimate transient state while
+        a Lua-scripted removal is pending, and the item is unequipped later in the frame.
+        There is no longer an error to downgrade, so the hook is retired.
+    */
     // NOTE: mSlots[slot]->getRefData().getCount() can be zero if the item is marked
     // for removal by a Lua script, but the removal action is not yet processed.
     // The item will be automatically unequiped in the current frame.
->>>>>>> omw51
+    /*
+        End of tes3mp change (major)
+    */
 
     return mSlots[slot];
 }
@@ -660,13 +647,10 @@ int MWWorld::InventoryStore::remove(const Ptr& item, int count, bool equipReplac
     */
     if (mListener && MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
         mListener->itemRemoved(item, retCount);
-<<<<<<< HEAD
     /*
         End of tes3mp change (major)
     */
-=======
     MWBase::Environment::get().getWindowManager()->inventoryUpdated(actor);
->>>>>>> omw51
 
     return retCount;
 }

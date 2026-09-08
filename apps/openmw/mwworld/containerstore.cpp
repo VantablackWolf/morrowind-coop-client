@@ -517,23 +517,19 @@ MWWorld::ContainerStoreIterator MWWorld::ContainerStore::add(
             item.getRefData().getLocals().setVarByInt(script, "onpcadd", 1);
     }
 
-<<<<<<< HEAD
     /*
         Start of tes3mp change (major)
 
         Only fire inventory events for actors in loaded cells to avoid crashes
     */
-    if (mListener && !actorPtr.getClass().hasInventoryStore(actorPtr) && MWBase::Environment::get().getWorld()->isCellActive(*actorPtr.getCell()->getCell()))
+    // we should not fire event for InventoryStore yet - it has some custom logic
+    if (mListener && typeid(*this) == typeid(ContainerStore)
+        && MWBase::Environment::get().getWorld()->isCellActive(*contPtr.getCell()->getCell()))
         mListener->itemAdded(item, count);
     /*
         End of tes3mp change (major)
     */
-=======
-    // we should not fire event for InventoryStore yet - it has some custom logic
-    if (mListener && typeid(*this) == typeid(ContainerStore))
-        mListener->itemAdded(item, count);
     MWBase::Environment::get().getWindowManager()->inventoryUpdated(contPtr);
->>>>>>> omw51
 
     return it;
 }
@@ -784,23 +780,18 @@ int MWWorld::ContainerStore::remove(const Ptr& item, int count, bool equipReplac
     flagAsModified();
 
     // we should not fire event for InventoryStore yet - it has some custom logic
-<<<<<<< HEAD
-
     /*
         Start of tes3mp change (major)
 
         Only fire inventory events for actors in loaded cells to avoid crashes
     */
-    if (mListener && !actor.getClass().hasInventoryStore(actor) && MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
+    if (mListener && typeid(*this) == typeid(ContainerStore)
+        && MWBase::Environment::get().getWorld()->isCellActive(*actor.getCell()->getCell()))
         mListener->itemRemoved(item, count - toRemove);
+    MWBase::Environment::get().getWindowManager()->inventoryUpdated(getPtr());
     /*
         End of tes3mp change (major)
     */
-=======
-    if (mListener && typeid(*this) == typeid(ContainerStore))
-        mListener->itemRemoved(item, count - toRemove);
-    MWBase::Environment::get().getWindowManager()->inventoryUpdated(getPtr());
->>>>>>> omw51
 
     // number of removed items
     return count - toRemove;
