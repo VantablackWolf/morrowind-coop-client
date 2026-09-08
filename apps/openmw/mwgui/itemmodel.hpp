@@ -79,6 +79,17 @@ namespace MWGui
         virtual MWWorld::Ptr copyItem(const ItemStack& item, size_t count, bool allowAutoEquip = true) = 0;
         virtual void removeItem(const ItemStack& item, size_t count) = 0;
         friend class ProxyItemModel;
+        /*
+            Start of tes3mp addition
+
+            DragAndDrop::finish(deleteDragItems) deletes the dragged items outright when
+            the server rejects a drag, which needs removeItem. 0.51 made these protected
+            with only ProxyItemModel befriended.
+        */
+        friend class DragAndDrop;
+        /*
+            End of tes3mp addition
+        */
 
     private:
         ItemModel(const ItemModel&);

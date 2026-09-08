@@ -123,30 +123,6 @@ namespace MWGui
         if (targetView)
             targetView->update();
 
-/*
-    Start of tes3mp change (minor)
-
-    Add a deleteDragItems argument that allows the deletion of the
-    items in the drag as oppposed to the regular behavior of returning
-    them to their source model
-
-    This is required to reduce unpredictable behavior for drags approved
-    or rejected by the server
-*/
-void DragAndDrop::finish(bool deleteDragItems)
-/*
-    End of tes3mp change (minor)
-*/
-    /*
-        Start of tes3mp addition
-
-        Make it possible to entirely delete the items in the drag
-    */
-    if (deleteDragItems)
-        mSourceModel->removeItem(mItem, mDraggedCount);
-    /*
-        End of tes3mp addition
-    */
         MWBase::Environment::get().getWindowManager()->getInventoryWindow()->updateItemView();
 
         // We need to update the view since an other item could be auto-equipped.
@@ -175,10 +151,38 @@ void DragAndDrop::finish(bool deleteDragItems)
             finish();
     }
 
-    void DragAndDrop::finish()
+    /*
+        Start of tes3mp change (minor)
+
+        Add a deleteDragItems argument that allows the deletion of the
+        items in the drag as oppposed to the regular behavior of returning
+        them to their source model
+
+        This is required to reduce unpredictable behavior for drags approved
+        or rejected by the server
+
+        The merge dropped this whole hook inside drop()'s body, leaving a second
+        function signature in the middle of a function.
+    */
+    void DragAndDrop::finish(bool deleteDragItems)
+    /*
+        End of tes3mp change (minor)
+    */
     {
         mIsOnDragAndDrop = false;
         mSourceSortModel->clearDragItems();
+
+        /*
+            Start of tes3mp addition
+
+            Make it possible to entirely delete the items in the drag
+        */
+        if (deleteDragItems)
+            mSourceModel->removeItem(mItem, mDraggedCount);
+        /*
+            End of tes3mp addition
+        */
+
         // since mSourceView doesn't get updated in drag()
         MWBase::Environment::get().getWindowManager()->getInventoryWindow()->updateItemView();
 

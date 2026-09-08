@@ -39,7 +39,11 @@ namespace MWWorld
     */
     void CellRef::setRefNum(unsigned int index)
     {
-        mCellRef.mRefNum.mIndex = index;
+        std::visit([&](auto&& ref) {
+            using T = std::decay_t<decltype(ref)>;
+            if constexpr (std::is_same_v<T, ESM::CellRef>)
+                ref.mRefNum.mIndex = index;
+        }, mCellRef.mVariant);
     }
     /*
         End of tes3mp addition
@@ -51,7 +55,13 @@ namespace MWWorld
     */
     unsigned int CellRef::getMpNum() const
     {
-        return mCellRef.mMpNum;
+        return std::visit([](auto&& ref) -> unsigned int {
+            using T = std::decay_t<decltype(ref)>;
+            if constexpr (std::is_same_v<T, ESM::CellRef>)
+                return ref.mMpNum;
+            else
+                return 0;
+        }, mCellRef.mVariant);
     }
     /*
         End of tes3mp addition
@@ -63,7 +73,11 @@ namespace MWWorld
     */
     void CellRef::setMpNum(unsigned int index)
     {
-        mCellRef.mMpNum = index;
+        std::visit([&](auto&& ref) {
+            using T = std::decay_t<decltype(ref)>;
+            if constexpr (std::is_same_v<T, ESM::CellRef>)
+                ref.mMpNum = index;
+        }, mCellRef.mVariant);
     }
     /*
         End of tes3mp addition
@@ -121,7 +135,17 @@ namespace MWWorld
     */
     void CellRef::setTeleport(bool teleportState)
     {
-        mCellRef.mTeleport = teleportState;
+        std::visit([&](auto&& ref) {
+            using T = std::decay_t<decltype(ref)>;
+            if constexpr (std::is_same_v<T, ESM::CellRef>)
+            {
+                if (ref.mTeleport != teleportState)
+                {
+                    ref.mTeleport = teleportState;
+                    mChanged = true;
+                }
+            }
+        }, mCellRef.mVariant);
     }
     /*
         End of tes3mp addition
@@ -147,7 +171,14 @@ namespace MWWorld
     */
     void CellRef::setDoorDest(const ESM::Position& position)
     {
-        mCellRef.mDoorDest = position;
+        std::visit([&](auto&& ref) {
+            using T = std::decay_t<decltype(ref)>;
+            if constexpr (std::is_same_v<T, ESM::CellRef>)
+            {
+                ref.mDoorDest = position;
+                mChanged = true;
+            }
+        }, mCellRef.mVariant);
     }
     /*
         End of tes3mp addition
@@ -177,20 +208,38 @@ namespace MWWorld
         auto actorDestCell
             = [&](const ESM4::ActorCharacter&) -> ESM::RefId { throw std::logic_error("Not applicable"); };
 
+        return std::visit(ESM::VisitOverload{ esm3Visit, esm4Visit, actorDestCell }, mCellRef.mVariant);
+    }
+
     /*
         Start of tes3mp addition
 
         Make it possible to change the destination cell from elsewhere
+
+        The merge dropped this inside getDestCell(), between its lambdas and its return.
+
+        0.51 holds the cell ref in a variant over ESM3 and ESM4 forms, so the field is
+        reached through a visitor. Only ESM3 references carry a destination cell name;
+        setting one on an ESM4 reference is a no-op rather than an error, because tes3mp
+        only ever describes ESM3 doors and a throw here would be a crash on a bad packet.
     */
     void CellRef::setDestCell(const std::string& cellDescription)
     {
-        mCellRef.mDestCell = cellDescription;
+        std::visit([&](auto&& ref) {
+            using T = std::decay_t<decltype(ref)>;
+            if constexpr (std::is_same_v<T, ESM::CellRef>)
+            {
+                if (ref.mDestCell != cellDescription)
+                {
+                    ref.mDestCell = cellDescription;
+                    mChanged = true;
+                }
+            }
+        }, mCellRef.mVariant);
     }
     /*
         End of tes3mp addition
     */
-        return std::visit(ESM::VisitOverload{ esm3Visit, esm4Visit, actorDestCell }, mCellRef.mVariant);
-    }
 
     void CellRef::setScale(float scale)
     {

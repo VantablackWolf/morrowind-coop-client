@@ -317,7 +317,7 @@ namespace MWWorld
             Make it possible to set a specific weather state for a region from elsewhere
             in the code
         */
-        void setRegionWeather(const std::string& region, const int currentWeather, const int nextWeather,
+        void setRegionWeather(const ESM::RefId& region, const int currentWeather, const int nextWeather,
             const int queuedWeather, const float transitionFactor, bool force);
         /*
             End of tes3mp addition

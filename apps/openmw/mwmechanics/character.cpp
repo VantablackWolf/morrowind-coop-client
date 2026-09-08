@@ -2932,18 +2932,6 @@ namespace MWMechanics
         /*
             End of tes3mp addition
         */
-/*
-    Start of tes3mp addition
-
-    Make it possible to get the current attack type from elsewhere in the code
-*/
-std::string CharacterController::getAttackType() const
-{
-    return mAttackType;
-}
-/*
-    End of tes3mp addition
-*/
         if (clearScriptedAnims)
         {
             if (mAnimation)
@@ -3428,5 +3416,21 @@ std::string CharacterController::getAttackType() const
         }
         return 0;
     }
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to get the current attack type from elsewhere in the code
+
+        The merge dropped this inside another function's body, at namespace indentation,
+        in the middle of the class's other definitions.
+    */
+    std::string CharacterController::getAttackType() const
+    {
+        return mAttackType;
+    }
+    /*
+        End of tes3mp addition
+    */
 
 }

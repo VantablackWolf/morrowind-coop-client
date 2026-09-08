@@ -13,6 +13,7 @@
 */
 #include "../mwmp/Main.hpp"
 #include "../mwmp/LocalPlayer.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 /*
     End of tes3mp addition
 */
@@ -163,7 +164,7 @@ namespace MWMechanics
 
                     Send an ID_PLAYER_SPELLBOOK packet every time a spell is purged here
                 */
-                mwmp::Main::get().getLocalPlayer()->sendSpellChange(spell->mId, mwmp::SpellbookChanges::REMOVE);
+                mwmp::Main::get().getLocalPlayer()->sendSpellChange(mwmp::RefIdCompat::toWire(spell->mId), mwmp::SpellbookChanges::REMOVE);
                 /*
                     End of tes3mp addition
                 */
@@ -223,27 +224,11 @@ namespace MWMechanics
 
             Send an ID_PLAYER_COOLDOWN packet every time a cooldown is recorded here
         */
-        mwmp::Main::get().getLocalPlayer()->sendCooldownChange(spell->mId, MWBase::Environment::get().getWorld()->getTimeStamp().getDay(),
+        mwmp::Main::get().getLocalPlayer()->sendCooldownChange(mwmp::RefIdCompat::toWire(spell->mId), MWBase::Environment::get().getWorld()->getTimeStamp().getDay(),
             MWBase::Environment::get().getWorld()->getTimeStamp().getHour());
         /*
             End of tes3mp addition
         */
-    /*
-        Start of tes3mp addition
-
-        Make it possible to set timestamps for power cooldowns, necessary for ID_PLAYER_COOLDOWNS packets
-    */
-    void Spells::setPowerUseTimestamp(const ESM::Spell* spell, int startDay, float startHour)
-    {
-        ESM::TimeStamp timestamp;
-        timestamp.mDay = startDay;
-        timestamp.mHour = startHour;
-
-        mUsedPowers[spell] = MWWorld::TimeStamp(timestamp);
-    }
-    /*
-        End of tes3mp addition
-    */
         // Updates or inserts a new entry with the current timestamp.
         const auto it = std::find_if(
             std::begin(mUsedPowers), std::end(mUsedPowers), [&](auto& pair) { return pair.first == spell; });
@@ -253,6 +238,35 @@ namespace MWMechanics
         else
             it->second = timestamp;
     }
+
+    /*
+        Start of tes3mp addition
+
+        Make it possible to set timestamps for power cooldowns, necessary for ID_PLAYER_COOLDOWNS packets
+
+        The merge dropped this function inside usePower()'s body. 0.51 also changed
+        mUsedPowers from a map keyed by spell to a vector of pairs, so the update is a
+        search-then-assign rather than a subscript.
+    */
+    void Spells::setPowerUseTimestamp(const ESM::Spell* spell, int startDay, float startHour)
+    {
+        ESM::TimeStamp esmTimestamp;
+        esmTimestamp.mDay = startDay;
+        esmTimestamp.mHour = startHour;
+
+        const MWWorld::TimeStamp timestamp(esmTimestamp);
+
+        const auto it = std::find_if(
+            std::begin(mUsedPowers), std::end(mUsedPowers), [&](auto& pair) { return pair.first == spell; });
+
+        if (it == mUsedPowers.end())
+            mUsedPowers.emplace_back(spell, timestamp);
+        else
+            it->second = timestamp;
+    }
+    /*
+        End of tes3mp addition
+    */
 
     void Spells::readState(const ESM::SpellState& state, CreatureStats* creatureStats)
     {
