@@ -91,6 +91,7 @@ namespace mwmp
             to.mName = from.mName;
             to.mDescription = from.mDescription;
             to.mData.mSpecialization = from.mData.mSpecialization;
+            to.mData.mIsPlayable = from.mData.mIsPlayable;
             std::copy(std::begin(from.mData.mAttribute), std::end(from.mData.mAttribute),
                 std::begin(to.mData.mAttribute));
             // 0.47 int[5][2] -> 0.51 std::array<std::array<int32_t, 2>, 5>
@@ -107,6 +108,7 @@ namespace mwmp
             to.mName = from.mName;
             to.mDescription = from.mDescription;
             to.mData.mSpecialization = from.mData.mSpecialization;
+            to.mData.mIsPlayable = from.mData.mIsPlayable;
             std::copy(std::begin(from.mData.mAttribute), std::end(from.mData.mAttribute),
                 std::begin(to.mData.mAttribute));
             for (std::size_t i = 0; i < from.mData.mSkills.size(); ++i)

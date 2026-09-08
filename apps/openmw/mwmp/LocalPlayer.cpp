@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <components/esm/exteriorcelllocation.hpp>
+#include <components/esm/util.hpp>
+#include "RecordConvertPlayer.hpp"
 #include <components/esm3/loadmgef.hpp>
 #include <components/esm3/loadench.hpp>
 #include <components/esm3/loadskil.hpp>
@@ -1006,12 +1010,14 @@ void LocalPlayer::setAttributes()
             // fortify the attribute
             if (ptrNpcStats->getAttribute(ESM::Attribute::indexToRefId(attributeIndex)).getModifier() > 0)
             {
-                MechanicsHelper::unequipItemsByEffect(ptrPlayer, ESM::Enchantment::ConstantEffect, ESM::MagicEffect::FortifyAttribute, attributeIndex, -1);
+                MechanicsHelper::unequipItemsByEffect(ptrPlayer, ESM::Enchantment::ConstantEffect, ESM::MagicEffect::FortifyAttribute, ESM::Attribute::indexToRefId(attributeIndex), ESM::RefId());
                 mwmp::Main::get().getGUIController()->refreshGuiMode(MWGui::GM_Inventory);
             }
         }
 
-        attributeValue.readState(creatureStats.mAttributes[attributeIndex]);
+        ESM::StatState<float> attributeState;
+        mwmp::RecordConvert::toEngine(creatureStats.mAttributes[attributeIndex], attributeState);
+        attributeValue.readState(attributeState);
         ptrNpcStats->setAttribute(ESM::Attribute::indexToRefId(attributeIndex), attributeValue);
 
         ptrNpcStats->setSkillIncrease(attributeIndex, npcStats.mSkillIncrease[attributeIndex]);
@@ -1039,12 +1045,14 @@ void LocalPlayer::setSkills()
             // fortify the skill
             if (ptrNpcStats->getSkill(ESM::Skill::indexToRefId(skillIndex)).getModifier() > 0)
             {
-                MechanicsHelper::unequipItemsByEffect(ptrPlayer, ESM::Enchantment::ConstantEffect, ESM::MagicEffect::FortifySkill, -1, skillIndex);
+                MechanicsHelper::unequipItemsByEffect(ptrPlayer, ESM::Enchantment::ConstantEffect, ESM::MagicEffect::FortifySkill, ESM::RefId(), ESM::Skill::indexToRefId(skillIndex));
                 mwmp::Main::get().getGUIController()->refreshGuiMode(MWGui::GM_Inventory);
             }
         }
 
-        skillValue.readState(npcStats.mSkills[skillIndex]);
+        ESM::StatState<float> skillState;
+        mwmp::RecordConvert::toEngine(npcStats.mSkills[skillIndex], skillState);
+        skillValue.readState(skillState);
         ptrNpcStats->setSkill(ESM::Skill::indexToRefId(skillIndex), skillValue);
     }
 }
@@ -1090,8 +1098,8 @@ void LocalPlayer::setPosition()
     {
         world->getPlayer().setTeleported(true);
 
-        world->moveObject(ptrPlayer, position.pos[0], position.pos[1], position.pos[2]);
-        world->rotateObject(ptrPlayer, position.rot[0], position.rot[1], position.rot[2]);
+        world->moveObject(ptrPlayer, osg::Vec3f(position.pos[0], position.pos[1], position.pos[2]));
+        world->rotateObject(ptrPlayer, osg::Vec3f(position.rot[0], position.rot[1], position.rot[2]));
         world->setInertialForce(ptrPlayer, osg::Vec3f(0.f, 0.f, 0.f));
     }
 
@@ -1105,7 +1113,7 @@ void LocalPlayer::setMomentum()
 {
     MWBase::World *world = MWBase::Environment::get().getWorld();
     MWWorld::Ptr ptrPlayer = world->getPlayerPtr();
-    world->setInertialForce(ptrPlayer, momentum.asVec3());
+    world->setInertialForce(ptrPlayer, osg::Vec3f(momentum.pos[0], momentum.pos[1], momentum.pos[2]));
 }
 
 void LocalPlayer::setCell()
@@ -1122,21 +1130,37 @@ void LocalPlayer::setCell()
     int x = cell.mData.mX;
     int y = cell.mData.mY;
 
+    /*
+        Start of tes3mp change (major)
+
+        0.51 removed World::indexToPosition and World::changeToExteriorCell. The cell centre
+        now comes from ESM::indexToPosition on an ExteriorCellLocation, and the move goes
+        through changeToCell with a cell id resolved from that position.
+
+        findExteriorPosition returns the cell's RefId rather than a bool; an empty id means
+        no such exterior cell.
+    */
     if (cell.isExterior())
     {
-        world->indexToPosition(x, y, pos.pos[0], pos.pos[1], true);
+        const ESM::ExteriorCellLocation cellIndex(x, y, ESM::Cell::sDefaultWorldspaceId);
+        const osg::Vec2f centre = ESM::indexToPosition(cellIndex, true);
+        pos.pos[0] = centre.x();
+        pos.pos[1] = centre.y();
         pos.pos[2] = 0;
 
         pos.rot[0] = pos.rot[1] = pos.rot[2] = 0;
 
-        world->changeToExteriorCell(pos, true);
+        world->changeToCell(ESM::RefId::esm3ExteriorCell(x, y), pos, true);
         world->fixPosition();
     }
-    else if (world->findExteriorPosition(cell.mName, pos))
+    else if (const ESM::RefId exteriorId = world->findExteriorPosition(cell.mName, pos); !exteriorId.empty())
     {
-        world->changeToExteriorCell(pos, true);
+        world->changeToCell(exteriorId, pos, true);
         world->fixPosition();
     }
+    /*
+        End of tes3mp change (major)
+    */
     else
     {
         try
@@ -1163,15 +1187,25 @@ void LocalPlayer::setClass()
     if (charClass.mId.empty()) // custom class
     {
         charClass.mData.mIsPlayable = 0x1;
-        MWBase::Environment::get().getMechanicsManager()->setPlayerClass(charClass);
+        /*
+            Start of tes3mp change (major)
+
+            setPlayerClass takes the engine record; charClass is the protocol mirror.
+        */
+        ESM::Class engineClass;
+        mwmp::RecordConvert::toEngine(charClass, engineClass);
+        MWBase::Environment::get().getMechanicsManager()->setPlayerClass(engineClass);
+        /*
+            End of tes3mp change (major)
+        */
     }
     else
     {
-        const ESM::Class *existingCharClass = MWBase::Environment::get().getWorld()->getStore().get<ESM::Class>().search(charClass.mId);
+        const ESM::Class *existingCharClass = MWBase::Environment::get().getWorld()->getStore().get<ESM::Class>().search(mwmp::RefIdCompat::fromWireCreate(charClass.mId));
 
         if (existingCharClass)
         {
-            MWBase::Environment::get().getMechanicsManager()->setPlayerClass(charClass.mId);
+            MWBase::Environment::get().getMechanicsManager()->setPlayerClass(mwmp::RefIdCompat::fromWireCreate(charClass.mId));
         }
         else
             LOG_APPEND(TimedLog::LOG_INFO, "- Ignored invalid default class %s", charClass.mId.c_str());
@@ -1190,9 +1224,21 @@ void LocalPlayer::setEquipment()
 
         if (!currentItem.refId.empty())
         {
-            auto it = find_if(ptrInventory.begin(), ptrInventory.end(), [&currentItem](const MWWorld::Ptr &itemPtr) {
-                return Misc::StringUtils::ciEqual(itemPtr.getCellRef().getRefId(), currentItem.refId);
-            });
+            /*
+                Start of tes3mp change (major)
+
+                0.51 compares record ids as ESM::RefId rather than by case-insensitive string,
+                so the wire id is converted once and compared directly.
+            */
+            const ESM::RefId currentItemId = mwmp::RefIdCompat::fromWireCreate(currentItem.refId);
+
+            auto it = std::find_if(ptrInventory.begin(), ptrInventory.end(),
+                [&currentItemId](const MWWorld::Ptr& itemPtr) {
+                    return itemPtr.getCellRef().getRefId() == currentItemId;
+                });
+            /*
+                End of tes3mp change (major)
+            */
 
             // If the item is not in our inventory, add it as long as it's not a bound item
             if (it == ptrInventory.end())
@@ -1201,9 +1247,9 @@ void LocalPlayer::setEquipment()
                 {
                     try
                     {
-                        auto addIter = ptrInventory.ContainerStore::add(currentItem.refId.c_str(), currentItem.count, ptrPlayer);
+                        auto addIter = ptrInventory.ContainerStore::add(currentItemId, currentItem.count);
 
-                        ptrInventory.equip(slot, addIter, ptrPlayer);
+                        ptrInventory.equip(slot, addIter);
                     }
                     catch (std::exception&)
                     {
@@ -1215,11 +1261,11 @@ void LocalPlayer::setEquipment()
             {
                 // Don't try to equip an item that is already equipped
                 if (ptrInventory.getSlot(slot) != it)
-                    ptrInventory.equip(slot, it, ptrPlayer);
+                    ptrInventory.equip(slot, it);
             }
         }
         else
-            ptrInventory.unequipSlot(slot, ptrPlayer);
+            ptrInventory.unequipSlot(slot);
     }
 
     MWBase::Environment::get().getWindowManager()->getInventoryWindow()->updatePlayer();
@@ -1254,16 +1300,25 @@ void LocalPlayer::setSpellbook()
     // Clear spells in spellbook, while ignoring abilities, powers, etc.
     while (true)
     {
-        MWMechanics::Spells::TIterator iter = ptrSpells.begin();
-        for (; iter != ptrSpells.end(); iter++)
+        /*
+            Start of tes3mp change (major)
+
+            0.51 stores spells as a vector of ESM::Spell* rather than a map, so the iterator
+            yields the spell directly instead of a pair, and remove() takes the record.
+        */
+        auto iter = ptrSpells.begin();
+        for (; iter != ptrSpells.end(); ++iter)
         {
-            const ESM::Spell *spell = iter->first;
+            const ESM::Spell* spell = *iter;
             if (spell->mData.mType == ESM::Spell::ST_Spell)
             {
-                ptrSpells.remove(spell->mId);
+                ptrSpells.remove(spell);
                 break;
             }
         }
+        /*
+            End of tes3mp change (major)
+        */
         if (iter == ptrSpells.end())
             break;
     }
@@ -1276,7 +1331,8 @@ void LocalPlayer::setSpellsActive()
 {
     MWWorld::Ptr ptrPlayer = getPlayerPtr();
     MWMechanics::ActiveSpells& activeSpells = ptrPlayer.getClass().getCreatureStats(ptrPlayer).getActiveSpells();
-    activeSpells.clear();
+    // 0.51's clear() needs the owning actor so it can undo the effects
+    activeSpells.clear(ptrPlayer);
 
     // Proceed by adding spells active
     addSpellsActive();
@@ -1290,9 +1346,11 @@ void LocalPlayer::setCooldowns()
 
     for (const auto& cooldown : cooldownChanges)
     {
-        if (world->getStore().get<ESM::Spell>().search(cooldown.id))
+        const ESM::RefId cooldownId = mwmp::RefIdCompat::fromWireCreate(cooldown.id);
+
+        if (world->getStore().get<ESM::Spell>().search(cooldownId))
         {
-            const ESM::Spell* spell = world->getStore().get<ESM::Spell>().search(cooldown.id);
+            const ESM::Spell* spell = world->getStore().get<ESM::Spell>().search(cooldownId);
 
             ptrSpells.setPowerUseTimestamp(spell, cooldown.startTimestampDay, cooldown.startTimestampHour);
         }

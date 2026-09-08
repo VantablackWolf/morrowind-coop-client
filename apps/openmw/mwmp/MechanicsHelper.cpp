@@ -592,15 +592,16 @@ bool MechanicsHelper::isStackingSpell(const std::string& id)
     return !MWBase::Environment::get().getWorld()->getStore().get<ESM::Spell>().search(id);
 }
 
-bool MechanicsHelper::doesEffectListContainEffect(const ESM::EffectList& effectList, short effectId, short attributeId, short skillId)
+bool MechanicsHelper::doesEffectListContainEffect(const ESM::EffectList& effectList, const ESM::RefId& effectId,
+    const ESM::RefId& attributeId, const ESM::RefId& skillId)
 {
     for (const auto &effect : effectList.mList)
     {
-        if (effect.mEffectID == effectId)
+        if (effect.mData.mEffectID == effectId)
         {
-            if (attributeId == -1 || effect.mAttribute == attributeId)
+            if (attributeId.empty() || effect.mData.mAttribute == attributeId)
             {
-                if (skillId == -1 || effect.mSkill == skillId)
+                if (skillId.empty() || effect.mData.mSkill == skillId)
                 {
                     return true;
                 }
@@ -611,7 +612,8 @@ bool MechanicsHelper::doesEffectListContainEffect(const ESM::EffectList& effectL
     return false;
 }
 
-void MechanicsHelper::unequipItemsByEffect(const MWWorld::Ptr& ptr, short enchantmentType, short effectId, short attributeId, short skillId)
+void MechanicsHelper::unequipItemsByEffect(const MWWorld::Ptr& ptr, short enchantmentType, const ESM::RefId& effectId,
+    const ESM::RefId& attributeId, const ESM::RefId& skillId)
 {
     MWBase::World *world = MWBase::Environment::get().getWorld();
     MWWorld::InventoryStore &ptrInventory = ptr.getClass().getInventoryStore(ptr);
@@ -621,7 +623,7 @@ void MechanicsHelper::unequipItemsByEffect(const MWWorld::Ptr& ptr, short enchan
         if (ptrInventory.getSlot(slot) != ptrInventory.end())
         {
             MWWorld::ConstContainerStoreIterator itemIterator = ptrInventory.getSlot(slot);
-            std::string enchantmentName = itemIterator->getClass().getEnchantment(*itemIterator);
+            const ESM::RefId& enchantmentName = itemIterator->getClass().getEnchantment(*itemIterator);
 
             if (!enchantmentName.empty())
             {

@@ -49,8 +49,20 @@ namespace MechanicsHelper
     void createSpellGfx(const MWWorld::Ptr& targetPtr, const std::vector<ESM::ActiveEffect>& mEffects);
 
     bool isStackingSpell(const std::string& id);
-    bool doesEffectListContainEffect(const ESM::EffectList& effectList, short effectId, short attributeId = -1, short skillId = -1);
-    void unequipItemsByEffect(const MWWorld::Ptr& ptr, short enchantmentType, short effectId, short attributeId = -1, short skillId = -1);
+    /*
+        Start of tes3mp change (major)
+
+        0.51 keys magic effects, attributes and skills by ESM::RefId rather than by small
+        integers. EmptyRefId takes over the "any" role that -1 used to play, which is what
+        indexToRefId(-1) already produces.
+    */
+    bool doesEffectListContainEffect(const ESM::EffectList& effectList, const ESM::RefId& effectId,
+        const ESM::RefId& attributeId = {}, const ESM::RefId& skillId = {});
+        void unequipItemsByEffect(const MWWorld::Ptr& ptr, short enchantmentType, const ESM::RefId& effectId,
+        const ESM::RefId& attributeId = {}, const ESM::RefId& skillId = {});
+    /*
+        End of tes3mp change (major)
+    */
 
     MWWorld::Ptr getItemPtrFromStore(const mwmp::Item& item, MWWorld::ContainerStore& store);
 }

@@ -110,6 +110,8 @@ namespace mwmp
                 int mAttribute[2];
                 int mSpecialization;
                 int mSkills[5][2];
+                // set by tes3mp when the server sends a custom class
+                int mIsPlayable;
             };
 
             CLDTstruct mData;
