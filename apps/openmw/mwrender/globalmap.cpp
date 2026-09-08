@@ -30,6 +30,8 @@
     Include additional headers for multiplayer purposes
 */
 #include <components/openmw-mp/TimedLog.hpp>
+#include "../mwworld/worldmodel.hpp"
+#include <components/esm/exteriorcelllocation.hpp>
 #include "../mwmp/Main.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/Worldstate.hpp"
@@ -318,7 +320,18 @@ namespace MWRender
                 mMaxY = it->getGridY();
         }
 
-        const int cellSize = Settings::map().mGlobalMapCellSize;
+        /*
+            Start of tes3mp change (major)
+
+            Map tiles must have consistent sizes, because the server's map is filled in
+            gradually from tiles sent by players via WorldMap packets. The default value is
+            enforced rather than read from settings.
+        */
+        // const int cellSize = Settings::map().mGlobalMapCellSize;
+        const int cellSize = mCellSize;
+        /*
+            End of tes3mp change (major)
+        */
 
         mWidth = cellSize * (mMaxX - mMinX + 1);
         mHeight = cellSize * (mMaxY - mMinY + 1);
@@ -668,7 +681,16 @@ namespace MWRender
                     // Keep this tile marked as explored so we don't send any more packets for it
                     worldstate->markExploredMapTile(cellX, cellY);
 
-                    if (MWBase::Environment::get().getWorld()->getExterior(cellX, cellY)->getCell()->mContextList.empty() == false)
+                    /*
+                        0.8.1 asked World::getExterior(x, y) for a CellStore and tested
+                        mContextList.empty() -- "does this exterior cell come from a content
+                        file". 0.51 removed World::getExterior, and going through WorldModel
+                        instead would be wrong here: it CREATES a CellStore on demand, so
+                        every coordinate would look like it exists.
+
+                        The store answers the original question directly.
+                    */
+                    if (MWBase::Environment::get().getESMStore()->get<ESM::Cell>().search(cellX, cellY) != nullptr)
                     {
                         LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "New global map tile corresponds to cell %i, %i", originToCellX.at(imageDest.mX), originToCellY.at(imageDest.mY));
 

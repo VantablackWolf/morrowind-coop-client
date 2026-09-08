@@ -140,6 +140,19 @@ namespace MWRender
         int mHeight;
 
         int mMinX, mMaxX, mMinY, mMaxY;
+
+        /*
+            Start of tes3mp addition
+
+            0.51 made the global map cell size a local in render(), read from settings.
+            Multiplayer needs it as a member: several tes3mp hooks convert between map
+            image coordinates and cell coordinates outside render(), and the value has to
+            be the same one render() used.
+        */
+        int mCellSize;
+        /*
+            End of tes3mp addition
+        */
     };
 
 }

@@ -13,6 +13,7 @@
 #include "../mwmp/Main.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/ActorList.hpp"
+#include "../mwmp/RecordConvertPlayer.hpp"
 #include "../mwmp/MechanicsHelper.hpp"
 /*
     End of tes3mp addition
@@ -351,11 +352,11 @@ namespace MWScript
                         so send a combat packet regardless of whether we're the cell authority or not; the server
                         can decide if it wants to comply with them by forwarding them to the cell authority
                     */
-                    if (stat.getBase() != initialValue && mIndex == MWMechanics::CreatureStats::AI_Fight && value == 100)
+                    if (stat.getBase() != initialValue && mIndex == MWMechanics::AiSetting::Fight && value == 100)
                     {
                         mwmp::ActorList *actorList = mwmp::Main::get().getNetworking()->getActorList();
                         actorList->reset();
-                        actorList->cell = *ptr.getCell()->getCell();
+                        actorList->cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
                         actorList->addAiActor(ptr, MWBase::Environment::get().getWorld()->getPlayerPtr(), mwmp::BaseActorList::COMBAT);
                         actorList->sendAiActors();
                     }
@@ -409,11 +410,11 @@ namespace MWScript
                     */
                     MWWorld::Ptr targetPtr = MWBase::Environment::get().getWorld()->searchPtr(actorID, true);
 
-                    if (targetPtr)
+                    if (!targetPtr.isEmpty())
                     {
                         mwmp::ActorList *actorList = mwmp::Main::get().getNetworking()->getActorList();
                         actorList->reset();
-                        actorList->cell = *ptr.getCell()->getCell();
+                        actorList->cell = mwmp::RecordConvert::toMirror(*ptr.getCell()->getCell());
                         actorList->addAiActor(ptr, targetPtr, mwmp::BaseActorList::FOLLOW);
                         actorList->sendAiActors();
                     }
@@ -570,35 +571,42 @@ namespace MWScript
                 ESM::RefId targetID = ESM::RefId::stringRefId(runtime.getStringLiteral(runtime[0].mInteger));
                 runtime.pop();
 
-                    /*
-                        Start of tes3mp addition
-
-                        Track whether this actor is already in combat with its target, to ensure we don't
-                        send repetitive packets to the server
-                    */
-                    bool alreadyInCombatWithTarget = !target.isEmpty() ? actor.getClass().getCreatureStats(actor).getAiSequence().isInCombat(target) : false;
-                    /*
-                        End of tes3mp addition
-                    */
-                    /*
-                        Start of tes3mp addition
-
-                        Send ActorAI packets when an actor starts combat, regardless of whether we're the
-                        cell authority or not; the server can decide if it wants to comply with them by
-                        forwarding them to the cell authority
-                    */
-                    if (!target.isEmpty() && !alreadyInCombatWithTarget)
-                    {
-                        mwmp::ActorList *actorList = mwmp::Main::get().getNetworking()->getActorList();
-                        actorList->reset();
-                        actorList->cell = *actor.getCell()->getCell();
-                        actorList->addAiActor(actor, target, mwmp::BaseActorList::COMBAT);
-                        actorList->sendAiActors();
-                    }
-                    /*
-                        End of tes3mp addition
-                    */
                 MWWorld::Ptr target = MWBase::Environment::get().getWorld()->searchPtr(targetID, true, false);
+
+                /*
+                    Start of tes3mp addition
+
+                    Track whether this actor is already in combat with its target, to ensure we don't
+                    send repetitive packets to the server
+
+                    The merge placed these two hooks above the line that resolves the target
+                    they both use.
+                */
+                bool alreadyInCombatWithTarget = !target.isEmpty()
+                    ? actor.getClass().getCreatureStats(actor).getAiSequence().isInCombat(target)
+                    : false;
+                /*
+                    End of tes3mp addition
+                */
+                /*
+                    Start of tes3mp addition
+
+                    Send ActorAI packets when an actor starts combat, regardless of whether we're the
+                    cell authority or not; the server can decide if it wants to comply with them by
+                    forwarding them to the cell authority
+                */
+                if (!target.isEmpty() && !alreadyInCombatWithTarget)
+                {
+                    mwmp::ActorList *actorList = mwmp::Main::get().getNetworking()->getActorList();
+                    actorList->reset();
+                    actorList->cell = mwmp::RecordConvert::toMirror(*actor.getCell()->getCell());
+                    actorList->addAiActor(actor, target, mwmp::BaseActorList::COMBAT);
+                    actorList->sendAiActors();
+                }
+                /*
+                    End of tes3mp addition
+                */
+
                 if (!target.isEmpty() && !target.getBase()->isDeleted()
                     && !target.getClass().getCreatureStats(target).isDead())
                     MWBase::Environment::get().getMechanicsManager()->startCombat(actor, target, nullptr);
