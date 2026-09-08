@@ -87,7 +87,8 @@ namespace MWWorld
         */
         LOG_MESSAGE_SIMPLE(TimedLog::LOG_ERROR, "Attempt at getting creatureStats for %s %i-%i which is a %s!",
             ptr.getCellRef().getRefId().getRefIdString().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum(),
-            ptr.getClass().getTypeName().c_str());
+            // 0.51 identifies the record type by its integer id rather than a type name.
+            std::to_string(ptr.getType()).c_str());
         /*
             End of tes3mp addition
         */
