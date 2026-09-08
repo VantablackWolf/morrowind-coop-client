@@ -5,13 +5,7 @@
 #include <components/esm3/esmreader.hpp>
 #include <components/esm3/esmwriter.hpp>
 #include <components/sdlutil/sdlinputwrapper.hpp>
-<<<<<<< HEAD
-
-#include <components/esm/esmwriter.hpp>
-#include <components/esm/esmreader.hpp>
-=======
 #include <components/settings/values.hpp>
->>>>>>> omw51
 
 #include "../mwbase/environment.hpp"
 #include "../mwbase/windowmanager.hpp"

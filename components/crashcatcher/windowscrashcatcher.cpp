@@ -246,10 +246,6 @@ namespace Crash
         // as we're suspended, this might time out even if it's successful, so mMonitorStatus is the source of truth
         waitMonitorNoThrow();
 
-<<<<<<< HEAD:components/crashcatcher/windows_crashcatcher.cpp
-        std::string message = "TES3MP has encountered a fatal error.\nCrash log saved to '" + std::string(mShm->mStartup.mLogFilePath) + "'.\n Please report this to https://github.com/TES3MP/TES3MP/issues !";
-        SDL_ShowSimpleMessageBox(0, "Fatal Error", message.c_str(), nullptr);
-=======
         shmLock();
         CrashSHM::Status monitorStatus = mShm->mMonitorStatus;
         shmUnlock();
@@ -263,7 +259,6 @@ namespace Crash
         }
         else if (monitorStatus == CrashSHM::Status::Dumping)
             SDL_ShowSimpleMessageBox(0, "Fatal Error", "Timed out while creating crash dump", nullptr);
->>>>>>> omw51:components/crashcatcher/windowscrashcatcher.cpp
     }
 
 } // namespace Crash
