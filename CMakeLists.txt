@@ -41,27 +41,28 @@ option(BUILD_DOCS               "Build documentation." OFF )
 option(BUILD_WITH_CODE_COVERAGE "Enable code coverage with gconv" OFF)
 option(BUILD_COMPONENTS_TESTS   "Build components library tests" OFF)
 option(BUILD_BENCHMARKS         "Build benchmarks with Google Benchmark" OFF)
-<<<<<<< HEAD
-option(BUILD_OPENMW_MP          "Build OpenMW-MP" ON)
-option(BUILD_BROWSER            "Build tes3mp Server Browser" ON)
-option(BUILD_MASTER             "Build tes3mp Master Server" OFF)
-
-set(OpenGL_GL_PREFERENCE LEGACY)  # Use LEGACY as we use GL2; GLNVD is for GL3 and up.
-
-if (NOT BUILD_LAUNCHER AND NOT BUILD_BROWSER AND NOT BUILD_OPENCS AND NOT BUILD_WIZARD)
-   set(USE_QT FALSE)
-=======
 option(BUILD_NAVMESHTOOL        "Build navmesh tool" ON)
 option(BUILD_BULLETOBJECTTOOL   "Build Bullet object tool" ON)
 option(BUILD_OPENCS_TESTS       "Build OpenMW Construction Set tests" OFF)
 option(BUILD_OPENMW_TESTS       "Build OpenMW tests" OFF)
 option(PRECOMPILE_HEADERS_WITH_MSVC "Precompile most common used headers with MSVC (alternative to ccache)" ON)
+# Start of tes3mp addition
+#
+# Add the multiplayer build targets
+option(BUILD_OPENMW_MP          "Build OpenMW-MP" ON)
+option(BUILD_BROWSER            "Build tes3mp Server Browser" ON)
+option(BUILD_MASTER             "Build tes3mp Master Server" OFF)
+# End of tes3mp addition
 
 set(OpenGL_GL_PREFERENCE LEGACY)  # Use LEGACY as we use GL2; GLNVD is for GL3 and up.
 
-if (BUILD_LAUNCHER OR BUILD_OPENCS OR BUILD_WIZARD OR BUILD_OPENCS_TESTS)
+# Start of tes3mp change (minor)
+#
+# BUILD_BROWSER is a Qt target too, so it has to select USE_QT alongside the
+# upstream ones. Upstream inverted this condition in 0.49; keep their form.
+if (BUILD_LAUNCHER OR BUILD_OPENCS OR BUILD_WIZARD OR BUILD_OPENCS_TESTS OR BUILD_BROWSER)
     set(USE_QT TRUE)
->>>>>>> omw51
+# End of tes3mp change (minor)
 else()
     set(USE_QT FALSE)
 endif()
@@ -291,18 +292,9 @@ endif()
 find_package(LZ4 REQUIRED)
 
 if (USE_QT)
-<<<<<<< HEAD
-    find_package(Qt5Core 5.9 REQUIRED) # Temporary adjustment for TES3MP CI
-    find_package(Qt5Widgets REQUIRED)
-    find_package(Qt5Network REQUIRED)
-    find_package(Qt5OpenGL REQUIRED)
-    # Instruct CMake to run moc automatically when needed.
-    #set(CMAKE_AUTOMOC ON)
-=======
     find_package(QT REQUIRED COMPONENTS Core NAMES Qt6)
     find_package(Qt6 COMPONENTS Core Widgets Network OpenGL OpenGLWidgets LinguistTools Svg REQUIRED)
     message(STATUS "Using Qt${QT_VERSION}")
->>>>>>> omw51
 endif()
 
 # Start of tes3mp addition
@@ -554,39 +546,19 @@ set(BOOST_COMPONENTS iostreams program_options)
 
 find_package(Boost 1.70.0 CONFIG REQUIRED COMPONENTS ${BOOST_COMPONENTS} OPTIONAL_COMPONENTS ${BOOST_OPTIONAL_COMPONENTS})
 
-<<<<<<< HEAD
-find_package(Boost 1.6.2 REQUIRED COMPONENTS ${BOOST_COMPONENTS} OPTIONAL_COMPONENTS ${BOOST_OPTIONAL_COMPONENTS})
-# Start of tes3mp addition
-#
-# Don't require certain dependencies for the server
-IF(BUILD_OPENMW OR BUILD_OPENCS)
-# End of tes3mp addition
-=======
->>>>>>> omw51
 if(OPENMW_USE_SYSTEM_MYGUI)
     find_package(MyGUI 3.4.3 REQUIRED)
 endif()
-<<<<<<< HEAD
-# End of tes3mp addition
-#
-# Don't require certain dependencies for the server
-ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
-# End of tes3mp addition
-find_package(SDL2 2.0.9 REQUIRED)
 # Start of tes3mp addition
 #
-# Don't require certain dependencies for the server
+# Don't require the client-only dependencies when building just the server
 IF(BUILD_OPENMW OR BUILD_OPENCS)
 # End of tes3mp addition
-find_package(OpenAL REQUIRED)
-# End of tes3mp addition
-#
-# Don't require certain dependencies for the server
-ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
-# End of tes3mp addition
-=======
 find_package(SDL2 2.0.20 REQUIRED)
 find_package(OpenAL REQUIRED)
+# Start of tes3mp addition
+ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
+# End of tes3mp addition
 find_package(ZLIB REQUIRED)
 
 option(USE_LUAJIT "Switch Lua/LuaJit (TRUE is highly recommended)" TRUE)
@@ -605,7 +577,6 @@ endif()
 # C++ library binding to Lua
 set(SOL_INCLUDE_DIR ${OpenMW_SOURCE_DIR}/extern/sol3)
 set(SOL_CONFIG_DIR ${OpenMW_SOURCE_DIR}/extern/sol_config)
->>>>>>> omw51
 
 include_directories(
     BEFORE SYSTEM
@@ -737,16 +708,12 @@ add_subdirectory (extern/oics)
 ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
 # End of tes3mp addition
 add_subdirectory (extern/Base64)
-<<<<<<< HEAD
 # Start of tes3mp addition
 #
 # Don't require certain dependencies for the server
 IF(BUILD_OPENMW OR BUILD_OPENCS)
 # End of tes3mp addition
-if (BUILD_OPENCS)
-=======
 if (BUILD_OPENCS OR BUILD_OPENCS_TESTS)
->>>>>>> omw51
     add_subdirectory (extern/osgQt)
 endif()
 # Start of tes3mp addition
@@ -755,104 +722,15 @@ endif()
 ENDIF(BUILD_OPENMW OR BUILD_OPENCS)
 # End of tes3mp addition
 
-<<<<<<< HEAD
-# Components
-add_subdirectory (components)
-target_compile_definitions(components PRIVATE OPENMW_DOC_BASEURL="${OPENMW_DOC_BASEURL}")
+# Start of tes3mp change (major)
+#
+# The duplicated WIN32/MSVC subsystem block was removed: 0.51 has its own
+# copy further down, which is kept and retargeted at tes3mp.
+# End of tes3mp change (major)
+# End of tes3mp addition
 
-# Apps and tools
-if (BUILD_OPENMW_MP)
-    add_subdirectory( apps/openmw-mp )
-endif()
-
-if (BUILD_MASTER)
-    add_subdirectory( apps/master )
-endif()
-
-if (BUILD_OPENMW)
-    add_subdirectory( apps/openmw )
-endif()
-
-if (BUILD_BSATOOL)
-  add_subdirectory( apps/bsatool )
-endif()
-
-if (BUILD_ESMTOOL)
-  add_subdirectory( apps/esmtool )
-endif()
-
-if (BUILD_LAUNCHER)
-   add_subdirectory( apps/launcher )
-endif()
-
-if (BUILD_BROWSER)
-    add_subdirectory( apps/browser )
-endif()
-
-if (BUILD_MWINIIMPORTER)
-   add_subdirectory( apps/mwiniimporter )
-endif()
-
-if (BUILD_ESSIMPORTER)
-   add_subdirectory (apps/essimporter )
-endif()
-
-if (BUILD_OPENCS)
-   add_subdirectory (apps/opencs)
-endif()
-
-if (BUILD_WIZARD)
-   add_subdirectory(apps/wizard)
-endif()
-
-if (BUILD_NIFTEST)
-    add_subdirectory(apps/niftest)
-endif(BUILD_NIFTEST)
-
-# UnitTests
-if (BUILD_UNITTESTS)
-  add_subdirectory( apps/openmw_test_suite )
-endif()
-
-if (BUILD_BENCHMARKS)
-  add_subdirectory(apps/benchmarks)
-endif()
-
-if (WIN32)
-  if (MSVC)
-    if (OPENMW_MP_BUILD)
-        set( MT_BUILD "/MP")
-    endif()
-
-    foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-        string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
-        set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} "$(SolutionDir)$(Configuration)" )
-        set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} "$(ProjectDir)$(Configuration)" )
-    endforeach( OUTPUTCONFIG )
-
-    if (USE_DEBUG_CONSOLE AND BUILD_OPENMW)
-      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
-      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:CONSOLE")
-      set_target_properties(tes3mp PROPERTIES COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_CONSOLE>)
-    elseif (BUILD_OPENMW)
-      # Turn off debug console, debug output will be written to visual studio output instead
-      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
-      set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:WINDOWS")
-    endif()
-
-    if (BUILD_OPENMW)
-        # Release builds don't use the debug console
-        set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-        set_target_properties(tes3mp PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
-    endif()
-
-    # Play a bit with the warning levels
-
-    set(WARNINGS "/W4")
-=======
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     add_compile_options("/W4")
->>>>>>> omw51
 
     set(WARNINGS_DISABLE
         4100 # Unreferenced formal parameter (-Wunused-parameter)
@@ -865,16 +743,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT
         add_compile_options("/wd${d}")
     endforeach(d)
 
-<<<<<<< HEAD
-    set_target_properties(components PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-
-    if (BUILD_OPENMW)
-        set_target_properties(osg-ffmpeg-videoplayer PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-    
-    if (MSVC_VERSION GREATER_EQUAL 1915 AND MSVC_VERSION LESS 1920)
-        target_compile_definitions(components INTERFACE _ENABLE_EXTENDED_ALIGNED_STORAGE)
-=======
+# Start of tes3mp change (major)
+#
+# 0.51 applies warning flags globally via add_compile_options() instead of
+# per-target COMPILE_FLAGS. That covers the tes3mp targets too, so the old
+# per-target block is dropped rather than ported.
+# End of tes3mp change (major)
     set(WARNINGS_EXTRA
         4855 # implicit capture of 'this' via '[=]' is deprecated in 'version'
         )
@@ -893,7 +767,6 @@ else ()
         if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 3.6 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 3.6)
             add_compile_options("-Wno-potentially-evaluated-expression")
         endif ()
->>>>>>> omw51
     endif()
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
@@ -903,62 +776,32 @@ else ()
     endif()
 endif ()
 
-<<<<<<< HEAD
-    if (BUILD_ESMTOOL)
-        set_target_properties(esmtool PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-
-    if (BUILD_ESSIMPORTER)
-        set_target_properties(openmw-essimporter PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-
-    if (BUILD_LAUNCHER)
-        set_target_properties(openmw-launcher PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-
-    if (BUILD_BROWSER)
-        set_target_properties(tes3mp-browser PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-
-    if (BUILD_MWINIIMPORTER)
-        set_target_properties(openmw-iniimporter PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-
-    if (BUILD_OPENCS)
-        set_target_properties(openmw-cs PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-
-    if (BUILD_OPENMW)
-        if (OPENMW_UNITY_BUILD)
-            set_target_properties(tes3mp PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD} /bigobj")
-        else()
-            set_target_properties(tes3mp PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-        endif()
-    endif()
-
-    if (BUILD_WIZARD)
-        set_target_properties(openmw-wizard PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-
-    if (BUILD_BENCHMARKS)
-        set_target_properties(openmw_detournavigator_navmeshtilescache_benchmark PROPERTIES COMPILE_FLAGS "${WARNINGS} ${MT_BUILD}")
-    endif()
-  endif(MSVC)
-
-  # TODO: At some point release builds should not use the console but rather write to a log file
-  #set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-  #set_target_properties(tes3mp PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
-=======
 if (OPENMW_CXX_FLAGS)
     separate_arguments(OPENMW_CXX_FLAGS NATIVE_COMMAND "${OPENMW_CXX_FLAGS}")
     add_compile_options(${OPENMW_CXX_FLAGS})
->>>>>>> omw51
 endif()
 
 # Components
 add_subdirectory (components)
+target_compile_definitions(components PRIVATE OPENMW_DOC_BASEURL="${OPENMW_DOC_BASEURL}")
 
 # Apps and tools
+# Start of tes3mp addition
+#
+# Build the multiplayer server, master server and server browser
+if (BUILD_OPENMW_MP)
+    add_subdirectory( apps/openmw-mp )
+endif()
+
+if (BUILD_MASTER)
+    add_subdirectory( apps/master )
+endif()
+
+if (BUILD_BROWSER)
+    add_subdirectory( apps/browser )
+endif()
+# End of tes3mp addition
+
 if (BUILD_OPENMW OR BUILD_OPENMW_TESTS)
     add_subdirectory( apps/openmw )
 endif()
@@ -1028,18 +871,18 @@ if (WIN32)
         endforeach( OUTPUTCONFIG )
 
         if (USE_DEBUG_CONSOLE AND BUILD_OPENMW)
-            set_target_properties(openmw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
-            set_target_properties(openmw PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:CONSOLE")
+            set_target_properties(tes3mp PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+            set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:CONSOLE")
         elseif (BUILD_OPENMW)
             # Turn off implicit console, you won't see stdout unless launching OpenMW from a command line shell or look at openmw.log
-            set_target_properties(openmw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
-            set_target_properties(openmw PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:WINDOWS")
+            set_target_properties(tes3mp PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
+            set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:WINDOWS")
         endif()
 
         if (BUILD_OPENMW)
             # Release builds don't use the debug console
-            set_target_properties(openmw PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-            set_target_properties(openmw PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
+            set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
+            set_target_properties(tes3mp PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
         endif()
 
         if (MSVC_VERSION GREATER_EQUAL 1915 AND MSVC_VERSION LESS 1920)
@@ -1048,8 +891,8 @@ if (WIN32)
     endif(MSVC)
 
     # TODO: At some point release builds should not use the console but rather write to a log file
-    #set_target_properties(openmw PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-    #set_target_properties(openmw PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
+    #set_target_properties(tes3mp PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
+    #set_target_properties(tes3mp PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
 endif()
 
 

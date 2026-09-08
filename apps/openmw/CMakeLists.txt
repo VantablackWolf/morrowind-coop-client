@@ -3,14 +3,9 @@ set(OPENMW_SOURCES
     options.cpp
 )
 
-<<<<<<< HEAD
+set(OPENMW_RESOURCES
     ${CMAKE_SOURCE_DIR}/files/tes3mp/tes3mp.rc
     ${CMAKE_SOURCE_DIR}/files/tes3mp/tes3mp.exe.manifest
-=======
-set(OPENMW_RESOURCES
-    ${CMAKE_SOURCE_DIR}/files/windows/openmw.rc
-    ${CMAKE_SOURCE_DIR}/files/windows/openmw.exe.manifest
->>>>>>> omw51
 )
 
 set(OPENMW_HEADERS
@@ -172,21 +167,12 @@ add_openmw_dir (mwmp/processors/worldstate ProcessorCellReset ProcessorClientScr
 
 # Main executable
 
-<<<<<<< HEAD
-if (NOT ANDROID)
-    openmw_add_executable(tes3mp
-        ${OPENMW_FILES}
-        ${GAME} ${GAME_HEADER}
-        ${APPLE_BUNDLE_RESOURCES}
-    )
-else ()
-    add_library(tes3mp
-        SHARED
-        ${OPENMW_FILES}
-        ${GAME} ${GAME_HEADER}
-    )
-endif ()
-=======
+# Start of tes3mp change (major)
+#
+# 0.51 splits this into an openmw-lib STATIC library plus a thin executable.
+# Keep that structure and only rename the executable target to tes3mp; the
+# multiplayer sources live in openmw-lib alongside everything else.
+# End of tes3mp change (major)
 add_library(openmw-lib STATIC
     ${OPENMW_FILES}
     ${OPENMW_SOURCES}
@@ -210,27 +196,26 @@ endif()
 
 if(BUILD_OPENMW)
     if (ANDROID)
-        add_library(openmw SHARED
+        add_library(tes3mp SHARED
             main.cpp
             androidmain.cpp
         )
     else()
-        openmw_add_executable(openmw
+        openmw_add_executable(tes3mp
             ${APPLE_BUNDLE_RESOURCES}
             ${OPENMW_RESOURCES}
             main.cpp
         )
     endif()
 
-    target_link_libraries(openmw openmw-lib)
+    target_link_libraries(tes3mp openmw-lib)
 
     # Workaround necessary to ensure osgAnimation::MatrixLinearSampler dynamic casts work under Clang
     # NOTE: it's unclear whether the broken behavior is spec-compliant
     if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-        set_target_properties(openmw PROPERTIES ENABLE_EXPORTS ON)
+        set_target_properties(tes3mp PROPERTIES ENABLE_EXPORTS ON)
     endif()
 endif()
->>>>>>> omw51
 
 # Sound stuff - here so CMake doesn't stupidly recompile EVERYTHING
 # when we change the backend.
@@ -238,11 +223,7 @@ include_directories(
     ${FFmpeg_INCLUDE_DIRS}
 )
 
-<<<<<<< HEAD
-target_link_libraries(tes3mp
-=======
 target_link_libraries(openmw-lib
->>>>>>> omw51
     # CMake's built-in OSG finder does not use pkgconfig, so we have to
     # manually ensure the order is correct for inter-library dependencies.
     # This only makes a difference with `-DOPENMW_USE_SYSTEM_OSG=ON -DOSG_STATIC=ON`.
@@ -266,43 +247,6 @@ target_link_libraries(openmw-lib
     ${RakNet_LIBRARY}
 )
 
-<<<<<<< HEAD
-if(OSG_STATIC)
-    unset(_osg_plugins_static_files)
-    add_library(openmw_osg_plugins INTERFACE)
-    foreach(_plugin ${USED_OSG_PLUGINS})
-        string(TOUPPER ${_plugin} _plugin_uc)
-        if(OPENMW_USE_SYSTEM_OSG)
-            list(APPEND _osg_plugins_static_files ${${_plugin_uc}_LIBRARY})
-        else()
-            list(APPEND _osg_plugins_static_files $<TARGET_FILE:${${_plugin_uc}_LIBRARY}>)
-            target_link_libraries(openmw_osg_plugins INTERFACE $<TARGET_PROPERTY:${${_plugin_uc}_LIBRARY},LINK_LIBRARIES>)
-            add_dependencies(openmw_osg_plugins ${${_plugin_uc}_LIBRARY})
-        endif()
-    endforeach()
-    # We use --whole-archive because OSG plugins use registration.
-    get_whole_archive_options(_opts ${_osg_plugins_static_files})
-    target_link_options(openmw_osg_plugins INTERFACE ${_opts})
-    target_link_libraries(tes3mp openmw_osg_plugins)
-
-    if(OPENMW_USE_SYSTEM_OSG)
-        # OSG plugin pkgconfig files are missing these dependencies.
-        # https://github.com/openscenegraph/OpenSceneGraph/issues/1052
-        target_link_libraries(tes3mp freetype jpeg png)
-    endif()
-endif(OSG_STATIC)
-
-if (ANDROID)
-    target_link_libraries(tes3mp EGL android log z)
-endif (ANDROID)
-
-if (USE_SYSTEM_TINYXML)
-    target_link_libraries(tes3mp ${TinyXML_LIBRARIES})
-endif()
-
-if (NOT UNIX)
-target_link_libraries(tes3mp ${SDL2MAIN_LIBRARY})
-=======
 if (MSVC AND PRECOMPILE_HEADERS_WITH_MSVC)
     target_precompile_headers(openmw-lib PRIVATE
         <boost/program_options/options_description.hpp>
@@ -339,16 +283,11 @@ endif()
 
 if (NOT UNIX)
     target_link_libraries(openmw-lib ${SDL2MAIN_LIBRARY})
->>>>>>> omw51
 endif()
 
 # Fix for not visible pthreads functions for linker with glibc 2.15
 if (UNIX AND NOT APPLE)
-<<<<<<< HEAD
-target_link_libraries(tes3mp ${CMAKE_THREAD_LIBS_INIT})
-=======
     target_link_libraries(openmw-lib ${CMAKE_THREAD_LIBS_INIT})
->>>>>>> omw51
 endif()
 
 if(APPLE AND BUILD_OPENMW)
@@ -371,24 +310,12 @@ if(APPLE AND BUILD_OPENMW)
     target_link_libraries(tes3mp ${COCOA_FRAMEWORK} ${IOKIT_FRAMEWORK})
 
     if (FFmpeg_FOUND)
-<<<<<<< HEAD
-        find_library(COREVIDEO_FRAMEWORK CoreVideo)
-        find_library(VDA_FRAMEWORK VideoDecodeAcceleration)
-        target_link_libraries(tes3mp z ${COREVIDEO_FRAMEWORK} ${VDA_FRAMEWORK})
-    endif()
-endif(APPLE)
-
-if (BUILD_WITH_CODE_COVERAGE)
-  add_definitions (--coverage)
-  target_link_libraries(tes3mp gcov)
-=======
         target_link_options(openmw PRIVATE "LINKER:SHELL:-framework CoreVideo"
                                            "LINKER:SHELL:-framework CoreMedia"
                                            "LINKER:SHELL:-framework VideoToolbox"
                                            "LINKER:SHELL:-framework AudioToolbox"
                                            "LINKER:SHELL:-framework VideoDecodeAcceleration")
     endif()
->>>>>>> omw51
 endif()
 
 if (BUILD_WITH_CODE_COVERAGE)
@@ -396,16 +323,10 @@ if (BUILD_WITH_CODE_COVERAGE)
     target_link_libraries(openmw-lib gcov)
     if (NOT ANDROID AND BUILD_OPENMW)
         target_compile_options(openmw PRIVATE --coverage)
-        target_link_libraries(openmw gcov)
+        target_link_libraries(tes3mp gcov)
     endif()
 endif()
 
-<<<<<<< HEAD
-if (WIN32)
-    INSTALL(TARGETS tes3mp RUNTIME DESTINATION ".")
-endif (WIN32)
-=======
 if (WIN32 AND BUILD_OPENMW)
-    INSTALL(TARGETS openmw RUNTIME DESTINATION ".")
+    INSTALL(TARGETS tes3mp RUNTIME DESTINATION ".")
 endif()
->>>>>>> omw51
