@@ -51,6 +51,7 @@
 #include "LocalPlayer.hpp"
 #include "RecordConvert.hpp"
 #include "Main.hpp"
+#include "RefIdCompat.hpp"
 #include "Networking.hpp"
 #include "PlayerList.hpp"
 #include "CellController.hpp"
@@ -2089,3 +2090,53 @@ void LocalPlayer::playSpeech()
     if (Settings::gui().mSubtitles)
         winMgr->messageBox(MWBase::Environment::get().getDialogueManager()->getVoiceCaption(sound), MWGui::ShowInDialogueMode_Never);
 }
+
+/*
+    Start of tes3mp addition
+
+    RefId-taking overloads -- see the header. Each converts once, here, so no engine call
+    site has to know how a record id is spelled on the wire.
+*/
+void LocalPlayer::sendItemChange(const ESM::RefId& refId, int count, unsigned int action)
+{
+    sendItemChange(mwmp::RefIdCompat::toWire(refId), count, action);
+}
+
+void LocalPlayer::sendSpellChange(const ESM::RefId& id, unsigned int action)
+{
+    sendSpellChange(mwmp::RefIdCompat::toWire(id), action);
+}
+
+void LocalPlayer::sendJournalIndex(const ESM::RefId& quest, int index)
+{
+    sendJournalIndex(mwmp::RefIdCompat::toWire(quest), index);
+}
+
+void LocalPlayer::sendBook(const ESM::RefId& bookId)
+{
+    sendBook(mwmp::RefIdCompat::toWire(bookId));
+}
+
+void LocalPlayer::sendSelectedSpell(const ESM::RefId& newSelectedSpellId)
+{
+    sendSelectedSpell(mwmp::RefIdCompat::toWire(newSelectedSpellId));
+}
+
+void LocalPlayer::storeItemRemoval(const ESM::RefId& refId, int count)
+{
+    storeItemRemoval(mwmp::RefIdCompat::toWire(refId), count);
+}
+
+void LocalPlayer::sendJournalEntry(const ESM::RefId& quest, int index, const MWWorld::Ptr& actor)
+{
+    sendJournalEntry(mwmp::RefIdCompat::toWire(quest), index, actor);
+}
+
+void LocalPlayer::sendTopic(const ESM::RefId& topicId)
+{
+    sendTopic(mwmp::RefIdCompat::toWire(topicId));
+}
+/*
+    End of tes3mp addition
+*/
+

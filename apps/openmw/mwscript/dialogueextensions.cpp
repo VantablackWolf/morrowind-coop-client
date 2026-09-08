@@ -8,6 +8,7 @@
 #include "../mwbase/windowmanager.hpp"
 #include "../mwmp/Main.hpp"
 #include "../mwmp/LocalPlayer.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 /*
     End of tes3mp addition
 */
@@ -165,9 +166,10 @@ namespace MWScript
                         Send an ID_PLAYER_TOPIC packet every time a new topic is added
                         through a script
                     */
-                    if (mwmp::Main::get().getLocalPlayer()->isLoggedIn() &&
-                        MWBase::Environment::get().getDialogueManager()->isNewTopic(Misc::StringUtils::lowerCase(topic)))
-                        mwmp::Main::get().getLocalPlayer()->sendTopic(Misc::StringUtils::lowerCase(topic));
+                    // RefId interning already lowercases, so the explicit lowerCase is gone.
+                    if (mwmp::Main::get().getLocalPlayer()->isLoggedIn()
+                        && MWBase::Environment::get().getDialogueManager()->isNewTopic(topic))
+                        mwmp::Main::get().getLocalPlayer()->sendTopic(mwmp::RefIdCompat::toWire(topic));
                     /*
                         End of tes3mp addition
                     */

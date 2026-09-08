@@ -1,11 +1,19 @@
 #ifndef OPENMW_LOCALPLAYER_HPP
 #define OPENMW_LOCALPLAYER_HPP
 
+#include <components/esm/refid.hpp>
+
 #include <components/openmw-mp/Base/BasePlayer.hpp>
 #include "../mwmechanics/activespells.hpp"
 #include "../mwworld/ptr.hpp"
 #include "../mwworld/timestamp.hpp"
 #include <RakNetTypes.h>
+
+namespace MWWorld
+{
+    // 0.51's unified ESM3/ESM4 cell view; only referenced by const& here.
+    class Cell;
+}
 
 namespace mwmp
 {
@@ -119,6 +127,31 @@ namespace mwmp
         void storeCellState(const ESM::Cell& cell, int stateType);
         void storeCurrentContainer(const MWWorld::Ptr& container);
         void storeItemRemoval(const std::string& refId, int count);
+        /*
+            Start of tes3mp addition
+
+            RefId-taking overloads.
+
+            0.51 turned most record ids into ESM::RefId, so nearly every engine call site
+            that feeds one of these functions now holds a RefId rather than a string. The
+            conversion belongs here, at the seam, rather than repeated at ~20 call sites in
+            files that have no other reason to know about the wire format.
+
+            Each forwards through RefIdCompat::toWire(), which is the single definition of
+            how a record id is spelled on the wire.
+        */
+        void sendItemChange(const ESM::RefId& refId, int count, unsigned int action);
+        void sendSpellChange(const ESM::RefId& id, unsigned int action);
+        void sendJournalIndex(const ESM::RefId& quest, int index);
+        void sendBook(const ESM::RefId& bookId);
+        void sendSelectedSpell(const ESM::RefId& newSelectedSpellId);
+        void storeItemRemoval(const ESM::RefId& refId, int count);
+        void sendJournalEntry(const ESM::RefId& quest, int index, const MWWorld::Ptr& actor);
+        void sendTopic(const ESM::RefId& topicId);
+        /*
+            End of tes3mp addition
+        */
+
         void storeLastEnchantmentQuantity(unsigned int quantity);
 
         void playAnimation();

@@ -1786,3 +1786,28 @@ void ObjectList::sendConsoleCommand()
     mwmp::Main::get().getNetworking()->getObjectPacket(ID_CONSOLE_COMMAND)->setObjectList(this);
     mwmp::Main::get().getNetworking()->getObjectPacket(ID_CONSOLE_COMMAND)->Send();
 }
+
+/*
+    Start of tes3mp addition
+
+    RefId-taking overloads -- see the header. Each converts once, here, so no engine call
+    site has to know how a record id is spelled on the wire.
+*/
+void ObjectList::addContainerItem(mwmp::BaseObject& baseObject, const ESM::RefId& itemId, int itemCount, int actionCount)
+{
+    addContainerItem(baseObject, mwmp::RefIdCompat::toWire(itemId), itemCount, actionCount);
+}
+
+void ObjectList::addObjectSound(const MWWorld::Ptr& ptr, const ESM::RefId& soundId, float volume, float pitch)
+{
+    addObjectSound(ptr, mwmp::RefIdCompat::toWire(soundId), volume, pitch);
+}
+
+void ObjectList::addObjectAnimPlay(const MWWorld::Ptr& ptr, const ESM::RefId& group, int mode)
+{
+    addObjectAnimPlay(ptr, mwmp::RefIdCompat::toWire(group), mode);
+}
+/*
+    End of tes3mp addition
+*/
+

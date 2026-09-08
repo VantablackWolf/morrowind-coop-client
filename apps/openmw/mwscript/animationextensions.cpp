@@ -25,6 +25,8 @@
 #include <components/interpreter/opcodes.hpp>
 #include <components/interpreter/runtime.hpp>
 
+#include "interpretercontext.hpp"
+
 #include "../mwbase/environment.hpp"
 #include "../mwbase/mechanicsmanager.hpp"
 
@@ -84,7 +86,7 @@ namespace MWScript
 
                         objectList->packetOrigin = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
                         objectList->originClientScript = runtime.getContext().getCurrentScriptName();
-                        objectList->addObjectAnimPlay(ptr, group, mode);
+                        objectList->addObjectAnimPlay(ptr, std::string(group), mode);
                         objectList->sendObjectAnimPlay();
                     }
                     /*

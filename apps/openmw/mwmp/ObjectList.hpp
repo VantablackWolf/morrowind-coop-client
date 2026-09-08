@@ -1,6 +1,8 @@
 #ifndef OPENMW_OBJECTLIST_HPP
 #define OPENMW_OBJECTLIST_HPP
 
+#include <components/esm/refid.hpp>
+
 #include <components/openmw-mp/Base/BaseObject.hpp>
 #include "../mwgui/itemmodel.hpp"
 #include "../mwworld/worldimp.hpp"
@@ -74,6 +76,26 @@ namespace mwmp
         void addDoorState(const MWWorld::Ptr& ptr, MWWorld::DoorState state);
         void addMusicPlay(std::string filename);
         void addVideoPlay(std::string filename, bool allowSkipping);
+        /*
+            Start of tes3mp addition
+
+            RefId-taking overloads.
+
+            0.51 turned most record ids into ESM::RefId, so nearly every engine call site
+            that feeds one of these functions now holds a RefId rather than a string. The
+            conversion belongs here, at the seam, rather than repeated at ~20 call sites in
+            files that have no other reason to know about the wire format.
+
+            Each forwards through RefIdCompat::toWire(), which is the single definition of
+            how a record id is spelled on the wire.
+        */
+        void addContainerItem(mwmp::BaseObject& baseObject, const ESM::RefId& itemId, int itemCount, int actionCount);
+        void addObjectSound(const MWWorld::Ptr& ptr, const ESM::RefId& soundId, float volume, float pitch);
+        void addObjectAnimPlay(const MWWorld::Ptr& ptr, const ESM::RefId& group, int mode);
+        /*
+            End of tes3mp addition
+        */
+
         void addClientScriptLocal(const MWWorld::Ptr& ptr, int internalIndex, int value, mwmp::VARIABLE_TYPE variableType);
         void addClientScriptLocal(const MWWorld::Ptr& ptr, int internalIndex, float value);
         void addScriptMemberShort(std::string refId, int index, int shortVal);

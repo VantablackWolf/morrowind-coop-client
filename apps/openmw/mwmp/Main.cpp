@@ -47,6 +47,7 @@
 #include "../mwworld/worldimp.hpp"
 
 #include "Main.hpp"
+#include "RefIdCompat.hpp"
 #include "Networking.hpp"
 #include "LocalSystem.hpp"
 #include "LocalPlayer.hpp"
@@ -275,3 +276,18 @@ bool Main::isValidPacketGlobal(std::string globalId)
 
     return false;
 }
+
+/*
+    Start of tes3mp addition
+
+    RefId-taking overloads -- see the header. Each converts once, here, so no engine call
+    site has to know how a record id is spelled on the wire.
+*/
+bool Main::isValidPacketScript(const ESM::RefId& scriptId)
+{
+    return isValidPacketScript(mwmp::RefIdCompat::toWire(scriptId));
+}
+/*
+    End of tes3mp addition
+*/
+
