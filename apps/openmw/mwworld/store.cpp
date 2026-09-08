@@ -770,30 +770,27 @@ namespace MWWorld
     */
     ESM::Cell *Store<ESM::Cell>::override(const ESM::Cell &cell)
     {
-        if (search(cell) != 0)
-        {
-            for (auto it = mSharedInt.begin(); it != mSharedInt.end(); ++it)
-            {
-                if (Misc::StringUtils::ciEqual((*it)->mName, cell.mName))
-                {
-                    (*it) = &const_cast<ESM::Cell&>(cell);
-                    break;
-                }
-            }
+        /*
+            0.51 rebuilt this store's ownership. mInt and mSharedInt used to hold cells BY
+            VALUE, so overriding meant assigning into both. Now mCells owns every record,
+            keyed by RefId, and mInt/mSharedInt hold pointers into it -- so the override is
+            a single assignment through the owning map, and every existing pointer keeps
+            pointing at the updated record.
 
-            for (auto it = mInt.begin(); it != mInt.end(); ++it)
-            {
-                if (Misc::StringUtils::ciEqual((*it).second.mName, cell.mName))
-                {
-                    (*it).second = cell;
-                    return &(*it).second;
-                }
-            }
-        }
-        else
-        {
+            0.8.1 also fell off the end of this function when search() succeeded but no
+            interior matched, returning garbage. Returning the existing record is the
+            behaviour the callers in RecordHelper expect.
+        */
+        ESM::Cell* existing = const_cast<ESM::Cell*>(search(cell));
+
+        if (existing == nullptr)
             return insert(cell);
-        }
+
+        const ESM::RefId id = existing->mId;
+        *existing = cell;
+        existing->mId = id;
+
+        return existing;
     }
     /*
         End of tes3mp addition
@@ -878,25 +875,28 @@ namespace MWWorld
     */
     ESM::Pathgrid* Store<ESM::Pathgrid>::override(const ESM::Pathgrid& pathgrid)
     {
-        bool interior = mCells->search(pathgrid.mCell) != nullptr;
+        /*
+            0.51 collapsed this store's separate interior and exterior maps into a single
+            mStatic keyed by ESM::RefId, so the branch is gone -- but the key still has to
+            be derived the same way load() derives it, or an overridden exterior pathgrid
+            would be filed under a key nothing looks up.
+
+            The interior test is load()'s, verbatim: a pathgrid record does not say which
+            it is, so a (0,0) grid position plus a name that matches an interior cell is
+            taken to mean interior.
+        */
+        const bool interior = pathgrid.mData.mX == 0 && pathgrid.mData.mY == 0
+            && mCells->search(pathgrid.mCell.getRefIdString()) != nullptr;
+
+        const ESM::RefId cell
+            = interior ? pathgrid.mCell : ESM::RefId::esm3ExteriorCell(pathgrid.mData.mX, pathgrid.mData.mY);
 
         // Try to overwrite existing record
-        if (interior)
-        {
-            std::pair<Interior::iterator, bool> ret = mInt.insert(std::make_pair(pathgrid.mCell, pathgrid));
-            if (!ret.second)
-                ret.first->second = pathgrid;
+        auto ret = mStatic.emplace(cell, pathgrid);
+        if (!ret.second)
+            ret.first->second = pathgrid;
 
-            return &ret.first->second;
-        }
-        else
-        {
-            std::pair<Exterior::iterator, bool> ret = mExt.insert(std::make_pair(std::make_pair(pathgrid.mData.mX, pathgrid.mData.mY), pathgrid));
-            if (!ret.second)
-                ret.first->second = pathgrid;
-
-            return &ret.first->second;
-        }
+        return &ret.first->second;
     }
     /*
         End of tes3mp addition
