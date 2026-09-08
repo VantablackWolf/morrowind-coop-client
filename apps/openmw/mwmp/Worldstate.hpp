@@ -1,6 +1,8 @@
 #ifndef OPENMW_WORLDSTATE_HPP
 #define OPENMW_WORLDSTATE_HPP
 
+#include <components/esm/refid.hpp>
+
 #include <components/openmw-mp/Base/BaseWorldstate.hpp>
 
 namespace mwmp
@@ -32,6 +34,18 @@ namespace mwmp
 
         void sendClientGlobal(std::string varName, int value, mwmp::VARIABLE_TYPE variableType);
         void sendClientGlobal(std::string varName, float value);
+        /*
+            Start of tes3mp addition
+
+            RefId-taking overloads -- see LocalPlayer.hpp for the reasoning. Converts once,
+            here, so no engine call site has to know how a record id reaches the wire.
+        */
+        void sendClientGlobal(const ESM::RefId& varName, int value, mwmp::VARIABLE_TYPE variableType);
+        void sendClientGlobal(const ESM::RefId& varName, float value);
+        /*
+            End of tes3mp addition
+        */
+
         void sendMapExplored(int cellX, int cellY, const std::vector<char>& imageData);
         void sendWeather(std::string region, int currentWeather, int nextWeather, int queuedWeather, float transitionFactor);
 

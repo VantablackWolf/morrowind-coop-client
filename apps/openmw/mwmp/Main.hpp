@@ -50,6 +50,17 @@ namespace mwmp
         */
 
         static bool isValidPacketGlobal(std::string globalId);
+        /*
+            Start of tes3mp addition
+
+            RefId-taking overloads -- see LocalPlayer.hpp for the reasoning. Converts once,
+            here, so no engine call site has to know how a record id reaches the wire.
+        */
+        static bool isValidPacketGlobal(const ESM::RefId& globalId);
+        /*
+            End of tes3mp addition
+        */
+
 
         static std::string getResDir();
 

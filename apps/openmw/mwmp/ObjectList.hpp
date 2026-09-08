@@ -99,6 +99,17 @@ namespace mwmp
         void addClientScriptLocal(const MWWorld::Ptr& ptr, int internalIndex, int value, mwmp::VARIABLE_TYPE variableType);
         void addClientScriptLocal(const MWWorld::Ptr& ptr, int internalIndex, float value);
         void addScriptMemberShort(std::string refId, int index, int shortVal);
+        /*
+            Start of tes3mp addition
+
+            RefId-taking overloads -- see LocalPlayer.hpp for the reasoning. Converts once,
+            here, so no engine call site has to know how a record id reaches the wire.
+        */
+        void addScriptMemberShort(const ESM::RefId& refId, int index, int shortVal);
+        /*
+            End of tes3mp addition
+        */
+
 
         void sendObjectActivate();
         void sendObjectHit();

@@ -124,7 +124,10 @@ namespace mwmp
         void clearCellStates();
         void clearCurrentContainer();
 
+        // The mirror is canonical; the engine forms convert into it.
+        void storeCellState(const mwmp::records::Cell& cell, int stateType);
         void storeCellState(const ESM::Cell& cell, int stateType);
+        void storeCellState(const MWWorld::Cell& cell, int stateType);
         void storeCurrentContainer(const MWWorld::Ptr& container);
         void storeItemRemoval(const std::string& refId, int count);
         /*

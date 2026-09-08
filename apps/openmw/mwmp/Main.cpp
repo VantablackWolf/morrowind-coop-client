@@ -291,3 +291,16 @@ bool Main::isValidPacketScript(const ESM::RefId& scriptId)
     End of tes3mp addition
 */
 
+/*
+    Start of tes3mp addition
+
+    RefId-taking overloads -- see the header.
+*/
+bool Main::isValidPacketGlobal(const ESM::RefId& globalId)
+{
+    return isValidPacketGlobal(mwmp::RefIdCompat::toWire(globalId));
+}
+/*
+    End of tes3mp addition
+*/
+

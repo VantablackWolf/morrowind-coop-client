@@ -14,6 +14,7 @@
 
 #include "Worldstate.hpp"
 #include "Main.hpp"
+#include "RefIdCompat.hpp"
 #include "Networking.hpp"
 #include "PlayerList.hpp"
 #include "DedicatedPlayer.hpp"
@@ -755,3 +756,22 @@ void Worldstate::sendWeaponRecord(const ESM::Weapon* weapon, std::string baseId,
     getNetworking()->getWorldstatePacket(ID_RECORD_DYNAMIC)->setWorldstate(this);
     getNetworking()->getWorldstatePacket(ID_RECORD_DYNAMIC)->Send();
 }
+
+/*
+    Start of tes3mp addition
+
+    RefId-taking overloads -- see the header.
+*/
+void Worldstate::sendClientGlobal(const ESM::RefId& varName, int value, mwmp::VARIABLE_TYPE variableType)
+{
+    sendClientGlobal(mwmp::RefIdCompat::toWire(varName), value, variableType);
+}
+
+void Worldstate::sendClientGlobal(const ESM::RefId& varName, float value)
+{
+    sendClientGlobal(mwmp::RefIdCompat::toWire(varName), value);
+}
+/*
+    End of tes3mp addition
+*/
+

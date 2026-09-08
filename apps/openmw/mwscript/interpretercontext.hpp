@@ -73,6 +73,8 @@ namespace MWScript
             virtual void trackContextType(unsigned short contextType);
 
             virtual void trackCurrentScriptName(const std::string& name);
+            // Callers hold an ESM::RefId in 0.51; the stored name is wire-facing.
+            virtual void trackCurrentScriptName(const ESM::RefId& name);
             /*
                 End of tes3mp addition
             */

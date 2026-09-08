@@ -2035,7 +2035,7 @@ void LocalPlayer::clearCurrentContainer()
     currentContainer.mpNum = 0;
 }
 
-void LocalPlayer::storeCellState(const ESM::Cell& storedCell, int stateType)
+void LocalPlayer::storeCellState(const mwmp::records::Cell& storedCell, int stateType)
 {
     std::vector<CellState>::iterator iter;
 
@@ -2050,10 +2050,20 @@ void LocalPlayer::storeCellState(const ESM::Cell& storedCell, int stateType)
     }
 
     CellState cellState;
-    cellState.cell = mwmp::RecordConvert::toMirror(storedCell);
+    cellState.cell = storedCell;
     cellState.type = stateType;
 
     cellStateChanges.push_back(cellState);
+}
+
+void LocalPlayer::storeCellState(const ESM::Cell& storedCell, int stateType)
+{
+    storeCellState(mwmp::RecordConvert::toMirror(storedCell), stateType);
+}
+
+void LocalPlayer::storeCellState(const MWWorld::Cell& storedCell, int stateType)
+{
+    storeCellState(mwmp::RecordConvert::toMirror(storedCell), stateType);
 }
 
 void LocalPlayer::storeCurrentContainer(const MWWorld::Ptr &container)

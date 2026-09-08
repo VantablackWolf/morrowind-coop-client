@@ -1811,3 +1811,16 @@ void ObjectList::addObjectAnimPlay(const MWWorld::Ptr& ptr, const ESM::RefId& gr
     End of tes3mp addition
 */
 
+/*
+    Start of tes3mp addition
+
+    RefId-taking overloads -- see the header.
+*/
+void ObjectList::addScriptMemberShort(const ESM::RefId& refId, int index, int shortVal)
+{
+    addScriptMemberShort(mwmp::RefIdCompat::toWire(refId), index, shortVal);
+}
+/*
+    End of tes3mp addition
+*/
+

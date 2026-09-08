@@ -14,6 +14,7 @@
 */
 #include <components/openmw-mp/TimedLog.hpp>
 #include "../mwmp/Main.hpp"
+#include "../mwmp/RefIdCompat.hpp"
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/ObjectList.hpp"
@@ -60,6 +61,11 @@ namespace MWScript
     void InterpreterContext::trackContextType(unsigned short contextType)
     {
         mContextType = contextType;
+    }
+
+    void InterpreterContext::trackCurrentScriptName(const ESM::RefId& name)
+    {
+        trackCurrentScriptName(mwmp::RefIdCompat::toWire(name));
     }
 
     void InterpreterContext::trackCurrentScriptName(const std::string& name)
@@ -364,9 +370,9 @@ namespace MWScript
             it is being set in a script that has been approved for packet sending or the global
             itself has been set to always be synchronized
         */
-        if (sendPackets || mwmp::Main::isValidPacketGlobal(name))
+        if (sendPackets || mwmp::Main::isValidPacketGlobal(std::string(name)))
         {
-            mwmp::Main::get().getNetworking()->getWorldstate()->sendClientGlobal(name, value, mwmp::VARIABLE_TYPE::SHORT);
+            mwmp::Main::get().getNetworking()->getWorldstate()->sendClientGlobal(std::string(name), value, mwmp::VARIABLE_TYPE::SHORT);
         }
         /*
             End of tes3mp addition
@@ -392,9 +398,9 @@ namespace MWScript
             it is being set in a script that has been approved for packet sending or the global
             itself has been set to always be synchronized
         */
-        if (sendPackets || mwmp::Main::isValidPacketGlobal(name))
+        if (sendPackets || mwmp::Main::isValidPacketGlobal(std::string(name)))
         {
-            mwmp::Main::get().getNetworking()->getWorldstate()->sendClientGlobal(name, value, mwmp::VARIABLE_TYPE::LONG);
+            mwmp::Main::get().getNetworking()->getWorldstate()->sendClientGlobal(std::string(name), value, mwmp::VARIABLE_TYPE::LONG);
         }
         /*
             End of tes3mp addition
@@ -425,9 +431,9 @@ namespace MWScript
             its value has changed enough and it is being set in a script that has been approved
             for packet sending or the global itself has been set to always be synchronized
         */
-        if (floor(oldValue) != floor(value) && (sendPackets || mwmp::Main::isValidPacketGlobal(name)))
+        if (floor(oldValue) != floor(value) && (sendPackets || mwmp::Main::isValidPacketGlobal(std::string(name))))
         {
-            mwmp::Main::get().getNetworking()->getWorldstate()->sendClientGlobal(name, value);
+            mwmp::Main::get().getNetworking()->getWorldstate()->sendClientGlobal(std::string(name), value);
         }
         /*
             End of tes3mp addition
@@ -692,7 +698,8 @@ namespace MWScript
 
             Declare an integer so it can be reused below for multiplayer script sync purposes
         */
-        int index = findLocalVariableIndex(scriptId, name, 's');
+        // 0.51 names this parameter "id"; getMemberLocals resolves it in place.
+        int index = findLocalVariableIndex(id, name, 's');
 
         locals.mShorts[index] = value;
         /*

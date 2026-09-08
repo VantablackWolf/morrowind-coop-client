@@ -399,7 +399,7 @@ namespace MWScript
                     objectList->reset();
                     objectList->packetOrigin = ScriptController::getPacketOriginFromContextType(runtime.getContext().getContextType());
                     objectList->originClientScript = runtime.getContext().getCurrentScriptName();
-                    objectList->addVideoPlay(name, allowSkipping);
+                    objectList->addVideoPlay(std::string(name), allowSkipping);
                     objectList->sendVideoPlay();
                 }
                 /*
