@@ -30,7 +30,16 @@
 #include "../mwworld/player.hpp"
 #include "../mwworld/worldimp.hpp"
 
+#include <components/esm3/statstate.hpp>
+#include <components/settings/values.hpp>
+#include <components/vfs/pathutil.hpp>
+
+#include "../mwworld/worldmodel.hpp"
+
 #include "DedicatedPlayer.hpp"
+#include "RecordConvert.hpp"
+#include "RecordConvertPlayer.hpp"
+#include "RefIdCompat.hpp"
 #include "Main.hpp"
 #include "GUIController.hpp"
 #include "CellController.hpp"
@@ -55,10 +64,11 @@ DedicatedPlayer::DedicatedPlayer(RakNet::RakNetGUID guid) : BasePlayer(guid)
 
     MWBase::World* world = MWBase::Environment::get().getWorld();
     
-    cell = *world->getInterior(RecordHelper::getPlaceholderInteriorCellName())->getCell();
+    cell = mwmp::RecordConvert::toMirror(*MWBase::Environment::get().getWorldModel()->getInterior(
+        RecordHelper::getPlaceholderInteriorCellName()).getCell());
     position.pos[0] = position.pos[1] = position.pos[2] = 0;
 
-    npc = *world->getPlayerPtr().get<ESM::NPC>()->mBase;
+    mwmp::RecordConvert::fromEngine(*world->getPlayerPtr().get<ESM::NPC>()->mBase, npc);
     npc.mId = "";
     previousRace = npc.mRace;
 
@@ -89,14 +99,20 @@ void DedicatedPlayer::update(float dt)
 
     if (creatureStats.mDead)
     {
-        value.readState(creatureStats.mDynamic[0]);
+        ESM::StatState<float> healthState;
+        mwmp::RecordConvert::toEngine(creatureStats.mDynamic[0], healthState);
+
+        value.readState(healthState);
         ptrCreatureStats->setHealth(value);
         return;
     }
 
     for (int i = 0; i < 3; ++i)
     {
-        value.readState(creatureStats.mDynamic[i]);
+        ESM::StatState<float> dynamicState;
+        mwmp::RecordConvert::toEngine(creatureStats.mDynamic[i], dynamicState);
+
+        value.readState(dynamicState);
         ptrCreatureStats->setDynamic(i, value);
     }
 
@@ -108,10 +124,10 @@ void DedicatedPlayer::update(float dt)
     ptrCreatureStats->getAiSequence().stopCombat();
 
     ptrCreatureStats->setAlarmed(false);
-    ptrCreatureStats->setAiSetting(MWMechanics::CreatureStats::AI_Alarm, 0);
-    ptrCreatureStats->setAiSetting(MWMechanics::CreatureStats::AI_Fight, 0);
-    ptrCreatureStats->setAiSetting(MWMechanics::CreatureStats::AI_Flee, 0);
-    ptrCreatureStats->setAiSetting(MWMechanics::CreatureStats::AI_Hello, 0);
+    ptrCreatureStats->setAiSetting(MWMechanics::AiSetting::Alarm, 0);
+    ptrCreatureStats->setAiSetting(MWMechanics::AiSetting::Fight, 0);
+    ptrCreatureStats->setAiSetting(MWMechanics::AiSetting::Flee, 0);
+    ptrCreatureStats->setAiSetting(MWMechanics::AiSetting::Hello, 0);
 }
 
 void DedicatedPlayer::move(float dt)
@@ -131,14 +147,15 @@ void DedicatedPlayer::move(float dt)
     if (shouldInterpolate)
     {
         static const int timeMultiplier = 15;
-        osg::Vec3f lerp = MechanicsHelper::getLinearInterpolation(refPos.asVec3(), position.asVec3(), dt * timeMultiplier);
+        osg::Vec3f lerp = MechanicsHelper::getLinearInterpolation(refPos.asVec3(),
+            osg::Vec3f(position.pos[0], position.pos[1], position.pos[2]), dt * timeMultiplier);
 
-        world->moveObject(ptr, lerp.x(), lerp.y(), lerp.z());
+        world->moveObject(ptr, lerp);
     }
     else
-        world->moveObject(ptr, position.pos[0], position.pos[1], position.pos[2]);
+        world->moveObject(ptr, osg::Vec3f(position.pos[0], position.pos[1], position.pos[2]));
 
-    world->rotateObject(ptr, position.rot[0], 0, position.rot[2]);
+    world->rotateObject(ptr, osg::Vec3f(position.rot[0], 0, position.rot[2]));
 
     MWMechanics::Movement *move = &ptr.getClass().getMovementSettings(ptr);
     move->mPosition[0] = direction.pos[0];
@@ -160,14 +177,21 @@ void DedicatedPlayer::setBaseInfo()
     if (!RecordHelper::doesRecordIdExist<ESM::Race>(npc.mRace))
         npc.mRace = previousRace;
 
+    /*
+        npc is the protocol mirror; the store holds engine records. 0.8.1 could pass it
+        straight through because the two were the same type.
+    */
+    ESM::NPC engineNpc;
+    mwmp::RecordConvert::toEngine(npc, engineNpc);
+
     if (!reference)
     {
-        npc.mId = RecordHelper::createRecord(npc)->mId;
+        npc.mId = mwmp::RefIdCompat::toWire(RecordHelper::createRecord(engineNpc)->mId);
         createReference(npc.mId);
     }
     else
     {
-        RecordHelper::overrideRecord(npc);
+        RecordHelper::overrideRecord(engineNpc);
         reloadPtr();
     }
 
@@ -185,7 +209,10 @@ void DedicatedPlayer::setStatsDynamic()
 
     for (int i = 0; i < 3; ++i)
     {
-        value.readState(creatureStats.mDynamic[i]);
+        ESM::StatState<float> dynamicState;
+        mwmp::RecordConvert::toEngine(creatureStats.mDynamic[i], dynamicState);
+
+        value.readState(dynamicState);
         ptrCreatureStats->setDynamic(i, value);
     }
 }
@@ -200,7 +227,8 @@ void DedicatedPlayer::setAnimFlags()
     // simply cast Levitate over and over on a player that's supposed to be flying
     if (!isFlying && !hasTcl && !isLevitationPurged)
     {
-        ptr.getClass().getCreatureStats(ptr).getActiveSpells().purgeEffect(ESM::MagicEffect::Levitate);
+        ptr.getClass().getCreatureStats(ptr).getActiveSpells().purgeEffect(
+            ptr, ESM::MagicEffect::Levitate);
         isLevitationPurged = true;
     }
     else if ((isFlying || hasTcl) && !world->isFlying(ptr))
@@ -208,7 +236,7 @@ void DedicatedPlayer::setAnimFlags()
         MWMechanics::CastSpell levitationCast(ptr, ptr);
         levitationCast.mHitPosition = ptr.getRefData().getPosition().asVec3();
         levitationCast.mAlwaysSucceed = true;
-        levitationCast.cast("Levitate");
+        levitationCast.cast(ESM::RefId::stringRefId("Levitate"));
         isLevitationPurged = false;
     }
 
@@ -238,10 +266,13 @@ void DedicatedPlayer::setAttributes()
     MWMechanics::CreatureStats *ptrCreatureStats = &ptr.getClass().getCreatureStats(ptr);
     MWMechanics::AttributeValue attributeValue;
 
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < ESM::Attribute::Length; ++i)
     {
-        attributeValue.readState(creatureStats.mAttributes[i]);
-        ptrCreatureStats->setAttribute(i, attributeValue);
+        ESM::StatState<float> attributeState;
+        mwmp::RecordConvert::toEngine(creatureStats.mAttributes[i], attributeState);
+
+        attributeValue.readState(attributeState);
+        ptrCreatureStats->setAttribute(ESM::Attribute::indexToRefId(i), attributeValue);
     }
 }
 
@@ -253,10 +284,13 @@ void DedicatedPlayer::setSkills()
     MWMechanics::NpcStats *ptrNpcStats = &ptr.getClass().getNpcStats(ptr);
     MWMechanics::SkillValue skillValue;
 
-    for (int i = 0; i < 27; ++i)
+    for (int i = 0; i < ESM::Skill::Length; ++i)
     {
-        skillValue.readState(npcStats.mSkills[i]);
-        ptrNpcStats->setSkill(i, skillValue);
+        ESM::StatState<float> skillState;
+        mwmp::RecordConvert::toEngine(npcStats.mSkills[i], skillState);
+
+        skillValue.readState(skillState);
+        ptrNpcStats->setSkill(ESM::Skill::indexToRefId(i), skillValue);
     }
 }
 
@@ -278,9 +312,9 @@ void DedicatedPlayer::setEquipment()
 
         if (it != invStore.end())
         {
-            ptrItemId = it->getCellRef().getRefId();
+            ptrItemId = mwmp::RefIdCompat::toWire(it->getCellRef().getRefId());
 
-            if (!Misc::StringUtils::ciEqual(ptrItemId, packetRefId)) // if other item is now equipped
+            if (ptrItemId != packetRefId) // if other item is now equipped
             {
                 MWWorld::ContainerStore &store = ptr.getClass().getContainerStore(ptr);
 
@@ -298,7 +332,8 @@ void DedicatedPlayer::setEquipment()
                 
                 if (shouldRemove)
                 {
-                    store.remove(ptrItemId, store.count(ptrItemId), ptr);
+                    const ESM::RefId storedId = mwmp::RefIdCompat::fromWireCreate(ptrItemId);
+                    store.remove(storedId, store.count(storedId));
                 }
             }
             else
@@ -309,7 +344,7 @@ void DedicatedPlayer::setEquipment()
             continue;
 
         const int count = equipmentItems[slot].count;
-        ptr.getClass().getContainerStore(ptr).add(packetRefId, count, ptr);
+        ptr.getClass().getContainerStore(ptr).add(mwmp::RefIdCompat::fromWireCreate(packetRefId), count);
         // Equip items silently if this is the first time equipment is being set for this character
         equipItem(packetRefId, !hasReceivedInitialEquipment);
         equippedSomething = true;
@@ -335,8 +370,9 @@ void DedicatedPlayer::setShapeshift()
         {
             deleteReference();
 
-            const ESM::Creature* tmpCreature = world->getStore().get<ESM::Creature>().search(creatureRefId);
-            creature = *tmpCreature;
+            const ESM::Creature* tmpCreature
+                = world->getStore().get<ESM::Creature>().search(mwmp::RefIdCompat::fromWireCreate(creatureRefId));
+            mwmp::RecordConvert::fromEngine(*tmpCreature, creature);
             creature.mScript = "";
             if (!displayCreatureName)
                 creature.mName = npc.mName;
@@ -344,15 +380,20 @@ void DedicatedPlayer::setShapeshift()
 
             // Is this our first time creating a creature record id for this player? If so, keep it around
             // and reuse it
+            ESM::Creature engineCreature;
+            mwmp::RecordConvert::toEngine(creature, engineCreature);
+
             if (creatureRecordId.empty())
             {
-                creature.mId = creatureRecordId = RecordHelper::createRecord(creature)->mId;
+                creature.mId = creatureRecordId
+                    = mwmp::RefIdCompat::toWire(RecordHelper::createRecord(engineCreature)->mId);
                 LOG_APPEND(TimedLog::LOG_INFO, "- Creating new creature record %s", creatureRecordId.c_str());
             }
             else
             {
                 creature.mId = creatureRecordId;
-                RecordHelper::overrideRecord(creature);
+                engineCreature.mId = mwmp::RefIdCompat::fromWireCreate(creatureRecordId);
+                RecordHelper::overrideRecord(engineCreature);
             }
 
             LOG_APPEND(TimedLog::LOG_INFO, "- Creating reference for %s", creature.mId.c_str());
@@ -367,7 +408,10 @@ void DedicatedPlayer::setShapeshift()
                 deleteReference();
             }
 
-            RecordHelper::overrideRecord(npc);
+            ESM::NPC engineNpcAgain;
+            mwmp::RecordConvert::toEngine(npc, engineNpcAgain);
+            RecordHelper::overrideRecord(engineNpcAgain);
+
             createReference(npc.mId);
             reloadPtr();
         }
@@ -415,7 +459,7 @@ void DedicatedPlayer::setCell()
 
     // Allow this player's reference to move across a cell now that a manual cell
     // update has been called
-    setPtr(world->moveObject(ptr, cellStore, position.pos[0], position.pos[1], position.pos[2]));
+    setPtr(world->moveObject(ptr, cellStore, osg::Vec3f(position.pos[0], position.pos[1], position.pos[2])));
 
     // Remove the marker entirely if this player has moved to an interior that is inactive for us
     if (!cell.isExterior() && !Main::get().getCellController()->isActiveWorldCell(cell))
@@ -435,8 +479,10 @@ void DedicatedPlayer::setCell()
     // or is a new player, we should send our latest weather data to the server
     if (world->getWeatherCreationState())
     {
-        if (!hasFinishedInitialTeleportation || Misc::StringUtils::ciEqual(getPtr().getCell()->getCell()->mRegion,
-            world->getPlayerPtr().getCell()->getCell()->mRegion))
+        // MWWorld::Cell keeps mRegion private; getRegion() is the accessor, and RefId
+        // equality already carries ciEqual's case-insensitivity.
+        if (!hasFinishedInitialTeleportation
+            || getPtr().getCell()->getCell()->getRegion() == world->getPlayerPtr().getCell()->getCell()->getRegion())
         {
             world->sendWeather();
         }
@@ -453,10 +499,11 @@ void DedicatedPlayer::playAnimation()
 
 void DedicatedPlayer::playSpeech()
 {
-    MWBase::Environment::get().getSoundManager()->say(getPtr(), sound);
+    MWBase::Environment::get().getSoundManager()->say(getPtr(), VFS::Path::Normalized(sound));
 
     MWBase::WindowManager *winMgr = MWBase::Environment::get().getWindowManager();
-    if (winMgr->getSubtitlesEnabled())
+    // 0.51 reads subtitles straight from the settings index.
+    if (Settings::gui().mSubtitles)
         winMgr->messageBox(MWBase::Environment::get().getDialogueManager()->getVoiceCaption(sound), MWGui::ShowInDialogueMode_Never);
 }
 
@@ -464,7 +511,7 @@ void DedicatedPlayer::equipItem(std::string itemId, bool noSound)
 {
     for (const auto& itemPtr : ptr.getClass().getInventoryStore(ptr))
     {
-        if (::Misc::StringUtils::ciEqual(itemPtr.getCellRef().getRefId(), itemId))
+        if (mwmp::RefIdCompat::toWire(itemPtr.getCellRef().getRefId()) == itemId)
         {
             std::shared_ptr<MWWorld::Action> action = itemPtr.getClass().use(itemPtr);
             action->execute(ptr, noSound);
@@ -477,9 +524,13 @@ void DedicatedPlayer::die()
 {
     MWMechanics::DynamicStat<float> health;
     creatureStats.mDead = true;
-    health.readState(creatureStats.mDynamic[0]);
+
+    ESM::StatState<float> healthState;
+    mwmp::RecordConvert::toEngine(creatureStats.mDynamic[0], healthState);
+    health.readState(healthState);
     health.setCurrent(0);
-    health.writeState(creatureStats.mDynamic[0]);
+    health.writeState(healthState);
+    mwmp::RecordConvert::fromEngine(healthState, creatureStats.mDynamic[0]);
 
     ptr.getClass().getCreatureStats(ptr).setHealth(health);
 }
@@ -494,7 +545,11 @@ void DedicatedPlayer::resurrect()
     MWBase::Environment::get().getMechanicsManager()->resurrect(getPtr());
 
     MWMechanics::DynamicStat<float> health;
-    health.readState(creatureStats.mDynamic[0]);
+
+    ESM::StatState<float> healthState;
+    mwmp::RecordConvert::toEngine(creatureStats.mDynamic[0], healthState);
+    health.readState(healthState);
+
     getPtr().getClass().getCreatureStats(getPtr()).setHealth(health);
 }
 
@@ -505,7 +560,9 @@ void DedicatedPlayer::addSpellsActive()
     for (const auto& activeSpell : spellsActiveChanges.activeSpells)
     {
         MWWorld::TimeStamp timestamp = MWWorld::TimeStamp(activeSpell.timestampHour, activeSpell.timestampDay);
-        MechanicsHelper::createSpellGfx(getPtr(), activeSpell.params.mEffects);
+        std::vector<ESM::ActiveEffect> effects;
+        mwmp::RecordConvert::toEngine(activeSpell.params.mEffects, effects);
+        MechanicsHelper::createSpellGfx(getPtr(), effects);
 
         // Don't do a check for a spell's existence, because active effects from potions need to be applied here too
         activeSpells.addSpell(MechanicsHelper::makeActiveSpellParams(activeSpell), timestamp, false);
@@ -536,7 +593,8 @@ void DedicatedPlayer::removeSpellsActive()
 void DedicatedPlayer::setSpellsActive()
 {
     MWMechanics::ActiveSpells& activeSpells = getPtr().getClass().getCreatureStats(getPtr()).getActiveSpells();
-    activeSpells.clear();
+    // 0.51's clear() needs the owning actor so it can undo the effects.
+    activeSpells.clear(getPtr());
 
     // Proceed by adding spells active
     addSpellsActive();
@@ -587,11 +645,14 @@ void DedicatedPlayer::createReference(const std::string& recId)
 {
     MWBase::World *world = MWBase::Environment::get().getWorld();
 
-    reference = new MWWorld::ManualRef(world->getStore(), recId, 1);
+    reference = new MWWorld::ManualRef(world->getStore(), mwmp::RefIdCompat::fromWireCreate(recId), 1);
 
     LOG_APPEND(TimedLog::LOG_INFO, "- Creating new reference pointer for %s", npc.mName.c_str());
 
-    ptr = world->placeObject(reference->getPtr(), Main::get().getCellController()->getCellStore(cell), position);
+    ESM::Position enginePosition;
+    mwmp::RecordConvert::toEngine(position, enginePosition);
+
+    ptr = world->placeObject(reference->getPtr(), Main::get().getCellController()->getCellStore(cell), enginePosition);
 
     ESM::CustomMarker mEditingMarker = Main::get().getGUIController()->createMarker(guid);
     marker = mEditingMarker;
