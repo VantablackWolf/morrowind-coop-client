@@ -20,6 +20,7 @@
 #include "MechanicsHelper.hpp"
 #include "RecordConvertPlayer.hpp"
 #include "RefIdCompat.hpp"
+#include "RefNumCompat.hpp"
 
 #include "../mwworld/worldmodel.hpp"
 
@@ -383,7 +384,7 @@ void LocalActor::setPtr(const MWWorld::Ptr& newPtr)
     ptr = newPtr;
 
     refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
-    refNum = ptr.getCellRef().getRefNum().mIndex;
+    refNum = mwmp::RefNumCompat::toWire(ptr.getCellRef());
     mpNum = ptr.getCellRef().getMpNum();
 
     lastDrawState = ptr.getClass().getCreatureStats(ptr).getDrawState();

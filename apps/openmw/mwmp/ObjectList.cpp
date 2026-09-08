@@ -7,6 +7,7 @@
 #include "ObjectList.hpp"
 #include "RecordConvertPlayer.hpp"
 #include "RefIdCompat.hpp"
+#include "RefNumCompat.hpp"
 
 #include <components/translation/translation.hpp>
 #include "Main.hpp"
@@ -99,7 +100,7 @@ mwmp::BaseObject ObjectList::getBaseObjectFromPtr(const MWWorld::Ptr& ptr)
     {
         baseObject.isPlayer = false;
         baseObject.refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
-        baseObject.refNum = ptr.getCellRef().getRefNum().mIndex;
+        baseObject.refNum = mwmp::RefNumCompat::toWire(ptr.getCellRef());
         baseObject.mpNum = ptr.getCellRef().getMpNum();
     }
 
@@ -156,7 +157,7 @@ void ObjectList::addContainerItem(mwmp::BaseObject& baseObject, const std::strin
 
 void ObjectList::addEntireContainer(const MWWorld::Ptr& ptr)
 {
-    LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Adding entire container %s %i-%i", ptr.getCellRef().getRefId().getRefIdString().c_str(),
+    LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Adding entire container %s %i-%i", ptr.getCellRef().getRefId().toDebugString().c_str(),
         ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
 
     MWWorld::ContainerStore& containerStore = ptr.getClass().getContainerStore(ptr);
@@ -193,7 +194,7 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             bool isCurrentContainer = false;
@@ -204,7 +205,7 @@ void ObjectList::editContainers(MWWorld::CellStore* cellStore)
             {
                 CurrentContainer *currentContainer = &mwmp::Main::get().getLocalPlayer()->currentContainer;
 
-                if (currentContainer->refNum == ptrFound.getCellRef().getRefNum().mIndex &&
+                if (currentContainer->refNum == mwmp::RefNumCompat::toWire(ptrFound.getCellRef()) &&
                     currentContainer->mpNum == ptrFound.getCellRef().getMpNum())
                 {
                     isCurrentContainer = true;
@@ -392,7 +393,7 @@ void ObjectList::activateObjects(MWWorld::CellStore* cellStore)
             else
             {
                 activatingActorPtr = cellStore->searchExact(baseObject.activatingActor.refNum, baseObject.activatingActor.mpNum, baseObject.activatingActor.refId);
-                LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Object has been activated by actor %s %i-%i", activatingActorPtr.getCellRef().getRefId().getRefIdString().c_str(),
+                LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Object has been activated by actor %s %i-%i", activatingActorPtr.getCellRef().getRefId().toDebugString().c_str(),
                     activatingActorPtr.getCellRef().getRefNum().mIndex, activatingActorPtr.getCellRef().getMpNum());
             }
 
@@ -536,7 +537,7 @@ void ObjectList::spawnObjects(MWWorld::CellStore* cellStore)
 
                 if (!masterPtr.isEmpty())
                 {
-                    LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Actor has master: %s", masterPtr.getCellRef().getRefId().getRefIdString().c_str());
+                    LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Actor has master: %s", masterPtr.getCellRef().getRefId().toDebugString().c_str());
 
                     MWMechanics::AiFollow package(masterPtr);
                     creatureStats.getAiSequence().stack(package, newPtr);
@@ -634,7 +635,7 @@ void ObjectList::deleteObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             // If we are in a container, and it happens to be this object, exit it
@@ -642,7 +643,7 @@ void ObjectList::deleteObjects(MWWorld::CellStore* cellStore)
             {
                 CurrentContainer *currentContainer = &mwmp::Main::get().getLocalPlayer()->currentContainer;
 
-                if (currentContainer->refNum == ptrFound.getCellRef().getRefNum().mIndex &&
+                if (currentContainer->refNum == mwmp::RefNumCompat::toWire(ptrFound.getCellRef()) &&
                     currentContainer->mpNum == ptrFound.getCellRef().getMpNum())
                 {
                     MWBase::Environment::get().getWindowManager()->removeGuiMode(MWGui::GM_Container);
@@ -687,7 +688,7 @@ void ObjectList::lockObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             if (baseObject.lockLevel > 0)
@@ -708,7 +709,7 @@ void ObjectList::triggerTrapObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             if (!baseObject.isDisarmed)
@@ -736,7 +737,7 @@ void ObjectList::scaleObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             MWBase::Environment::get().getWorld()->scaleObject(ptrFound, baseObject.scale);
@@ -755,7 +756,7 @@ void ObjectList::setObjectStates(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             if (baseObject.objectState)
@@ -785,7 +786,7 @@ void ObjectList::moveObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             MWBase::Environment::get().getWorld()->moveObject(ptrFound,
@@ -804,7 +805,7 @@ void ObjectList::restockObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             //ptrFound.getClass().restock(ptrFound);
@@ -830,7 +831,7 @@ void ObjectList::rotateObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             MWBase::Environment::get().getWorld()->rotateObject(ptrFound,
@@ -850,7 +851,7 @@ void ObjectList::animateObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             MWBase::MechanicsManager * mechanicsManager = MWBase::Environment::get().getMechanicsManager();
@@ -929,7 +930,7 @@ void ObjectList::setGoldPoolsForObjects(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             if (ptrFound.getClass().isActor())
@@ -945,7 +946,7 @@ void ObjectList::setGoldPoolsForObjects(MWWorld::CellStore* cellStore)
             else
             {
                 LOG_MESSAGE_SIMPLE(TimedLog::LOG_WARN, "Failed to set gold pool on %s %i-%i because it is not an actor!",
-                    ptrFound.getCellRef().getRefId().getRefIdString().c_str(), ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
+                    ptrFound.getCellRef().getRefId().toDebugString().c_str(), ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
             }
         }
     }
@@ -961,7 +962,7 @@ void ObjectList::activateDoors(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             MWWorld::DoorState doorState = static_cast<MWWorld::DoorState>(baseObject.doorState);
@@ -982,7 +983,7 @@ void ObjectList::setDoorDestinations(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             ptrFound.getCellRef().setTeleport(baseObject.teleportState);
@@ -1050,7 +1051,7 @@ void ObjectList::runConsoleCommands(MWWorld::CellStore* cellStore)
 
                 if (!ptrFound.isEmpty())
                 {
-                    LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+                    LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                         ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
                     windowManager->setConsolePtr(ptrFound);
@@ -1073,7 +1074,7 @@ void ObjectList::makeDialogueChoices(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                 ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             if (ptrFound.getClass().isActor())
@@ -1129,7 +1130,7 @@ void ObjectList::makeDialogueChoices(MWWorld::CellStore* cellStore)
             else
             {
                 LOG_MESSAGE_SIMPLE(TimedLog::LOG_WARN, "Failed to make dialogue choice for %s %i-%i because it is not an actor!",
-                    ptrFound.getCellRef().getRefId().getRefIdString().c_str(), ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
+                    ptrFound.getCellRef().getRefId().toDebugString().c_str(), ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
             }
         }
     }
@@ -1145,7 +1146,7 @@ void ObjectList::setClientLocals(MWWorld::CellStore* cellStore)
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             for (const auto& clientLocal : baseObject.clientLocals)
@@ -1188,7 +1189,7 @@ void ObjectList::setMemberShorts()
 
         if (!ptrFound.isEmpty())
         {
-            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().getRefIdString().c_str(),
+            LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Found %s %i-%i", ptrFound.getCellRef().getRefId().toDebugString().c_str(),
                                ptrFound.getCellRef().getRefNum(), ptrFound.getCellRef().getMpNum());
 
             std::string scriptId = ptrFound.getClass().getScript(ptrFound);
@@ -1261,7 +1262,7 @@ void ObjectList::addRequestedContainers(MWWorld::CellStore* cellStore, const std
             if (ptrFound.getClass().hasContainerStore(ptrFound))
                 addEntireContainer(ptrFound);
             else
-                LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Object lacks container store", ptrFound.getCellRef().getRefId().getRefIdString().c_str());
+                LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Object lacks container store", ptrFound.getCellRef().getRefId().toDebugString().c_str());
         }
     }
 }

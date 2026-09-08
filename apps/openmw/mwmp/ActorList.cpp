@@ -13,6 +13,7 @@
 #include "../mwworld/class.hpp"
 
 #include <components/openmw-mp/TimedLog.hpp>
+#include "RefNumCompat.hpp"
 
 using namespace mwmp;
 
@@ -97,7 +98,7 @@ void ActorList::addAiActor(BaseActor baseActor)
 void ActorList::addAiActor(const MWWorld::Ptr& actorPtr, const MWWorld::Ptr& targetPtr, unsigned int aiAction)
 {
     mwmp::BaseActor baseActor;
-    baseActor.refNum = actorPtr.getCellRef().getRefNum().mIndex;
+    baseActor.refNum = mwmp::RefNumCompat::toWire(actorPtr.getCellRef());
     baseActor.mpNum = actorPtr.getCellRef().getMpNum();
     baseActor.aiAction = aiAction;
     baseActor.aiTarget = MechanicsHelper::getTarget(targetPtr);
@@ -127,7 +128,7 @@ void ActorList::addAttackActor(BaseActor baseActor)
 void ActorList::addAttackActor(const MWWorld::Ptr& actorPtr, const mwmp::Attack &attack)
 {
     mwmp::BaseActor baseActor;
-    baseActor.refNum = actorPtr.getCellRef().getRefNum().mIndex;
+    baseActor.refNum = mwmp::RefNumCompat::toWire(actorPtr.getCellRef());
     baseActor.mpNum = actorPtr.getCellRef().getMpNum();
     baseActor.attack = attack;
     attackActors.push_back(baseActor);
@@ -264,11 +265,11 @@ void ActorList::sendActorsInCell(MWWorld::CellStore* cellStore)
         MWWorld::Ptr ptr(&ref, 0);
 
         // If this Ptr is lacking a unique index, ignore it
-        if (ptr.getCellRef().getRefNum().mIndex == 0 && ptr.getCellRef().getMpNum() == 0) continue;
+        if (mwmp::RefNumCompat::toWire(ptr.getCellRef()) == 0 && ptr.getCellRef().getMpNum() == 0) continue;
 
         BaseActor actor;
         actor.refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
-        actor.refNum = ptr.getCellRef().getRefNum().mIndex;
+        actor.refNum = mwmp::RefNumCompat::toWire(ptr.getCellRef());
         actor.mpNum = ptr.getCellRef().getMpNum();
 
         addActor(actor);
@@ -279,11 +280,11 @@ void ActorList::sendActorsInCell(MWWorld::CellStore* cellStore)
         MWWorld::Ptr ptr(&ref, 0);
 
         // If this Ptr is lacking a unique index, ignore it
-        if (ptr.getCellRef().getRefNum().mIndex == 0 && ptr.getCellRef().getMpNum() == 0) continue;
+        if (mwmp::RefNumCompat::toWire(ptr.getCellRef()) == 0 && ptr.getCellRef().getMpNum() == 0) continue;
 
         BaseActor actor;
         actor.refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
-        actor.refNum = ptr.getCellRef().getRefNum().mIndex;
+        actor.refNum = mwmp::RefNumCompat::toWire(ptr.getCellRef());
         actor.mpNum = ptr.getCellRef().getMpNum();
 
         addActor(actor);

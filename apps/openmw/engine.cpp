@@ -1129,16 +1129,6 @@ void OMW::Engine::go()
     }
 
     /*
-        Start of tes3mp addition
-
-        Handle post-initialization for multiplayer classes
-    */
-    mwmp::Main::postInit();
-    /*
-        End of tes3mp addition
-    */
-
-    /*
         Start of tes3mp change (major)
 
         Always skip the main menu in multiplayer
@@ -1184,6 +1174,33 @@ void OMW::Engine::go()
     {
         mStateManager->newGame(!mNewGame);
     }
+
+    /*
+        Start of tes3mp addition
+
+        Handle post-initialization for multiplayer classes
+
+        This MUST come after the newGame above, not before it. postInit sets up the chat
+        window, disables AI, and creates the "$Transitional Void" holding cell that remote
+        players are parked in until their real position arrives. newGame runs cleanup(),
+        which calls WindowManager::clear() and World::clear(), and the latter calls
+        ESMStore::clearDynamic().
+
+        0.8.1 could call postInit first because 0.47's Store<ESM::Cell>::clearDynamic() was
+        just "setUp()" -- it rebuilt the shared lists and left dynamic cells alone. 0.51
+        genuinely erases mDynamicInt and mDynamicExt, so the placeholder cell was destroyed
+        moments after being created.
+
+        The symptoms were spread far enough apart to look like three separate bugs: players
+        could not see each other at all (getInterior threw "Interior cell is not found:
+        '$Transitional Void'" for every remote player), the chat window did not work, and AI
+        ended up enabled on one client and disabled on another, so NPCs walked on one screen
+        and marched in place on the other.
+    */
+    mwmp::Main::postInit();
+    /*
+        End of tes3mp addition
+    */
 
     if (!mStartupScript.empty() && mStateManager->getState() == MWState::StateManager::State_Running)
     {

@@ -15,6 +15,8 @@
 #include "LocalPlayer.hpp"
 #include "CellController.hpp"
 #include "MechanicsHelper.hpp"
+#include "PlayerList.hpp"
+#include "RefNumCompat.hpp"
 
 using namespace mwmp;
 
@@ -506,7 +508,28 @@ void Cell::initializeLocalActors()
             MWWorld::Ptr ptr(mergedRef, store);
 
             // If this Ptr is lacking a unique index, ignore it
-            if (ptr.getCellRef().getRefNum().mIndex == 0 && ptr.getCellRef().getMpNum() == 0) continue;
+            if (mwmp::RefNumCompat::toWire(ptr.getCellRef()) == 0 && ptr.getCellRef().getMpNum() == 0) continue;
+
+            /*
+                Start of tes3mp addition
+
+                Never simulate another player's body as an NPC.
+
+                0.8.1 got this for free: a DedicatedPlayer's reference had no refNum and no
+                mpNum, so the guard above skipped it. 0.51 assigns every reference a RefNum
+                for WorldModel's Ptr registry, so the remote player's body started passing
+                that guard -- this client began running AI for it and broadcasting its
+                position under a locally generated refNum that existed on no other machine.
+
+                RefNumCompat::toWire restores the old behaviour by reporting generated
+                RefNums as 0, but that is an accident of representation and it is what broke
+                here in the first place. Say it outright instead: a remote player is driven
+                by their own client through player packets, never by actor packets from us.
+            */
+            if (mwmp::PlayerList::isDedicatedPlayer(ptr)) continue;
+            /*
+                End of tes3mp addition
+            */
 
             // If this Ptr is disabled or deleted, ignore it
             if (!ptr.getRefData().isEnabled() || ptr.mRef->isDeleted()) continue;

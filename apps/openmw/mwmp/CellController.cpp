@@ -19,6 +19,7 @@
 #include "Main.hpp"
 #include "LocalActor.hpp"
 #include "LocalPlayer.hpp"
+#include "RefNumCompat.hpp"
 using namespace mwmp;
 
 std::map<std::string, mwmp::Cell *> CellController::cellsInitialized;
@@ -406,7 +407,7 @@ std::string CellController::generateMapIndex(int refNum, int mpNum)
 
 std::string CellController::generateMapIndex(MWWorld::Ptr ptr)
 {
-    return generateMapIndex(ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
+    return generateMapIndex(mwmp::RefNumCompat::toWire(ptr.getCellRef()), ptr.getCellRef().getMpNum());
 }
 
 std::string CellController::generateMapIndex(BaseActor baseActor)

@@ -1661,8 +1661,31 @@ void RecordHelper::createPlaceholderInteriorCell()
     MWBase::World* world = MWBase::Environment::get().getWorld();
 
     ESM::Cell placeholderInterior;
+    /*
+        Start of tes3mp change (major)
+
+        0.51 identifies a cell by an ESM::RefId, not by its name. Store<ESM::Cell>::insert
+        keys the record on cell.mId, and WorldModel keys its CellStores on the same id, so
+        a cell inserted with a default-constructed id is registered under an empty key and
+        cannot be resolved afterwards.
+
+        0.47 keyed interiors by name alone, which is why 0.8.1 could get away with setting
+        only mName. blank() puts the rest of the record in a defined state, and updateId()
+        derives the id the way every other cell gets one -- it reads isExterior(), so the
+        Interior flag has to be set before it is called.
+
+        Without this, getInterior() threw "Interior cell is not found: '$Transitional Void'"
+        the moment a second player joined, because that is the holding cell a DedicatedPlayer
+        is parked in until their real position arrives. The remote player was never placed,
+        so players could not see each other at all.
+    */
+    placeholderInterior.blank();
     placeholderInterior.mData.mFlags |= ESM::Cell::Flags::Interior;
     placeholderInterior.mName = placeholderInteriorCellName;
+    placeholderInterior.updateId();
+    /*
+        End of tes3mp change (major)
+    */
 
     world->getModifiableStore().insert(placeholderInterior);
 }

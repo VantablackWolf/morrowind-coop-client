@@ -52,6 +52,7 @@
 #include "RecordConvert.hpp"
 #include "Main.hpp"
 #include "RefIdCompat.hpp"
+#include "RefNumCompat.hpp"
 #include "Networking.hpp"
 #include "PlayerList.hpp"
 #include "CellController.hpp"
@@ -2093,7 +2094,7 @@ void LocalPlayer::storeCellState(const MWWorld::Cell& storedCell, int stateType)
 void LocalPlayer::storeCurrentContainer(const MWWorld::Ptr &container)
 {
     currentContainer.refId = mwmp::RefIdCompat::toWire(container.getCellRef().getRefId());
-    currentContainer.refNum = container.getCellRef().getRefNum().mIndex;
+    currentContainer.refNum = mwmp::RefNumCompat::toWire(container.getCellRef());
     currentContainer.mpNum = container.getCellRef().getMpNum();
 }
 

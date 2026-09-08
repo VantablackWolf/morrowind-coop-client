@@ -139,7 +139,7 @@ namespace MWWorld
             actorList->cell = originalCell;
 
             LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Sending ID_ACTOR_CELL_CHANGE about %s %i-%i to server",
-                actor.getCellRef().getRefId().getRefIdString().c_str(), baseActor.refNum, baseActor.mpNum);
+                actor.getCellRef().getRefId().toDebugString().c_str(), baseActor.refNum, baseActor.mpNum);
 
             LOG_APPEND(TimedLog::LOG_INFO, "- Moved from %s to %s",
                 actorList->cell.getShortDescription().c_str(), baseActor.cell.getShortDescription().c_str());

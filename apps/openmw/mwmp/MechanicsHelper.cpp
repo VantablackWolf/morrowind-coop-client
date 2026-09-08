@@ -30,6 +30,7 @@
 #include "MechanicsHelper.hpp"
 #include "RecordConvertPlayer.hpp"
 #include "RefIdCompat.hpp"
+#include "RefNumCompat.hpp"
 #include "Main.hpp"
 #include "Networking.hpp"
 #include "LocalPlayer.hpp"
@@ -269,7 +270,7 @@ mwmp::Target MechanicsHelper::getTarget(const MWWorld::Ptr& ptr)
             {
                 target.isPlayer = false;
                 target.refId = mwmp::RefIdCompat::toWire(ptrRef->getRefId());
-                target.refNum = ptrRef->getRefNum().mIndex;
+                target.refNum = mwmp::RefNumCompat::toWire(*ptrRef);
                 target.mpNum = ptrRef->getMpNum();
                 target.name = std::string(ptr.getClass().getName(ptr));
             }
@@ -315,7 +316,7 @@ void MechanicsHelper::assignAttackTarget(Attack* attack, const MWWorld::Ptr& tar
 
         attack->target.isPlayer = false;
         attack->target.refId = mwmp::RefIdCompat::toWire(targetRef->getRefId());
-        attack->target.refNum = targetRef->getRefNum().mIndex;
+        attack->target.refNum = mwmp::RefNumCompat::toWire(*targetRef);
         attack->target.mpNum = targetRef->getMpNum();
     }
 }
@@ -483,7 +484,7 @@ void MechanicsHelper::processAttack(Attack attack, const MWWorld::Ptr& attacker)
         if (!weaponPtr.isEmpty())
         {
             LOG_APPEND(TimedLog::LOG_VERBOSE, "- weapon: %s\n- isRanged: %s\n- applyWeaponEnchantment: %s\n- applyAmmoEnchantment: %s",
-                weaponPtr.getCellRef().getRefId().getRefIdString().c_str(), isRanged ? "true" : "false", attack.applyWeaponEnchantment ? "true" : "false",
+                weaponPtr.getCellRef().getRefId().toDebugString().c_str(), isRanged ? "true" : "false", attack.applyWeaponEnchantment ? "true" : "false",
                 attack.applyAmmoEnchantment ? "true" : "false");
 
             if (attack.applyWeaponEnchantment)

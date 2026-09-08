@@ -30,6 +30,7 @@
 
 #include "DedicatedActor.hpp"
 #include "RefIdCompat.hpp"
+#include "RefNumCompat.hpp"
 #include "RecordConvertPlayer.hpp"
 #include "Main.hpp"
 #include "CellController.hpp"
@@ -223,7 +224,7 @@ void DedicatedActor::setAi()
     ptrCreatureStats->setAiSetting(MWMechanics::AiSetting::Fight, 0);
 
     LOG_APPEND(TimedLog::LOG_VERBOSE, "- actor cellRef: %s %i-%i",
-        ptr.getCellRef().getRefId().getRefIdString().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
+        ptr.getCellRef().getRefId().toDebugString().c_str(), ptr.getCellRef().getRefNum().mIndex, ptr.getCellRef().getMpNum());
 
     if (aiAction == mwmp::BaseActorList::CANCEL)
     {
@@ -272,7 +273,7 @@ void DedicatedActor::setAi()
             if (!targetPtr.isEmpty())
             {
                 LOG_APPEND(TimedLog::LOG_VERBOSE, "-- Has actor target %s %i-%i",
-                    targetPtr.getCellRef().getRefId().getRefIdString().c_str(), aiTarget.refNum, aiTarget.mpNum);
+                    targetPtr.getCellRef().getRefId().toDebugString().c_str(), aiTarget.refNum, aiTarget.mpNum);
             }
             else
             {
@@ -428,7 +429,7 @@ void DedicatedActor::setPtr(const MWWorld::Ptr& newPtr)
     ptr = newPtr;
 
     refId = mwmp::RefIdCompat::toWire(ptr.getCellRef().getRefId());
-    refNum = ptr.getCellRef().getRefNum().mIndex;
+    refNum = mwmp::RefNumCompat::toWire(ptr.getCellRef());
     mpNum = ptr.getCellRef().getMpNum();
 
     position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
