@@ -134,23 +134,6 @@ namespace MWScript
                 if (!isLevelledList)
                     MWWorld::ContainerStore::getType(itemPtr);
 
-                if (count < 0)
-                    count = static_cast<uint16_t>(count);
-
-                // no-op
-                if (count == 0)
-                    return;
-
-                if (item == "gold_005" || item == "gold_010" || item == "gold_025" || item == "gold_100")
-                    item = MWWorld::ContainerStore::sGoldId;
-
-                // Check if "item" can be placed in a container
-                MWWorld::ManualRef manualRef(*MWBase::Environment::get().getESMStore(), item, 1);
-                MWWorld::Ptr itemPtr = manualRef.getPtr();
-                bool isLevelledList = itemPtr.getClass().getType() == ESM::ItemLevList::sRecordId;
-                if (!isLevelledList)
-                    MWWorld::ContainerStore::getType(itemPtr);
-
                 // Explicit calls to non-unique actors affect the base record
                 if (!R::implicit && ptr.getClass().isActor()
                     && MWBase::Environment::get().getESMStore()->getRefCount(ptr.getCellRef().getRefId()) > 1)
@@ -189,7 +172,6 @@ namespace MWScript
                     return;
                 }
                 MWWorld::ContainerStore& store = ptr.getClass().getContainerStore(ptr);
-
                 /*
                     Start of tes3mp change (major)
 
@@ -212,7 +194,6 @@ namespace MWScript
                 /*
                     End of tes3mp change (major)
                 */
-
                 /*
                     Start of tes3mp addition
 
@@ -390,13 +371,6 @@ namespace MWScript
                         msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage63}");
                         msgBox = ::Misc::StringUtils::format(msgBox, numRemoved, itemName);
                     }
-                    else
-                    {
-                        msgBox = MyGUI::LanguageManager::getInstance().replaceTags("#{sNotifyMessage62}");
-                        msgBox = ::Misc::StringUtils::format(msgBox, itemName);
-                    }
-                    MWBase::Environment::get().getWindowManager()->messageBox(msgBox, MWGui::ShowInDialogueMode_Only);
-                }
                     /*
                         Start of tes3mp addition
 
