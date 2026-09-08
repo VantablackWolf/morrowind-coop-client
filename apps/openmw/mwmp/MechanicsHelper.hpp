@@ -13,7 +13,11 @@
 namespace MechanicsHelper
 {
     osg::Vec3f getLinearInterpolation(osg::Vec3f start, osg::Vec3f end, float percent);
-    ESM::Position getPositionFromVector(osg::Vec3f vector);
+    /*
+        Returns the protocol mirror, not ESM::Position: every caller assigns the result
+        straight into a packet field.
+    */
+    mwmp::records::Position getPositionFromVector(osg::Vec3f vector);
 
     void spawnLeveledCreatures(MWWorld::CellStore* cellStore);
 

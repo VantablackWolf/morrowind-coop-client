@@ -13,6 +13,7 @@
 #include "../mwmp/Networking.hpp"
 #include "../mwmp/LocalPlayer.hpp"
 #include "../mwmp/ObjectList.hpp"
+#include "../mwmp/RecordConvertPlayer.hpp"
 /*
     End of tes3mp addition
 */
@@ -51,7 +52,7 @@ namespace MWWorld
         mwmp::ObjectList* objectList = mwmp::Main::get().getNetworking()->getObjectList();
         objectList->reset();
         objectList->packetOrigin = mwmp::CLIENT_GAMEPLAY;
-        objectList->cell = *target.getCell()->getCell();
+        objectList->cell = mwmp::RecordConvert::toMirror(*target.getCell()->getCell());
         objectList->action = mwmp::BaseObjectList::REMOVE;
         objectList->containerSubAction = mwmp::BaseObjectList::NONE;
 

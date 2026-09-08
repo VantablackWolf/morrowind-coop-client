@@ -219,11 +219,11 @@ int MWMechanics::NpcStats::getLevelProgress() const
 
     Make it possible to set a player's level progress directly instead of going
     through other methods
+
+    0.51 defines setLevelProgress itself, with the same body, so the hook is only the
+    header declaration now -- see npcstats.hpp. Keeping this definition as well made it
+    a redefinition.
 */
-void MWMechanics::NpcStats::setLevelProgress(int value)
-{
-    mLevelProgress = value;
-}
 /*
     End of tes3mp addition
 */
@@ -235,7 +235,11 @@ void MWMechanics::NpcStats::setLevelProgress(int value)
 */
 int MWMechanics::NpcStats::getSkillIncrease(int attribute) const
 {
-    return mSkillIncreases[attribute];
+    // 0.51 keys skill increases by attribute RefId rather than by index. The wire still
+    // carries the index, so the conversion happens here.
+    const auto it = mSkillIncreases.find(ESM::Attribute::indexToRefId(attribute));
+
+    return it == mSkillIncreases.end() ? 0 : it->second;
 }
 /*
     End of tes3mp addition
@@ -248,7 +252,7 @@ int MWMechanics::NpcStats::getSkillIncrease(int attribute) const
 */
 void MWMechanics::NpcStats::setSkillIncrease(int attribute, int value)
 {
-    mSkillIncreases[attribute] = value;
+    mSkillIncreases[ESM::Attribute::indexToRefId(attribute)] = value;
 }
 /*
     End of tes3mp addition

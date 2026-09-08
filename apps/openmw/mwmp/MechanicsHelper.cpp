@@ -47,9 +47,9 @@ osg::Vec3f MechanicsHelper::getLinearInterpolation(osg::Vec3f start, osg::Vec3f 
     return (start + osg::componentMultiply(position, (end - start)));
 }
 
-ESM::Position MechanicsHelper::getPositionFromVector(osg::Vec3f vector)
+mwmp::records::Position MechanicsHelper::getPositionFromVector(osg::Vec3f vector)
 {
-    ESM::Position position;
+    mwmp::records::Position position;
     position.pos[0] = vector.x();
     position.pos[1] = vector.y();
     position.pos[2] = vector.z();
