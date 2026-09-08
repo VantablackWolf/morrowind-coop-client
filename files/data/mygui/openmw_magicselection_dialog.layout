@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_magicselection_dialog.layout
-    <Widget type="Window" skin="MW_DialogNoTransp" position="0 0 330 370" layer="Windows" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_DialogNoTransp" position="0 0 330 370" layer="Modal" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_magicselection_dialog.layout
 
         <Widget type="TextBox" skin="SandText" position="8 8 292 24">
             <Property key="Caption" value="#{sMagicSelectTitle}"/>
@@ -15,11 +11,7 @@
 
         <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton" position="284 330 32 24" align="Right Bottom">
             <Property key="ExpandDirection" value="Left"/>
-<<<<<<< HEAD:files/mygui/openmw_magicselection_dialog.layout
-            <Property key="Caption" value="#{sCancel}"/>
-=======
             <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_magicselection_dialog.layout
         </Widget>
 
     </Widget>

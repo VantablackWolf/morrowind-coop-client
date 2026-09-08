@@ -4,33 +4,21 @@
 
     <!-- Cursors -->
     <Resource type="ResourceImageSet" name="ArrowPointerImage">
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-        <Group name="Pointer" texture="textures\tx_cursor.dds" size="32 32">
-=======
         <Group name="Pointer" texture="textures\tx_cursor.dds">
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
             <Index name="Pointer" >
                 <Frame point="0 0"/>
             </Index>
         </Group>
     </Resource>
     <Resource type="ResourceImageSet" name="HResizePointerImage">
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-        <Group name="Pointer" texture="textures\tx_cursormove.dds" size="32 32">
-=======
         <Group name="Pointer" texture="textures\tx_cursormove.dds">
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
             <Index name="Pointer" >
                 <Frame point="0 0"/>
             </Index>
         </Group>
     </Resource>
     <Resource type="ResourceImageSet" name="DropGroundPointerImage">
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-        <Group name="Pointer" texture="textures\cursor_drop_ground.dds" size="32 32">
-=======
         <Group name="Pointer" texture="textures\cursor_drop_ground.dds">
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
             <Index name="Pointer" >
                 <Frame point="0 0"/>
             </Index>
@@ -53,15 +41,6 @@
     </Resource>
 
     <Resource type="ResourceLayout" name="TabControl" version="3.2.0">
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-        <Widget type="Widget" skin="" position="5 5 89 60" name="Root">
-            <UserString key="ButtonSkin" value="MW_Button_RightPadding"/>
-            <Widget type="Widget" skin="MW_Box" position="0 28 89 32" align="Left Top Stretch">
-                <Widget type="Widget" skin="" position="4 4 81 28" align="Left Top Stretch" name="TabItem"/>
-            </Widget>
-            <Widget type="Widget" skin="" position="0 0 89 23" align="HStretch Top" name="HeaderPlace">
-                <Widget type="Widget" skin="" position="52 0 37 23" name="Controls">
-=======
         <Widget type="Widget" skin="" position="5 5 89 64" name="Root">
             <UserString key="ButtonSkin" value="MW_Button_RightPadding"/>
             <Widget type="Widget" skin="MW_Box" position="0 30 89 32" align="Left Top Stretch">
@@ -86,7 +65,6 @@
             <Widget type="Widget" skin="" position="0 28 89 32" align="Left Top Stretch" name="TabItem"/>
             <Widget type="Widget" skin="" position="0 0 89 24" align="HStretch Top" name="HeaderPlace">
                 <Widget type="Widget" skin="" position="52 0 37 28" name="Controls">
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
                 </Widget>
             </Widget>
         </Widget>
@@ -97,13 +75,8 @@
             <UserString key="ButtonSkin" value="MW_Button_RightPadding"/>
             <Widget type="Widget" skin="" position="0 28 89 32" align="Left Top Stretch" name="TabItem"/>
 
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-            <Widget type="Widget" skin="" position="0 0 89 23" align="HStretch Top" name="HeaderPlace">
-                <Widget type="Widget" skin="" position="52 0 37 23" name="Controls">
-=======
             <Widget type="Widget" skin="" position="0 0 89 24" align="HStretch Top" name="HeaderPlace">
                 <Widget type="Widget" skin="" position="52 0 37 28" name="Controls">
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
                 </Widget>
             </Widget>
         </Widget>
@@ -171,13 +144,10 @@
                     <Property key="Alpha" value="0.5"/>
                 </Widget>
             </Widget>
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-=======
             <Widget type="ImageBox" skin="ImageBox" position="0 0 42 42" align="Stretch" name="ControllerBorder">
                 <Property key="ImageTexture" value="textures\omw_menu_icon_active.dds"/>
                 <Property key="Visible" value="false"/>
             </Widget>
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
         </Widget>
     </Resource>
 
@@ -202,13 +172,10 @@
                     <Property key="Alpha" value="0.5"/>
                 </Widget>
             </Widget>
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-=======
             <Widget type="ImageBox" skin="ImageBox" position="0 0 32 32" align="Stretch" name="ControllerBorder">
                 <Property key="ImageTexture" value="textures\omw_menu_icon_active.dds"/>
                 <Property key="Visible" value="false"/>
             </Widget>
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
         </Widget>
     </Resource>
 
@@ -225,14 +192,10 @@
                     <Property key="Alpha" value="0.5"/>
                 </Widget>
             </Widget>
-<<<<<<< HEAD:files/mygui/openmw_resources.xml
-
-=======
             <Widget type="ImageBox" skin="ImageBox" position="4 4 42 42" align="Stretch" name="ControllerBorder">
                 <Property key="ImageTexture" value="textures\omw_menu_icon_active.dds"/>
                 <Property key="Visible" value="false"/>
             </Widget>
->>>>>>> omw51:files/data/mygui/openmw_resources.xml
             <Widget type="Widget" skin="MW_Box_Overlay" position="0 0 50 50" align="Stretch"/>
         </Widget>
     </Resource>

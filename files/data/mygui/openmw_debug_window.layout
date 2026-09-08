@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_debug_window.layout
-  <Widget type="Window" skin="" position="0 0 400 400" layer="Debug" name="_Main" align="Stretch">
-    <Property key="Caption" value="Debug"/>
-=======
   <Widget type="Window" skin="MW_Window" position="0 0 400 400" layer="Debug" name="_Main" align="Stretch">
     <Property key="Caption" value="#{OMWEngine:DebugWindow}"/>
->>>>>>> omw51:files/data/mygui/openmw_debug_window.layout
     <Property key="Visible" value="false"/>
 
     <Widget type="Widget" skin="DialogBG" position_real="0 0 1 1" name="Background" align="Stretch">

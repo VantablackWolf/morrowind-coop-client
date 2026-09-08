@@ -110,11 +110,7 @@
             </Widget>
 
             <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
-<<<<<<< HEAD:files/mygui/openmw_alchemy_window.layout
-                <Property key="Caption" value="#{sCancel}"/>
-=======
                 <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_alchemy_window.layout
             </Widget>
 
         </Widget>

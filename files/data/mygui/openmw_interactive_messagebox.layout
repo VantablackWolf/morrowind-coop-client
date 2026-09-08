@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_interactive_messagebox.layout
-    <Widget type="Window" skin="MW_Dialog" layer="MessageBox" position="0 0 500 400" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_Dialog" layer="Modal" position="0 0 500 400" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_interactive_messagebox.layout
         <Widget type="EditBox" skin="MW_TextEditClient" position="10 10 490 20" align="Left Top Stretch" name="message">
             <Property key="FontName" value="Default"/>
             <Property key="TextAlign" value="Center"/>

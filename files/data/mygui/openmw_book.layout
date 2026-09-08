@@ -32,21 +32,13 @@
             </Widget>
 
             <Widget type="TextBox" skin="NormalText" position="30 358 250 16" name="LeftPageNumber">
-<<<<<<< HEAD:files/mygui/openmw_book.layout
-                <Property key="FontName" value="Journalbook Magic Cards"/>
-=======
                 <Property key="FontName" value="Journalbook DefaultFont"/>
->>>>>>> omw51:files/data/mygui/openmw_book.layout
                 <Property key="TextColour" value="0 0 0"/>
                 <Property key="TextAlign" value="Center"/>
                 <Property key="NeedMouse" value="false"/>
             </Widget>
             <Widget type="TextBox" skin="NormalText" position="310 358 250 16" name="RightPageNumber">
-<<<<<<< HEAD:files/mygui/openmw_book.layout
-                <Property key="FontName" value="Journalbook Magic Cards"/>
-=======
                 <Property key="FontName" value="Journalbook DefaultFont"/>
->>>>>>> omw51:files/data/mygui/openmw_book.layout
                 <Property key="TextColour" value="0 0 0"/>
                 <Property key="TextAlign" value="Center"/>
                 <Property key="NeedMouse" value="false"/>

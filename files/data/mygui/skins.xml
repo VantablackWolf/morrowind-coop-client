@@ -3,10 +3,7 @@
     <MyGUI type="List">
         <List file="core.skin"/>
         <List file="openmw_resources.xml"/>
-<<<<<<< HEAD:files/mygui/skins.xml
-        <List file="openmw_font.xml"/>
-=======
->>>>>>> omw51:files/data/mygui/skins.xml
+        <List file="tes3mp_chat.skin.xml" />
         <List file="openmw_text.skin.xml"/>
         <List file="openmw_windows.skin.xml"/>
         <List file="openmw_button.skin.xml"/>
@@ -23,11 +20,10 @@
         <List file="openmw_dialogue_window.skin.xml"/>
         <List file="openmw_scroll.skin.xml"/>
         <List file="openmw_debug_window.skin.xml" />
-<<<<<<< HEAD:files/mygui/skins.xml
-        <List file="tes3mp_chat.skin.xml" />
-=======
         <List file="openmw_postprocessor_hud.skin.xml" />
->>>>>>> omw51:files/data/mygui/skins.xml
+        <!-- Start of tes3mp addition: multiplayer chat skin -->
+        <List file="tes3mp_chat.skin.xml" />
+        <!-- End of tes3mp addition -->
     </MyGUI>
 </MyGUI>
 

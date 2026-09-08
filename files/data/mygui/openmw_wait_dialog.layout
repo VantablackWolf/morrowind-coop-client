@@ -35,11 +35,7 @@
                 <Property key="Caption" value="#{sRest}"/>
             </Widget>
             <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
-<<<<<<< HEAD:files/mygui/openmw_wait_dialog.layout
-                <Property key="Caption" value="#{sCancel}"/>
-=======
                 <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_wait_dialog.layout
             </Widget>
         </Widget>
     </Widget>

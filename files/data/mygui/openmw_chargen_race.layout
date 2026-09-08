@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_chargen_race.layout
-    <Widget type="Window" skin="MW_Dialog" layer="Windows" position="0 0 640 433" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_Dialog" layer="Modal" position="0 0 640 433" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_chargen_race.layout
 
         <!-- Appearance -->
         <Widget type="TextBox" skin="HeaderText" position="8 16 241 18" name="AppearanceT" align="Left Top">
@@ -86,11 +82,7 @@
                 <Property key="Caption" value="#{sBack}"/>
             </Widget>
             <Widget type="AutoSizedButton" skin="MW_Button" position="532 397 42 23" name="OKButton">
-<<<<<<< HEAD:files/mygui/openmw_chargen_race.layout
-                <Property key="Caption" value="#{sOK}"/>
-=======
                 <Property key="Caption" value="#{Interface:OK}"/>
->>>>>>> omw51:files/data/mygui/openmw_chargen_race.layout
             </Widget>
         </Widget>
     </Widget>

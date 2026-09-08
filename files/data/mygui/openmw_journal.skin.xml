@@ -2,11 +2,7 @@
 
 <MyGUI type="Resource" version="1.1">
     <Resource type="ResourceSkin" name="MW_BookClient" size="10 10">
-<<<<<<< HEAD:files/mygui/openmw_journal.skin.xml
-            <Property key="FontName" value="Journalbook Magic Cards"/>
-=======
             <Property key="FontName" value="Journalbook DefaultFont"/>
->>>>>>> omw51:files/data/mygui/openmw_journal.skin.xml
             <Property key="TextAlign" value="Left Top"/>
             <Property key="TextColour" value="0 0 0"/>
             <BasisSkin type="EditText" offset="0 0 10 10" align="Stretch"/>
@@ -23,11 +19,7 @@
     </Resource>
 
     <Resource type="ResourceSkin" name="MW_QuestLink" size="5 5">
-<<<<<<< HEAD:files/mygui/openmw_journal.skin.xml
-        <Property key="FontName" value="Journalbook Magic Cards"/>
-=======
         <Property key="FontName" value="Journalbook DefaultFont"/>
->>>>>>> omw51:files/data/mygui/openmw_journal.skin.xml
         <Property key="TextAlign" value="Left VCenter"/>
 
         <BasisSkin type="SimpleText" offset="2 0 1 5" align="Stretch">

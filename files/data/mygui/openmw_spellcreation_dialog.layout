@@ -68,15 +68,12 @@
         <Widget type="HBox" position="0 336 558 60">
             <Property key="Padding" value="16"/>
 
-<<<<<<< HEAD:files/mygui/openmw_spellcreation_dialog.layout
-=======
             <Widget type="AutoSizedTextBox" skin="NormalText" name="PlayerGoldTextBox">
                 <Property key="Caption" value="#{sGold}"/>
                 <UserString key="ToolTipType" value="Layout"/>
                 <UserString key="ToolTipLayout" value="TextToolTip"/>
             </Widget>
             <Widget type="AutoSizedTextBox" skin="SandText" name="PlayerGold"/>
->>>>>>> omw51:files/data/mygui/openmw_spellcreation_dialog.layout
             <Widget type="Spacer"/>
 
             <Widget type="AutoSizedTextBox" skin="NormalText">
@@ -94,11 +91,7 @@
             </Widget>
 
             <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
-<<<<<<< HEAD:files/mygui/openmw_spellcreation_dialog.layout
-                <Property key="Caption" value="#{sCancel}"/>
-=======
                 <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_spellcreation_dialog.layout
             </Widget>
         </Widget>
 

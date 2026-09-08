@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_chargen_generate_class_result.layout
-    <Widget type="VBox" skin="MW_Dialog" layer="Windows" position="0 0 289 256" align="Center" name="_Main">
-=======
     <Widget type="VBox" skin="MW_Dialog" layer="Modal" position="0 0 289 256" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_chargen_generate_class_result.layout
         <Property key="AutoResize" value="true"/>
         <Property key="Padding" value="8"/>
         <Property key="Spacing" value="8"/>
@@ -33,11 +29,7 @@
                 <Property key="Caption" value="#{sBack}"/>
             </Widget>
             <Widget type="AutoSizedButton" skin="MW_Button" name="OKButton">
-<<<<<<< HEAD:files/mygui/openmw_chargen_generate_class_result.layout
-                <Property key="Caption" value="#{sOK}"/>
-=======
                 <Property key="Caption" value="#{Interface:OK}"/>
->>>>>>> omw51:files/data/mygui/openmw_chargen_generate_class_result.layout
             </Widget>
         </Widget>
     </Widget>

@@ -5,10 +5,7 @@
         <List file="openmw_layers.xml" />
         <List file="openmw_pointer.xml" />
         <List file="openmw_settings.xml" />
-<<<<<<< HEAD:files/mygui/core.xml
-=======
         <List file="openmw_lua.xml" />
->>>>>>> omw51:files/data/mygui/core.xml
     </MyGUI>
 </MyGUI>
 

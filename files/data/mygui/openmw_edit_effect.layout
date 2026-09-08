@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_edit_effect.layout
-    <Widget type="Window" skin="MW_DialogNoTransp" layer="Windows" position="0 0 362 310" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_DialogNoTransp" layer="Modal" position="0 0 362 310" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_edit_effect.layout
 
         <Widget type="ImageBox" skin="ImageBox" position="8 12 16 16" name="EffectImage">
         </Widget>
@@ -44,11 +40,8 @@
             <Widget type="ScrollBar" skin="MW_HScroll" position="122 20 210 13" name="MagnitudeMinSlider">
                 <Property key="Range" value="100"/>
                 <Property key="Page" value="1"/>
-<<<<<<< HEAD:files/mygui/openmw_edit_effect.layout
-=======
                 <Property key="ViewPage" value="10"/>
                 <Property key="MoveToClick" value="false"/>
->>>>>>> omw51:files/data/mygui/openmw_edit_effect.layout
             </Widget>
 
             <Widget type="TextBox" skin="SandText" position="122 32 210 20" name="MagnitudeMaxValue">
@@ -58,11 +51,8 @@
             <Widget type="ScrollBar" skin="MW_HScroll" position="122 52 210 13" name="MagnitudeMaxSlider">
                 <Property key="Range" value="100"/>
                 <Property key="Page" value="1"/>
-<<<<<<< HEAD:files/mygui/openmw_edit_effect.layout
-=======
                 <Property key="ViewPage" value="10"/>
                 <Property key="MoveToClick" value="false"/>
->>>>>>> omw51:files/data/mygui/openmw_edit_effect.layout
             </Widget>
         </Widget>
 
@@ -84,11 +74,8 @@
             <Widget type="ScrollBar" skin="MW_HScroll" position="122 20 210 13" name="DurationSlider">
                 <Property key="Range" value="1440"/>
                 <Property key="Page" value="1"/>
-<<<<<<< HEAD:files/mygui/openmw_edit_effect.layout
-=======
                 <Property key="ViewPage" value="20"/>
                 <Property key="MoveToClick" value="false"/>
->>>>>>> omw51:files/data/mygui/openmw_edit_effect.layout
             </Widget>
         </Widget>
 
@@ -109,11 +96,8 @@
             <Widget type="ScrollBar" skin="MW_HScroll" position="122 20 210 13" name="AreaSlider">
                 <Property key="Range" value="51"/>
                 <Property key="Page" value="1"/>
-<<<<<<< HEAD:files/mygui/openmw_edit_effect.layout
-=======
                 <Property key="ViewPage" value="5"/>
                 <Property key="MoveToClick" value="false"/>
->>>>>>> omw51:files/data/mygui/openmw_edit_effect.layout
             </Widget>
         </Widget>
 
@@ -125,19 +109,11 @@
             </Widget>
 
             <Widget type="AutoSizedButton" skin="MW_Button" name="OkButton">
-<<<<<<< HEAD:files/mygui/openmw_edit_effect.layout
-                <Property key="Caption" value="#{sOk}"/>
-            </Widget>
-
-            <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
-                <Property key="Caption" value="#{sCancel}"/>
-=======
                 <Property key="Caption" value="#{Interface:OK}"/>
             </Widget>
 
             <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
                 <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_edit_effect.layout
             </Widget>
         </Widget>
 

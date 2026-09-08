@@ -2,24 +2,11 @@
 # Modifications should be done on the user openmw.cfg file instead
 # (see: https://openmw.readthedocs.io/en/master/reference/modding/paths.html)
 
-<<<<<<< HEAD
-data="?global?data"
-data=./data
-data-local="?userdata?data"
-resources=./resources
-script-blacklist=Museum
-script-blacklist=MockChangeScript
-script-blacklist=doortestwarp
-script-blacklist=WereChange2Script
-script-blacklist=wereDreamScript2
-script-blacklist=wereDreamScript3
-=======
 data-local="?userdata?data"
 user-data="?userdata?"
 config="?userconfig?"
 resources=./resources
 data=./resources/vfs-mw
->>>>>>> omw51
 
 # lighting
 fallback=LightAttenuation_UseConstant,0
@@ -78,15 +65,9 @@ fallback=Water_UnderwaterColor,012,030,037
 fallback=Water_UnderwaterColorWeight,0.85
 
 # fonts
-<<<<<<< HEAD
-fallback=Fonts_Font_0,magic_cards_regular
-fallback=Fonts_Font_1,century_gothic_font_regular
-fallback=Fonts_Font_2,daedric_font
-=======
 fallback=Fonts_Font_0,MysticCards
 fallback=Fonts_Font_1,DejaVuLGCSansMono
 fallback=Fonts_Font_2,DemonicLetters
->>>>>>> omw51
 fallback=FontColor_color_normal,202,165,96
 fallback=FontColor_color_normal_over,223,201,159
 fallback=FontColor_color_normal_pressed,243,237,221
@@ -513,8 +494,6 @@ fallback=Weather_Blizzard_Cloud_Speed,7.5
 fallback=Weather_Blizzard_Glare_View,0
 fallback=Weather_Blizzard_Ambient_Loop_Sound_ID, Blizzard
 fallback=Weather_Blizzard_Storm_Threshold,.50
-<<<<<<< HEAD
-=======
 
 # moons
 fallback=Moons_Secunda_Size,20
@@ -540,4 +519,3 @@ fallback=Moons_Masser_Fade_In_Finish,15
 fallback=Moons_Masser_Fade_Out_Start,7
 fallback=Moons_Masser_Fade_Out_Finish,10
 fallback=Moons_Script_Color,255,20,20
->>>>>>> omw51

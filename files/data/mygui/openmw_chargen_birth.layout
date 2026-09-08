@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_chargen_birth.layout
-    <Widget type="Window" skin="MW_Dialog" layer="Windows" position="0 0 527 378" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_Dialog" layer="Modal" position="0 0 527 378" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_chargen_birth.layout
 
         <!-- Birthsign list -->
         <Widget type="ListBox" skin="MW_List" position="8 8 232 137" name="BirthsignList"/>
@@ -26,11 +22,7 @@
                 <Property key="Caption" value="#{sBack}"/>
             </Widget>
             <Widget type="AutoSizedButton" skin="MW_Button" name="OKButton">
-<<<<<<< HEAD:files/mygui/openmw_chargen_birth.layout
-                <Property key="Caption" value="OK"/>
-=======
                 <Property key="Caption" value="#{Interface:OK}"/>
->>>>>>> omw51:files/data/mygui/openmw_chargen_birth.layout
             </Widget>
         </Widget>
 

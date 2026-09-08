@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
-    <Widget type="VBox" skin="MW_DialogNoTransp" layer="Windows" position="0 0 600 400" align="Center" name="_Main">
-        <Property key="Padding" value="8"/>
-        <Property key="Spacing" value="8"/>
-
-=======
     <Widget type="VBox" skin="MW_DialogNoTransp" layer="Modal" position="0 0 600 400" align="Center" name="_Main">
         <Property key="Padding" value="8"/>
         <Property key="Spacing" value="8"/>
@@ -16,7 +10,6 @@
             <UserString key="HStretch" value="true"/>
         </Widget>
 
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
         <Widget type="HBox" skin="">
             <UserString key="HStretch" value="true"/>
             <UserString key="VStretch" value="true"/>
@@ -28,15 +21,6 @@
                 <UserString key="VStretch" value="true"/>
                 <Property key="Spacing" value="8"/>
 
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
-                <Widget type="ComboBox" skin="MW_ComboBox" position="0 0 200 24" name="SelectCharacter">
-                    <Property key="Caption" value="Select Character"/>
-                    <UserString key="HStretch" value="true"/>
-                </Widget>
-
-
-=======
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
                 <Widget type="ListBox" skin="MW_List" position="0 0 200 200" name="SaveList">
                     <UserString key="HStretch" value="true"/>
                     <UserString key="VStretch" value="true"/>
@@ -49,19 +33,10 @@
                 <UserString key="VStretch" value="true"/>
                 <Property key="Spacing" value="8"/>
 
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
-                <Widget type="Widget" skin="" position="0 0 200 24" name="Spacer">
-                    <Property key="Visible" value="false"/>
-                </Widget>
-
-=======
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
                 <Widget type="Widget" skin="MW_Box" position="0 0 263 137">
                     <Widget type="ImageBox" skin="ImageBox" position="2 2 259 133" name="Screenshot"/>
                 </Widget>
 
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
-=======
                 <Widget type="AutoSizedEditBox" skin="NormalText" position="0 0 263 0" name="CellName">
                     <Property key="Static" value="true"/>
                     <Property key="MultiLine" value="true"/>
@@ -70,23 +45,16 @@
                     <Property key="TextAlign" value="Center"/>
                 </Widget>
 
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
                 <Widget type="AutoSizedEditBox" skin="SandText" position="0 0 263 0" name="InfoText">
                     <Property key="Static" value="true"/>
                     <Property key="MultiLine" value="true"/>
                     <Property key="WordWrap" value="true"/>
                     <Property key="NeedKey" value="false"/>
                 </Widget>
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
-
-
-=======
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
             </Widget>
 
         </Widget>
 
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
         <!--
             Start of tes3mp addition
 
@@ -98,19 +66,12 @@
         <!--
             End of tes3mp addition
         -->
-
-=======
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
         <Widget type="HBox" skin="">
             <Property key="Spacing" value="4"/>
 
             <UserString key="HStretch" value="true"/>
             <Widget type="AutoSizedButton" skin="MW_Button" name="DeleteButton">
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
-                <Property key="Caption" value="#{sDeleteGame}"/>
-=======
                 <Property key="Caption" value="#{OMWEngine:DeleteGame}"/>
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
             </Widget>
 
             <Widget type="EditBox" skin="MW_TextEdit" name="SaveNameEdit">
@@ -119,17 +80,10 @@
             </Widget>
 
             <Widget type="AutoSizedButton" skin="MW_Button" name="OkButton">
-<<<<<<< HEAD:files/mygui/openmw_savegame_dialog.layout
-                <Property key="Caption" value="#{sOk}"/>
-            </Widget>
-            <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
-                <Property key="Caption" value="#{sCancel}"/>
-=======
                 <Property key="Caption" value="#{Interface:OK}"/>
             </Widget>
             <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
                 <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_savegame_dialog.layout
             </Widget>
         </Widget>
 

@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MyGUI>
     <MyGUI type="Font">
-<<<<<<< HEAD:files/mygui/openmw_settings.xml
-        <Property key="Default" value="Magic Cards"/>
-=======
         <Property key="Default" value="DefaultFont"/>
->>>>>>> omw51:files/data/mygui/openmw_settings.xml
 
     </MyGUI>
     <MyGUI type="Pointer">

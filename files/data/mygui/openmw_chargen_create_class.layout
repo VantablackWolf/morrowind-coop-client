@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_chargen_create_class.layout
-    <Widget type="Window" skin="MW_Dialog" layer="Windows" position="0 0 498 198" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_Dialog" layer="Modal" position="0 0 498 198" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_chargen_create_class.layout
 
         <!-- Class name -->
         <Widget type="TextBox" skin="NormalText" position="8 8 52 23" name="LabelT" align="Left Top">
@@ -87,11 +83,7 @@
                 <Property key="Caption" value="#{sBack}"/>
             </Widget>
             <Widget type="AutoSizedButton" skin="MW_Button" name="OKButton">
-<<<<<<< HEAD:files/mygui/openmw_chargen_create_class.layout
-                <Property key="Caption" value="#{sOK}"/>
-=======
                 <Property key="Caption" value="#{Interface:OK}"/>
->>>>>>> omw51:files/data/mygui/openmw_chargen_create_class.layout
             </Widget>
         </Widget>
 

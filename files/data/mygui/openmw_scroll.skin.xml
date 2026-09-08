@@ -14,8 +14,6 @@
         <Child type="ScrollBar" skin="MW_HScroll" offset="3 498 513 14" align="Left Bottom HStretch" name="HScroll"/>
     </Resource>
 
-<<<<<<< HEAD:files/mygui/openmw_scroll.skin.xml
-=======
     <Resource type="ResourceSkin" name="MW_ScrollViewVH" size="516 516">
         <Property key="NeedKey" value="false"/>
         <Child type="Widget" skin="" offset="0 0 502 502" align="Stretch" name="Client"/>
@@ -23,5 +21,4 @@
         <Child type="ScrollBar" skin="MW_HScroll" offset="3 498 492 14" align="Left Bottom HStretch" name="HScroll"/>
     </Resource>
 
->>>>>>> omw51:files/data/mygui/openmw_scroll.skin.xml
 </MyGUI>

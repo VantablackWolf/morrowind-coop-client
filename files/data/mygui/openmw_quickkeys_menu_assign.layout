@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_quickkeys_menu_assign.layout
-    <Widget type="Window" skin="MW_DialogNoTransp" position="0 0 16 154" layer="Windows" name="_Main">
-=======
     <Widget type="Window" skin="MW_DialogNoTransp" position="0 0 16 154" layer="Modal" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_quickkeys_menu_assign.layout
 
         <Widget type="TextBox" skin="SandText" position="8 8 0 18" name="Label">
             <Property key="Caption" value="#{sQuickMenu1}"/>
@@ -25,11 +21,7 @@
 
 
         <Widget type="Button" skin="MW_Button" position="8 112 0 24" name="CancelButton">
-<<<<<<< HEAD:files/mygui/openmw_quickkeys_menu_assign.layout
-            <Property key="Caption" value="#{sCancel}"/>
-=======
             <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_quickkeys_menu_assign.layout
         </Widget>
 
     </Widget>

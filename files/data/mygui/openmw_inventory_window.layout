@@ -30,8 +30,6 @@
 
             <!-- Categories -->
             <Widget type="HBox" position="0 6 350 28" align="Left Top HStretch" name="Categories">
-<<<<<<< HEAD:files/mygui/openmw_inventory_window.layout
-=======
                 <Widget type="ImageBox" skin="ImageBox" position="0 0 24 24" name="BtnL1Image">
                     <Property key="ImageTexture" value="textures\omw_steam_button_l1.dds"/>
                     <Property key="Colour" value="#ccb589"/>
@@ -39,7 +37,6 @@
                     <Property key="Visible" value="false"/>
                     <UserString key="Hidden" value="true"/>
                 </Widget>
->>>>>>> omw51:files/data/mygui/openmw_inventory_window.layout
                 <Widget type="AutoSizedButton" skin="MW_Button" position="0 0 60 24" name="AllButton">
                     <Property key="Caption" value="#{sAllTab}"/>
                     <Property key="NeedKey" value="false"/>
@@ -60,8 +57,6 @@
                     <Property key="Caption" value="#{sMiscTab}"/>
                     <Property key="NeedKey" value="false"/>
                 </Widget>
-<<<<<<< HEAD:files/mygui/openmw_inventory_window.layout
-=======
                 <Widget type="ImageBox" skin="ImageBox" position="0 0 24 24" name="BtnR1Image">
                     <Property key="ImageTexture" value="textures\omw_steam_button_r1.dds"/>
                     <Property key="Colour" value="#ccb589"/>
@@ -69,7 +64,6 @@
                     <Property key="Visible" value="false"/>
                     <UserString key="Hidden" value="true"/>
                 </Widget>
->>>>>>> omw51:files/data/mygui/openmw_inventory_window.layout
                 <!-- Search box-->
                 <Widget type="EditBox" skin="MW_TextBoxEditWithBorder" position="0 0 0 23" name="FilterEdit">
                     <UserString key="HStretch" value="true"/>

@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout">
     <!-- correct size is 247 144, adjust when skin is changed to a dialog -->
-<<<<<<< HEAD:files/mygui/openmw_chargen_select_specialization.layout
-    <Widget type="Window" skin="MW_DialogNoTransp" layer="Windows" position="0 0 247 144" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_DialogNoTransp" layer="Modal" position="0 0 247 144" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_chargen_select_specialization.layout
         <Widget type="Widget" skin="" position="14 14 216 116" align="Stretch">
 
             <!-- Label -->
@@ -30,11 +26,7 @@
                 <Widget type="Spacer" />
                 <Widget type="AutoSizedButton" skin="MW_Button" align="Right Bottom" name="CancelButton">
                     <Property key="ExpandDirection" value="Left Up"/>
-<<<<<<< HEAD:files/mygui/openmw_chargen_select_specialization.layout
-                    <Property key="Caption" value="#{sCancel}"/>
-=======
                     <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_chargen_select_specialization.layout
                 </Widget>
             </Widget>
 

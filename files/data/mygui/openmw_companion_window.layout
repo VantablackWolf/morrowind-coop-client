@@ -22,11 +22,7 @@
             <Widget type="AutoSizedTextBox" skin="SandText" name="ProfitLabel">
             </Widget>
             <Widget type="AutoSizedButton" skin="MW_Button" name="CloseButton">
-<<<<<<< HEAD:files/mygui/openmw_companion_window.layout
-                <Property key="Caption" value="#{sClose}"/>
-=======
                 <Property key="Caption" value="#{Interface:Close}"/>
->>>>>>> omw51:files/data/mygui/openmw_companion_window.layout
             </Widget>
         </Widget>
 

@@ -37,11 +37,7 @@
                <Widget type="Spacer"/>
 
                <Widget type="AutoSizedButton" skin="MW_Button" name="CancelButton">
-<<<<<<< HEAD:files/mygui/openmw_repair.layout
-                   <Property key="Caption" value="#{sCancel}"/>
-=======
                    <Property key="Caption" value="#{Interface:Cancel}"/>
->>>>>>> omw51:files/data/mygui/openmw_repair.layout
                </Widget>
         </Widget>
     </Widget>

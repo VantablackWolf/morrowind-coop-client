@@ -272,18 +272,6 @@
         </Widget>
 
         <!-- Birthsign tooltip -->
-<<<<<<< HEAD:files/mygui/openmw_tooltips.layout
-        <Widget type="VBox" skin="HUD_Box_NoTransp" position="0 0 300 300" align="Stretch" name="BirthSignToolTip">
-            <Property key="AutoResize" value="true"/>
-            <Property key="Padding" value="8"/>
-
-            <!-- Birthsign image -->
-            <Widget type="Widget" skin="MW_Box" position="18 13 263 137" align="Top HCenter">
-                <Widget type="ImageBox" skin="ImageBox" position="2 2 259 133" name="BirthSignImage" align="Left Top"/>
-            </Widget>
-
-            <Widget type="AutoSizedTextBox" skin="NormalText" position="8 154 284 138" align="Top" name="BirthSignText">
-=======
         <Widget type="VBox" skin="HUD_Box_NoTransp" position="0 0 0 0" align="Stretch" name="BirthSignToolTip">
             <Property key="AutoResize" value="true"/>
             <Property key="Padding" value="10"/>
@@ -312,7 +300,6 @@
             </Widget>
 
             <Widget type="AutoSizedTextBox" skin="NormalText" align="Top" name="BirthSignSpells">
->>>>>>> omw51:files/data/mygui/openmw_tooltips.layout
                 <Property key="TextAlign" value="Top HCenter"/>
             </Widget>
         </Widget>

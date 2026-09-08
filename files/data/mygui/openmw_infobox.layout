@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <MyGUI type="Layout">
-<<<<<<< HEAD:files/mygui/openmw_infobox.layout
-    <Widget type="Window" skin="MW_Dialog" layer="Windows" position="0 0 545 265" align="Center" name="_Main">
-=======
     <Widget type="Window" skin="MW_Dialog" layer="Modal" position="0 0 545 265" align="Center" name="_Main">
->>>>>>> omw51:files/data/mygui/openmw_infobox.layout
 
         <!-- Edit box -->
         <Widget type="Widget" skin="" position="14 14 516 70" name="TextBox" align="Top HCenter">

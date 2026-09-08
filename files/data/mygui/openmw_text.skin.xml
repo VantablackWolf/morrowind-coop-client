@@ -120,8 +120,6 @@ color_misc=0,205,205 # ????
         </BasisSkin>
     </Resource>
 
-<<<<<<< HEAD:files/mygui/openmw_text.skin.xml
-=======
     <Resource type="ResourceSkin" name="SpellTextEquippedController" size="16 16">
         <Property key="FontName" value="Default"/>
         <Property key="TextAlign" value="Left Bottom"/>
@@ -154,7 +152,6 @@ color_misc=0,205,205 # ????
         </BasisSkin>
     </Resource>
 
->>>>>>> omw51:files/data/mygui/openmw_text.skin.xml
     <Resource type="ResourceSkin" name="MW_StatNameButtonC" size="200 18">
         <Child type="Button" skin="SandTextButtonC" offset="0 0 200 18" align="Left HStretch" name="StatNameButton"/>
     </Resource>
