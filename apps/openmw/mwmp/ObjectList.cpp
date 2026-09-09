@@ -588,6 +588,15 @@ void ObjectList::spawnObjects(MWWorld::CellStore* cellStore)
                         activeEffect.mMagnitude = 1;
                         summonParams.getEffects().push_back(activeEffect);
 
+                        /*
+                            This spell is being reconstructed from a packet we received, so it
+                            must not be reported back. 0.8.1 left the default in place and did
+                            send one, but 0.8.1 also took getActiveSpells() by value here, so
+                            the spell it announced was added to a temporary and thrown away.
+                            The copy is fixed above; announcing it would now be a real echo.
+                        */
+                        summonParams.setSendPacket(false);
+
                         masterActiveSpells.addSpell(summonParams);
                     }
                     /*

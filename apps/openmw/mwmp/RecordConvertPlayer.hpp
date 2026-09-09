@@ -223,6 +223,18 @@ namespace mwmp
             to.mTimeLeft = from.mTimeLeft;
             to.mEffectIndex = from.mEffectIndex;
 
+            /*
+                ESM::ActiveEffect has no default member initialisers and the vector helper
+                below converts into a default-initialised local, so every field this
+                function does not write arrives as whatever was on the stack. 0.47's
+                ActiveEffect had no flags at all and the wire format still carries none.
+
+                Flag_None is also the right value on its own terms: these flags say how far
+                the receiving client has got with applying the effect, and it has not
+                started.
+            */
+            to.mFlags = ESM::ActiveEffect::Flag_None;
+
             if (from.mArg >= 0)
             {
                 if (detail::isSummon(to.mEffectId))
@@ -234,6 +246,25 @@ namespace mwmp
             }
         }
 
+        /*
+            What mMagnitude means here.
+
+            0.47 rolled an effect's magnitude once, at cast time, and mMagnitude held that
+            value for the life of the effect, so the wire carried the whole spell's strength.
+
+            0.51 rolls in applyMagicEffect() and then, for effects that are neither
+            AppliedOnce nor NoMagnitude, scales mMagnitude by the elapsed time to get that
+            frame's share. An effect is announced right after it is first applied, with
+            dt = 0, so a standing effect like Shield reports its full strength (AppliedOnce
+            skips the scaling) while a damage-over-time effect reports 0.
+
+            That is the right value to send. A remote player's health is authoritative from
+            their own client and arrives in ID_PLAYER_STATS_DYNAMIC; re-applying their damage
+            over here as well would count it twice. What the receiving client does need is
+            the standing magnitude, because CharacterController::updateContinuousVfx() reaps
+            any looping VFX whose effect has none -- which is what used to make a
+            synchronised shield vanish on the frame it appeared.
+        */
         inline void fromEngine(const ESM::ActiveEffect& from, records::ActiveEffect& to)
         {
             to.mEffectId = ESM::MagicEffect::refIdToIndex(from.mEffectId);

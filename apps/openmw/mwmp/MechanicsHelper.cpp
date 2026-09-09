@@ -225,6 +225,25 @@ MWMechanics::ActiveSpells::ActiveSpellParams MechanicsHelper::makeActiveSpellPar
 
     mwmp::RecordConvert::toEngine(activeSpell.params.mEffects, params.getEffects());
 
+    /*
+        0.47's ActiveSpells held nothing but temporary effects -- abilities, diseases and
+        constant enchantments lived elsewhere -- so the protocol never needed to say which
+        kind a spell was, and 0.8.1 rebuilt one here with no notion of a flag at all.
+
+        0.51 keeps all four kinds in ActiveSpells and tells them apart by these flags, and
+        it acts on them: a spell without Flag_Temporary is never expired by update(), and
+        its finished effects are re-applied every frame instead of being skipped. Rebuilding
+        a shield without the flag would leave it running on the receiving client forever.
+
+        Everything these packets carry is temporary by construction -- see the send side,
+        which refuses anything else. The one distinction the wire does make is
+        isStackingSpell, meaning "no ESM::Spell has this id", which is how a potion or
+        ingredient effect appears; that is exactly what Flag_Stackable marks in 0.51.
+    */
+    params.setFlag(ESM::ActiveSpells::Flag_Temporary);
+    if (activeSpell.isStackingSpell)
+        params.setFlag(ESM::ActiveSpells::Flag_Stackable);
+
     return params;
 }
 

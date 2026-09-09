@@ -518,14 +518,27 @@ namespace MWMechanics
         return false;
     }
 
-    bool ActiveSpells::initParams(const MWWorld::Ptr& ptr, const ActiveSpellParams& params, UpdateContext& context)
+    bool ActiveSpells::initParams(
+        const MWWorld::Ptr& ptr, const ActiveSpellParams& params, UpdateContext& context, ESM::RefId* addedId)
     {
-        mSpells.emplace_back(params).setActiveSpellId(MWBase::Environment::get().getESMStore()->generateId());
+        const ESM::RefId activeSpellId = MWBase::Environment::get().getESMStore()->generateId();
+        mSpells.emplace_back(params).setActiveSpellId(activeSpellId);
         auto it = mSpells.end();
         --it;
         // We instantly apply the effect with a duration of 0 so continuous effects can be purged before truly applying
         if (context.mUpdate && updateActiveSpell(ptr, 0.f, it, context))
             return false;
+        /*
+            Start of tes3mp addition
+
+            Report which spell was added, so the caller can find it again once it has been
+            applied. See addToSpells().
+        */
+        if (addedId != nullptr)
+            *addedId = activeSpellId;
+        /*
+            End of tes3mp addition
+        */
         return true;
     }
 
@@ -547,7 +560,74 @@ namespace MWMechanics
                     effect.mTimeLeft = 0.f;
             }
         }
-        initParams(ptr, spell, context);
+
+        /*
+            Start of tes3mp addition
+
+            Whenever a player gains an active spell as a result of gameplay, send an ID_PLAYER_SPELLS_ACTIVE packet
+            to the server with it
+
+            Whenever a local actor gains an active spell, send an ID_ACTOR_SPELLS_ACTIVE packet to the server with it
+        */
+        /*
+            0.8.1 sent this from addSpell(), which both inserted the spell and knew whether
+            to send. Neither is true in 0.51: addSpell() only appends to mQueue, and it has
+            no idea whose ActiveSpells it belongs to -- 0.8.1 recovered that with
+            searchPtrViaActorId(getActorId()), and neither of those exists any more.
+
+            addToSpells() is where the spell genuinely becomes active, and update() hands it
+            the actor, so that is where the packet goes. The suppression flag rides along on
+            the params (see ActiveSpellParams::mSendPacket) because the queue puts a frame
+            between the call and the effect.
+
+            It is sent AFTER initParams() rather than before, because 0.51 moved when an
+            effect's magnitude is decided. 0.47 rolled it in inflict(), at cast time, so
+            0.8.1's hook saw the final number; 0.51 rolls it in applyMagicEffect(), which
+            runs inside initParams(). Announcing the spell any earlier puts a magnitude of
+            zero on the wire, and a shield worth zero points is reaped by
+            CharacterController::updateContinuousVfx() on the receiving client the moment it
+            appears -- the cast is heard and seen, and nothing remains of it.
+
+            This also means the merge and already-active paths above send nothing, unlike
+            0.8.1. Those paths do not add a spell; 0.8.1 sent a packet for them anyway and
+            the receiver, whose addSpellsActive() always adds, grew a duplicate copy of a
+            spell it already had.
+        */
+        ESM::RefId addedId;
+        if (!initParams(ptr, spell, context, &addedId) || addedId.empty())
+            return;
+
+        /*
+            Only temporary spells are announced. 0.47 kept abilities, diseases and constant
+            enchantments out of ActiveSpells entirely, so 0.8.1's hook could not see them
+            and the ID_*_SPELLS_ACTIVE packets have no way to describe one -- the receiving
+            side rebuilds every spell it is told about as temporary. 0.51 does keep them
+            here, so without this test a contracted disease would be broadcast and would
+            come back as a temporary effect that never expires. They are already covered by
+            the spellbook and equipment packets.
+        */
+        if (!spell.getSendPacket() || !spell.hasFlag(ESM::ActiveSpells::Flag_Temporary))
+            return;
+
+        const TIterator applied = getActiveSpellById(addedId);
+        if (applied == end())
+            return;
+
+        const std::string spellId = mwmp::RefIdCompat::toWire(applied->getSourceSpellId());
+
+        if (this == &MWMechanics::getPlayer().getClass().getCreatureStats(MWMechanics::getPlayer()).getActiveSpells())
+        {
+            mwmp::Main::get().getLocalPlayer()->sendSpellsActiveAddition(
+                spellId, MechanicsHelper::isStackingSpell(spellId), *applied);
+        }
+        else if (mwmp::Main::get().getCellController()->isLocalActor(ptr))
+        {
+            mwmp::Main::get().getCellController()->getLocalActor(ptr)->sendSpellsActiveAddition(
+                spellId, MechanicsHelper::isStackingSpell(spellId), *applied);
+        }
+        /*
+            End of tes3mp addition
+        */
     }
 
     ActiveSpells::ActiveSpells()
@@ -619,12 +699,35 @@ namespace MWMechanics
     */
     void ActiveSpells::addSpell(const ActiveSpellParams& params)
     {
-        mQueue.emplace_back(params);
+        /*
+            Start of tes3mp addition
+
+            Stamp a spell gained through gameplay with the current time, which is what 0.8.1
+            did by giving the timestamp argument a default. It is what a removal packet names
+            to say WHICH of several stacked copies of one spell went away, so a spell that
+            reaches the server with no timestamp cannot be individually removed later.
+        */
+        ActiveSpellParams stamped = params;
+        stamped.setTimeStamp(MWBase::Environment::get().getWorld()->getTimeStamp());
+        mQueue.emplace_back(std::move(stamped));
+        /*
+            End of tes3mp addition
+        */
     }
 
     void ActiveSpells::addSpell(const ESM::Spell* spell, const MWWorld::Ptr& actor, bool ignoreResistances)
     {
-        mQueue.emplace_back(ActiveSpellParams{ spell, actor, ignoreResistances });
+        /*
+            Start of tes3mp change (minor)
+
+            As above: stamp it with the current time.
+        */
+        ActiveSpellParams stamped{ spell, actor, ignoreResistances };
+        stamped.setTimeStamp(MWBase::Environment::get().getWorld()->getTimeStamp());
+        mQueue.emplace_back(std::move(stamped));
+        /*
+            End of tes3mp change (minor)
+        */
     }
 
     void ActiveSpells::purge(ParamsPredicate predicate, const MWWorld::Ptr& ptr)
@@ -811,6 +914,13 @@ namespace MWMechanics
         stamped.setTimeStamp(timestamp);
 
         /*
+            0.8.1 read sendPacket here, because addSpell() was also what sent the packet.
+            0.51 only queues here and applies the spell a frame later in addToSpells(), so
+            the flag has to travel on the params to reach the hook that reads it.
+        */
+        stamped.setSendPacket(sendPacket);
+
+        /*
             0.8.1 took a "stack" flag here. 0.51 does not need one: every queued
             ActiveSpellParams gets its own mActiveSpellId, so two copies of the same spell
             coexist as a matter of course and are individually addressable. Passing the
@@ -820,14 +930,6 @@ namespace MWMechanics
         */
         mQueue.emplace_back(stamped);
 
-        /*
-            sendPacket is honoured by the caller, not here: the packet is built in
-            mwmp/LocalPlayer and mwmp/LocalActor, which have the Ptr and the player
-            identity this class does not. It stays in the signature because the four
-            tes3mp call sites read as a pair with their non-sending counterparts, and
-            silently ignoring an argument is worse than documenting it.
-        */
-        (void)sendPacket;
     }
     /*
         End of tes3mp addition

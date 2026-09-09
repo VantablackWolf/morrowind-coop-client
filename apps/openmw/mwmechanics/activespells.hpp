@@ -70,6 +70,18 @@ namespace MWMechanics
                 resends active spells on connect.
             */
             MWWorld::TimeStamp mTimeStamp;
+
+            /*
+                Whether gaining this spell should be reported to the server.
+
+                0.8.1 passed this as an argument to addSpell(), because addSpell() both
+                inserted the spell and sent the packet. 0.51 splits those in two: addSpell()
+                only queues, and the spell becomes active later, in addToSpells() during
+                update(). The flag therefore has to travel with the params instead of with
+                the call, or a spell that arrived from another client would be echoed
+                straight back to the server a frame after it was applied.
+            */
+            bool mSendPacket = true;
             /*
                 End of tes3mp addition
             */
@@ -91,6 +103,9 @@ namespace MWMechanics
             */
             MWWorld::TimeStamp getTimeStamp() const { return mTimeStamp; }
             void setTimeStamp(MWWorld::TimeStamp timestamp) { mTimeStamp = timestamp; }
+
+            bool getSendPacket() const { return mSendPacket; }
+            void setSendPacket(bool sendPacket) { mSendPacket = sendPacket; }
             /*
                 End of tes3mp addition
             */
@@ -177,7 +192,17 @@ namespace MWMechanics
         bool updateActiveSpell(
             const MWWorld::Ptr& ptr, float duration, Collection::iterator& spellIt, UpdateContext& context);
 
-        bool initParams(const MWWorld::Ptr& ptr, const ActiveSpellParams& params, UpdateContext& context);
+        /*
+            Start of tes3mp change (minor)
+
+            Optionally report the id given to the spell that was added, so addToSpells() can
+            find it again after it has been applied and read its rolled magnitude.
+        */
+        bool initParams(const MWWorld::Ptr& ptr, const ActiveSpellParams& params, UpdateContext& context,
+            ESM::RefId* addedId = nullptr);
+        /*
+            End of tes3mp change (minor)
+        */
 
     public:
         ActiveSpells();
