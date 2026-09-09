@@ -84,6 +84,7 @@ void DedicatedActor::setCell(MWWorld::CellStore *cellStore)
 void DedicatedActor::move(float dt)
 {
     ESM::Position refPos = ptr.getRefData().getPosition();
+
     MWBase::World *world = MWBase::Environment::get().getWorld();
     const int maxInterpolationDistance = 40;
 
@@ -116,9 +117,45 @@ void DedicatedActor::move(float dt)
 void DedicatedActor::setMovementSettings()
 {
     MWMechanics::Movement *move = &ptr.getClass().getMovementSettings(ptr);
-    move->mPosition[0] = direction.pos[0];
-    move->mPosition[1] = direction.pos[1];
-    move->mPosition[2] = direction.pos[2];
+
+    /*
+        Start of tes3mp addition
+
+        Do not play a walk animation for an actor that has nowhere to walk to.
+
+        direction drives the animation on this client; the authority's position drives
+        where the actor actually is. Those two are sent together but they go stale
+        independently: an actor that stops moving stops producing position updates, so
+        whatever direction accompanied its last update stays applied indefinitely.
+
+        Morrowind is full of NPCs that stand at a post -- traders, guards -- and for those
+        the last direction seen can be a walk that never gets retracted. The result is an
+        NPC marching on the spot forever, which is what this looked like in game while the
+        creatures around it, which genuinely move, synchronised perfectly.
+
+        So the animation follows the thing it is meant to depict: if we are already at the
+        position the authority last reported, there is no movement to animate. A real
+        change in position brings a real direction with it in the same packet.
+    */
+    const ESM::Position& refPos = ptr.getRefData().getPosition();
+    const float dx = position.pos[0] - refPos.pos[0];
+    const float dy = position.pos[1] - refPos.pos[1];
+    const float dz = position.pos[2] - refPos.pos[2];
+    const bool atTarget = (dx * dx + dy * dy + dz * dz) < 1.f;
+
+    if (atTarget)
+    {
+        move->mPosition[0] = move->mPosition[1] = move->mPosition[2] = 0;
+    }
+    else
+    {
+        move->mPosition[0] = direction.pos[0];
+        move->mPosition[1] = direction.pos[1];
+        move->mPosition[2] = direction.pos[2];
+    }
+    /*
+        End of tes3mp addition
+    */
 
     // Make sure the values are valid, or we'll get an infinite error loop
     if (!isnan(direction.rot[0]) && !isnan(direction.rot[1]) && !isnan(direction.rot[2]))

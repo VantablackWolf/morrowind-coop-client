@@ -22,13 +22,41 @@ namespace mwmp
             LOG_MESSAGE_SIMPLE(TimedLog::LOG_INFO, "Received %s about %s", strPacketID.c_str(), actorList.cell.getShortDescription().c_str());
             mwmp::CellController *cellController = Main::get().getCellController();
 
-            // Never initialize LocalActors in a cell that is no longer loaded, if the server's packet arrived too late
+            /*
+                Start of tes3mp change (major)
+
+                Record who holds authority even when this cell is not loaded here yet.
+
+                The authority guid and the ability to act on it are separate facts, and the
+                merge treated them as one. On login the server loads the player's saved cell,
+                assigns authority and broadcasts it while the client is still standing in the
+                starting exterior, so isActiveWorldCell was false and the whole packet --
+                including the identity of the authority -- was thrown away. No further grant
+                is ever sent, so the client was left permanently believing nobody owned the
+                cell.
+
+                What that cost: a client that had earlier been granted authority kept its
+                LocalActors, while also holding DedicatedActors for the same NPCs once the
+                actor list arrived. Two controllers drove every NPC -- local AI moving them,
+                network updates pulling them back -- which is what jittering and walking on
+                the spot actually is.
+
+                So the guid is recorded unconditionally, and only the part that genuinely
+                needs a loaded cell -- creating LocalActors -- stays behind the check.
+            */
+            cellController->initializeCell(actorList.cell);
+            mwmp::Cell *cell = cellController->getCell(actorList.cell);
+
+            if (cell == nullptr)
+            {
+                LOG_APPEND(TimedLog::LOG_INFO, "%s", "- Ignoring it because that cell could not be initialized");
+                return;
+            }
+
+            cell->setAuthority(guid);
+
             if (cellController->isActiveWorldCell(actorList.cell))
             {
-                cellController->initializeCell(actorList.cell);
-                mwmp::Cell *cell = cellController->getCell(actorList.cell);
-                cell->setAuthority(guid);
-
                 if (isLocal())
                 {
                     LOG_APPEND(TimedLog::LOG_INFO, "- The new authority is me");
@@ -66,8 +94,12 @@ namespace mwmp
             }
             else
             {
-                LOG_APPEND(TimedLog::LOG_INFO, "- Ignoring it because that cell isn't loaded");
+                LOG_APPEND(TimedLog::LOG_INFO, "%s",
+                    "- Cell not loaded here yet; authority recorded, actors will follow when it loads");
             }
+            /*
+                End of tes3mp change (major)
+            */
         }
     };
 }

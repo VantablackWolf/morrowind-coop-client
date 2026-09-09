@@ -66,8 +66,35 @@ void LocalActor::update(bool forceUpdate)
     updateStatsDynamic(forceUpdate);
     updateEquipment(forceUpdate, false);
 
-    if (forceUpdate || !creatureStats.mDeathAnimationFinished)
+    /*
+        Start of tes3mp change (major)
+
+        Only stop updating an actor once it is DEAD and its death animation has finished.
+
+        The gate used to be "!mDeathAnimationFinished" alone. That reads as "this actor has
+        settled, stop sending it", but the flag does not mean that on a living actor:
+        Creature::ensureCustomData and Npc::ensureCustomData both initialise it with
+
+            setDeathAnimationFinished(isPersistent(ptr))
+
+        so every persistent actor -- which is most named NPCs, guards and shopkeepers -- has
+        it set to true from the moment it is created, while alive and walking.
+
+        The consequence was that a persistent actor got exactly one position update, the
+        forced one when its LocalActor is first created, and was never reported again. On
+        every other client it stood frozen where it happened to be, forever. Non-persistent
+        creatures -- rats, cliff racers, scribs -- have the flag false and synchronised
+        perfectly, which is why this looked like "NPCs are broken but wildlife is fine".
+
+        Measured before the fix: updatePosition was reached for about 4% of the calls the
+        send loop made, and the authority queued 0.1 of 4.4 actors per cycle while 8 of 12
+        were provably moving.
+    */
+    if (forceUpdate || !creatureStats.mDead || !creatureStats.mDeathAnimationFinished)
     {
+    /*
+        End of tes3mp change (major)
+    */
         updatePosition(forceUpdate);
         updateAnimFlags(forceUpdate);
         updateAnimPlay();
@@ -104,15 +131,50 @@ void LocalActor::updatePosition(bool forceUpdate)
     }
     else
     {
-        posIsChanging = direction.pos[0] != 0 || direction.pos[1] != 0 || direction.pos[2] != 0 ||
-            direction.rot[0] != 0 || direction.rot[1] != 0 || direction.rot[2] != 0 ||
-            !MWBase::Environment::get().getWorld()->isOnGround(ptr);
+        /*
+            Start of tes3mp change (major)
+
+            Decide "is this actor moving" from its actual position, not from direction alone.
+
+            0.8.1 could rely on direction because in 0.47 nothing stood between the AI writing
+            the actor's movement settings and CharacterController::update, where tes3mp copies
+            them into direction. 0.51 inserted updateLuaControls into exactly that gap
+            (Actors::update calls it between AiSequence::execute and ctrl.update), and it both
+            reads and rewrites mov.mPosition. By the time the hook runs, direction is zero for
+            all but a handful of frames.
+
+            Measured on a fort full of NPCs: 4 of 2500 updatePosition calls saw any direction
+            at all, so the authority sent 3 position packets in a session and the other client
+            received 2. Its copies then applied the last direction they were given forever --
+            NPCs animating a walk while their position never advanced, which is what "walking
+            on the spot" is.
+
+            Comparing the position we last sent against the position the actor is at now needs
+            nothing from the engine's movement plumbing, so no future reshuffle of it can
+            silently switch actor sync off again. It is also what the dead-actor branch above
+            has always done. direction and isOnGround are kept as additional triggers so a
+            turn on the spot, or a fall, still reports.
+        */
+        ESM::Position ptrPosition = ptr.getRefData().getPosition();
+
+        posIsChanging = position.pos[0] != ptrPosition.pos[0] || position.pos[1] != ptrPosition.pos[1]
+            || position.pos[2] != ptrPosition.pos[2] || position.rot[0] != ptrPosition.rot[0]
+            || position.rot[2] != ptrPosition.rot[2] || direction.pos[0] != 0 || direction.pos[1] != 0
+            || direction.pos[2] != 0 || direction.rot[0] != 0 || direction.rot[1] != 0
+            || direction.rot[2] != 0 || !MWBase::Environment::get().getWorld()->isOnGround(ptr)
+            || direction.pos[0] != sentDirection.pos[0] || direction.pos[1] != sentDirection.pos[1]
+            || direction.pos[2] != sentDirection.pos[2] || direction.rot[0] != sentDirection.rot[0]
+            || direction.rot[1] != sentDirection.rot[1] || direction.rot[2] != sentDirection.rot[2];
+        /*
+            End of tes3mp change (major)
+        */
     }
 
     if (forceUpdate || posIsChanging || posWasChanged)
     {
         posWasChanged = posIsChanging;
         position = mwmp::RecordConvert::toMirror(ptr.getRefData().getPosition());
+        sentDirection = direction;
         mwmp::Main::get().getNetworking()->getActorList()->addPositionActor(*this);
     }
 }

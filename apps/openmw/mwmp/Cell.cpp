@@ -17,6 +17,7 @@
 #include "MechanicsHelper.hpp"
 #include "PlayerList.hpp"
 #include "RefNumCompat.hpp"
+#include <chrono>
 
 using namespace mwmp;
 
@@ -37,6 +38,31 @@ void Cell::updateLocal(bool forceUpdate)
 {
     if (localActors.empty())
         return;
+
+    /*
+        Start of tes3mp addition
+
+        Never simulate actors this client does not own.
+
+        updateDedicated already drops DedicatedActors once we take authority; this is the
+        missing half. Without it a client that was granted authority, and then lost it to
+        another player, kept running AI for the cell's actors and broadcasting their
+        positions while simultaneously applying the new authority's updates to the same
+        Ptrs. Two writers per NPC: they jitter, and they walk on the spot.
+
+        Deliberately conditional on the authority being KNOWN. An unset guid means no grant
+        has arrived yet, and in that state the old behaviour is kept -- initialize and
+        simulate -- so a cell whose authority packet never comes still works exactly as it
+        did before.
+    */
+    if (authorityGuid != RakNet::UNASSIGNED_CRABNET_GUID && !hasLocalAuthority())
+    {
+        uninitializeLocalActors();
+        return;
+    }
+    /*
+        End of tes3mp addition
+    */
 
     const float timeoutSec = 0.025;
 
@@ -144,6 +170,7 @@ void Cell::readPositions(ActorList& actorList)
         if (dedicatedActors.count(mapIndex) > 0)
         {
             DedicatedActor *actor = dedicatedActors[mapIndex];
+
             actor->position = baseActor.position;
             actor->direction = baseActor.direction;
 
@@ -566,6 +593,38 @@ void Cell::initializeDedicatedActors(ActorList& actorList)
     for (const auto &baseActor : actorList.baseActors)
     {
         std::string mapIndex = Main::get().getCellController()->generateMapIndex(baseActor);
+
+        /*
+            Start of tes3mp addition
+
+            Receiving an authoritative position for an actor proves we do not own it, so
+            give up our LocalActor for it if we still have one.
+
+            An actor must never be both a LocalActor and a DedicatedActor here. If it is,
+            two writers drive the same Ptr every frame -- local AI moving it, incoming
+            updates pulling it back -- and it jitters and walks on the spot.
+
+            updateLocal and updateDedicated both try to prevent that by consulting the
+            recorded authority, but they can only act on grants that arrived. A client that
+            was granted authority and then lost it never finds out if the later grant is
+            missed, and goes on simulating a cell someone else owns.
+
+            This rule needs no grant at all: the packet in our hands is the evidence. It is
+            self-correcting, and it is checked at the one point where the conflict can
+            actually arise.
+        */
+        if (localActors.count(mapIndex) > 0)
+        {
+            LOG_APPEND(TimedLog::LOG_INFO,
+                "- Dropping LocalActor %s; another client is sending authoritative positions for it",
+                mapIndex.c_str());
+            Main::get().getCellController()->removeLocalActorRecord(mapIndex);
+            delete localActors[mapIndex];
+            localActors.erase(mapIndex);
+        }
+        /*
+            End of tes3mp addition
+        */
 
         // If this key doesn't exist, create it
         if (dedicatedActors.count(mapIndex) == 0)

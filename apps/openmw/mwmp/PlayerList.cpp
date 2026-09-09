@@ -18,6 +18,7 @@
 #include "DedicatedPlayer.hpp"
 #include "CellController.hpp"
 #include "GUIController.hpp"
+#include "RefNumCompat.hpp"
 
 
 using namespace mwmp;
@@ -138,9 +139,26 @@ bool PlayerList::isDedicatedPlayer(const MWWorld::Ptr &ptr)
     if (ptr.mRef == nullptr)
         return false;
 
-    // Players always have 0 as their refNum and mpNum
-    if (ptr.getCellRef().getRefNum().mIndex != 0 || ptr.getCellRef().getMpNum() != 0)
+    /*
+        Start of tes3mp change (major)
+
+        Players always have 0 as their refNum and mpNum -- but ask RefNumCompat what the
+        refNum is rather than reading mIndex directly.
+
+        0.51's CellRef::getOrAssignRefNum gives every reference a RefNum so WorldModel's
+        Ptr registry has a key for it, including the ones tes3mp creates for remote
+        players. Read raw, mIndex is then non-zero and this returned false for every
+        DedicatedPlayer that ever existed -- silently disabling all 35 call sites, which
+        between them cover combat, hit handling, knockdown and actor processing.
+
+        RefNumCompat::toWire reports a generated RefNum as 0, which is what this test has
+        always meant by "no refNum".
+    */
+    if (mwmp::RefNumCompat::toWire(ptr.getCellRef()) != 0 || ptr.getCellRef().getMpNum() != 0)
         return false;
+    /*
+        End of tes3mp change (major)
+    */
 
     return (getPlayer(ptr) != nullptr);
 }

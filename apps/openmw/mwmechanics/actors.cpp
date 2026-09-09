@@ -1857,10 +1857,28 @@ namespace MWMechanics
                         if (mTimerUpdateHeadTrack == 0)
                             updateHeadTracking(actor.getPtr(), mActors, isPlayer, ctrl);
 
-                        if (actor.getPtr().getClass().isNpc() && !isPlayer)
+                        /*
+                            (isLocalActor || aiActive) below is tes3mp's, not upstream's, and it
+                            is load-bearing. tes3mp turns the global AI flag off for good in
+                            Main::postInit, so aiActive is false on every client; what decides
+                            whether this client simulates an actor is whether it OWNS it.
+
+                            The merge dropped that condition from these three blocks, leaving
+                            upstream's bare "not the player" test. Every client then ran AI for
+                            every actor in range -- including the DedicatedActors it holds for
+                            actors another client owns. Those tried to walk under local AI while
+                            incoming position packets pulled them back to where their owner said
+                            they were: on the second player to enter a cell, NPCs animated a
+                            walk, went nowhere, and stopped constantly.
+
+                            The outer gate already lets DedicatedActors through, because they
+                            still need head tracking and the rest. It is specifically AI that
+                            must not run for an actor this client does not own.
+                        */
+                        if (actor.getPtr().getClass().isNpc() && !isPlayer && (isLocalActor || aiActive))
                             updateCrimePursuit(actor.getPtr(), duration, cachedAllies);
 
-                        if (!isPlayer)
+                        if (!isPlayer && (isLocalActor || aiActive))
                         {
                             CreatureStats& stats = actor.getPtr().getClass().getCreatureStats(actor.getPtr());
                             if (isConscious(actor.getPtr()) && !(luaControls && luaControls->mDisableAI))
@@ -1872,7 +1890,7 @@ namespace MWMechanics
                             }
                         }
                     }
-                    else if (aiActive && !isPlayer && isConscious(actor.getPtr())
+                    else if ((isLocalActor || aiActive) && !isPlayer && isConscious(actor.getPtr())
                         && !(luaControls && luaControls->mDisableAI))
                     {
                         CreatureStats& stats = actor.getPtr().getClass().getCreatureStats(actor.getPtr());

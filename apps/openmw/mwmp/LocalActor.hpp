@@ -46,6 +46,19 @@ namespace mwmp
         MWWorld::Ptr ptr;
 
         bool posWasChanged;
+
+        /*
+            Start of tes3mp addition
+
+            The direction last put on the wire, so a change in it -- above all a return to
+            zero when an actor stops -- is itself a reason to send. Without that, the other
+            client keeps applying the last direction it was given and the actor animates a
+            walk forever while standing still.
+        */
+        mwmp::records::Position sentDirection{};
+        /*
+            End of tes3mp addition
+        */
         bool equipmentChanged;
 
         bool wasRunning;
